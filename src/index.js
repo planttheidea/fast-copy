@@ -1,11 +1,21 @@
 // constants
-import {HAS_BUFFER_SUPPORT, HAS_MAP_SUPPORT, HAS_SET_SUPPORT} from './constants';
+import {HAS_ARRAYBUFFER_SUPPORT, HAS_BUFFER_SUPPORT, HAS_MAP_SUPPORT, HAS_SET_SUPPORT} from './constants';
 
 // utils
-import {copyArray, copyBuffer, copyIterable, copyObject, copyRegExp, getNewCache, isObjectCopyable} from './utils';
+import {
+  copyArray,
+  copyArrayBuffer,
+  copyBuffer,
+  copyIterable,
+  copyObject,
+  copyRegExp,
+  copyTypedArray,
+  getNewCache,
+  isObjectCopyable
+} from './utils';
 
 /**
- * @function fastCopy
+ * @function copy
  *
  * @description
  * deeply copy the object to a new object of the same type
@@ -13,7 +23,7 @@ import {copyArray, copyBuffer, copyIterable, copyObject, copyRegExp, getNewCache
  * @param {any} object the object to copy
  * @returns {any} the copied object
  */
-export default function fastCopy(object) {
+export default function copy(object) {
   const cache = getNewCache();
 
   function handleCopy(object) {
@@ -25,6 +35,12 @@ export default function fastCopy(object) {
       cache.add(object);
 
       return copyArray(object, handleCopy);
+    }
+
+    if (object.constructor === Object) {
+      cache.add(object);
+
+      return copyObject(object, handleCopy, true);
     }
 
     if (object instanceof Date) {
@@ -39,6 +55,16 @@ export default function fastCopy(object) {
       return copyBuffer(object);
     }
 
+    if (HAS_ARRAYBUFFER_SUPPORT) {
+      if (ArrayBuffer.isView(object)) {
+        return copyTypedArray(object);
+      }
+
+      if (object instanceof ArrayBuffer) {
+        return copyArrayBuffer(object);
+      }
+    }
+
     cache.add(object);
 
     if (HAS_MAP_SUPPORT && object instanceof Map) {
@@ -49,7 +75,7 @@ export default function fastCopy(object) {
       return copyIterable(object, handleCopy, false);
     }
 
-    return copyObject(object, handleCopy, object.constructor === Object);
+    return copyObject(object, handleCopy, false);
   }
 
   return handleCopy(object);

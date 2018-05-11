@@ -14,7 +14,9 @@ function Foo(value) {
 
 const object = {
   array: ['foo', {bar: 'baz'}],
+  arrayBuffer: new ArrayBuffer(8),
   boolean: true,
+  dataView: new DataView(new ArrayBuffer(16)),
   deeply: {
     nested: {
       reference: {}
@@ -57,6 +59,7 @@ const object = {
   set: new Set().add('foo').add({bar: 'baz'}),
   string: 'foo',
   symbol: Symbol('foo'),
+  typedArray: new Uint8Array([12, 15]),
   undef: undefined,
   weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
   weakset: new WeakSet([{}, {}]),
@@ -103,6 +106,6 @@ Object.keys(object).forEach((key) => {
 
   console.log('can copy deeply', isObjectCopyable(object[key], {has: () => false}));
 
-  console.log(`copy of ${key} type works`, copy(object[key]));
+  console.log(`copy of ${key} type`, copy(object[key]));
   console.groupEnd(key);
 });

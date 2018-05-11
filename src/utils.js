@@ -1,5 +1,5 @@
 // constants
-import {HAS_WEAKMAP_SUPPORT, HAS_WEAKSET_SUPPORT} from './constants';
+import {HAS_PROPERTY_SYMBOL_SUPPORT, HAS_WEAKMAP_SUPPORT, HAS_WEAKSET_SUPPORT} from './constants';
 
 const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -25,26 +25,26 @@ export const getNewCache = () =>
     });
 
 /**
- * @function getRegexpFlags
+ * @function getRegExpFlags
  *
  * @description
  * get the flags to apply to the copied regexp
  *
- * @param {RegExp} regexp the regexp to get the flags of
+ * @param {RegExp} regExp the regexp to get the flags of
  * @returns {string} the flags for the regexp
  */
-export const getRegexpFlags = (regexp) => {
+export const getRegExpFlags = (regExp) => {
   let flags = '';
 
-  if (regexp.global) {
+  if (regExp.global) {
     flags += 'g';
   }
 
-  if (regexp.ignoreCase) {
+  if (regExp.ignoreCase) {
     flags += 'i';
   }
 
-  if (regexp.multiline) {
+  if (regExp.multiline) {
     flags += 'm';
   }
 
@@ -61,7 +61,7 @@ export const getRegexpFlags = (regexp) => {
  * @returns {Array<Symbol>} the symbols in the object
  */
 export const getSymbols = (object) =>
-  Object.getOwnPropertySymbols
+  HAS_PROPERTY_SYMBOL_SUPPORT
     ? Object.getOwnPropertySymbols(object).filter((symbol) => propertyIsEnumerable.call(object, symbol))
     : [];
 
@@ -95,14 +95,25 @@ export const isObjectCopyable = (object, cache) =>
  * @returns {Array<any>} the copied array
  */
 export const copyArray = (array, copy) => {
-  const newArray = new array.constructor(array.length);
+  const newArray = new array.constructor();
 
   for (let index = 0; index < array.length; index++) {
-    newArray[index] = copy(array[index]);
+    newArray.push(copy(array[index]));
   }
 
   return newArray;
 };
+
+/**
+ * @function copyArrayBuffer
+ *
+ * @description
+ * copy the arrayBuffer, deeply copying the values
+ *
+ * @param {ArrayBuffer} arrayBuffer the arrayBuffer to copy
+ * @returns {ArrayBuffer} the copied bufarrayBufferfer
+ */
+export const copyArrayBuffer = (arrayBuffer) => arrayBuffer.slice();
 
 /**
  * @function copyBuffer
@@ -154,7 +165,7 @@ export const copyIterable = (iterable, copy, isMap) => {
  *
  * @param {Object} object the object to copy
  * @param {function} copy the copy method
- * @param {boolean} isPlainObject is the object a plain object
+ * @param {boolean} isPlainObject is the object to copy a plain object
  * @returns {Object} the copied object
  */
 export const copyObject = (object, copy, isPlainObject) => {
@@ -167,7 +178,7 @@ export const copyObject = (object, copy, isPlainObject) => {
     for (let index = 0; index < keys.length; index++) {
       key = keys[index];
 
-      newObject[key] = object[key];
+      newObject[key] = copy(object[key]);
     }
   }
 
@@ -179,7 +190,7 @@ export const copyObject = (object, copy, isPlainObject) => {
     for (let index = 0; index < symbols.length; index++) {
       symbol = symbols[index];
 
-      newObject[symbol] = object[symbol];
+      newObject[symbol] = copy(object[symbol]);
     }
   }
 
@@ -196,9 +207,20 @@ export const copyObject = (object, copy, isPlainObject) => {
  * @returns {RegExp} the copied RegExp
  */
 export const copyRegExp = (regExp) => {
-  const newRegExp = new RegExp(regExp.source, getRegexpFlags(regExp));
+  const newRegExp = new RegExp(regExp.source, getRegExpFlags(regExp));
 
   newRegExp.lastIndex = regExp.lastIndex;
 
   return newRegExp;
 };
+
+/**
+ * @function copyTypedArray
+ *
+ * @description
+ * copy the typedArray, deeply copying the values
+ *
+ * @param {TypedArray} typedArray the typedArray to copy
+ * @returns {TypedArray} the copied typedArray
+ */
+export const copyTypedArray = (typedArray) => new typedArray.constructor(typedArray.buffer);

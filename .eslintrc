@@ -6,7 +6,8 @@
     "global": true,
     "module": true,
     "process": true,
-    "require": true
+    "require": true,
+    "TypedArray": true
   },
   "parser": "babel-eslint",
   "parserOptions": {

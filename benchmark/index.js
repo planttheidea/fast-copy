@@ -9,41 +9,47 @@ function Foo(value) {
   return this;
 }
 
-const shallowObject = {
+const simpleObject = {
   boolean: true,
+  nil: null,
+  number: 123,
+  string: 'foo'
+};
+
+const complexObject = Object.assign({}, simpleObject, {
+  array: ['foo', {bar: 'baz'}],
+  arrayBuffer: new ArrayBuffer(8),
+  buffer: new Buffer('this is a test buffer'),
+  dataView: new DataView(new ArrayBuffer(16)),
+  date: new Date(),
+  error: new Error('boom'),
   fn() {
     return 'foo';
   },
+  map: new Map().set('foo', {bar: {baz: 'quz'}}),
   nan: NaN,
-  nil: null,
-  number: 123,
-  string: 'foo',
-  undef: undefined,
-  [Symbol('key')]: 'value'
-};
-
-const deepObject = Object.assign({}, shallowObject, {
-  array: ['foo', {bar: 'baz'}],
-  buffer: new Buffer('this is a test buffer'),
-  error: new Error('boom'),
-  map: new Map().set('foo', {bar: 'baz'}),
   object: {foo: {bar: 'baz'}},
   promise: Promise.resolve('foo'),
   regexp: /foo/,
-  set: new Set().add('foo').add({bar: 'baz'}),
+  set: new Set().add('foo').add({bar: {baz: 'quz'}}),
+  typedArray: new Uint8Array([12, 15]),
+  undef: undefined,
   weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
-  weakset: new WeakSet([{}, {}])
+  weakset: new WeakSet([{}, {}]),
+  [Symbol('key')]: 'value'
 });
 
-const circularObject = Object.assign({}, deepObject, {
+const circularObject = {
   deeply: {
     nested: {
       reference: {}
     }
   }
-});
+};
 
-const specialObject = Object.assign({}, deepObject, {
+circularObject.deeply.nested.reference = circularObject;
+
+const specialObject = {
   foo: new Foo('value'),
   react: React.createElement('main', {
     children: [
@@ -67,9 +73,7 @@ const specialObject = Object.assign({}, deepObject, {
       })
     ]
   })
-});
-
-circularObject.deeply.nested.reference = circularObject;
+};
 
 const packages = {
   clone: require('clone'),
@@ -82,14 +86,14 @@ const packages = {
 
 const addNewline = () => console.log('');
 
-const runShallowSuite = () => {
-  console.log('Running shallow object performance comparison...');
+const runSimpleSuite = () => {
+  console.log('Running simple object performance comparison...');
   console.log('');
 
   const suite = new Benchmark.Suite();
 
   for (let name in packages) {
-    suite.add(name, () => packages[name](shallowObject));
+    suite.add(name, () => packages[name](simpleObject));
   }
 
   return new Promise((resolve) => {
@@ -109,14 +113,14 @@ const runShallowSuite = () => {
   });
 };
 
-const runDeepSuite = () => {
-  console.log('Running deep object performance comparison...');
+const runComplexSuite = () => {
+  console.log('Running complex object performance comparison...');
   console.log('');
 
   const suite = new Benchmark.Suite();
 
   for (let name in packages) {
-    suite.add(name, () => packages[name](deepObject));
+    suite.add(name, () => packages[name](complexObject));
   }
 
   return new Promise((resolve) => {
@@ -192,9 +196,9 @@ const runSpecialSuite = () => {
 
 Promise.resolve()
   .then(addNewline)
-  .then(runShallowSuite)
+  .then(runSimpleSuite)
   .then(addNewline)
-  .then(runDeepSuite)
+  .then(runComplexSuite)
   .then(addNewline)
   .then(runCircularSuite)
   .then(addNewline)
