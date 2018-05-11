@@ -36,7 +36,7 @@ console.log(deepEqual(copiedObject, object)); // true
 
 ## Types supported
 
-The following object types are deeply cloned when either properties on the object passed, or the object itself:
+The following object types are deeply cloned when they are either properties on the object passed, or the object itself:
 
 * `Array`
 * `ArrayBuffer`
@@ -59,7 +59,7 @@ The following object types are deeply cloned when either properties on the objec
 * `React` components
 * Custom constructors
 
-The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use case is not to clone them:
+The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use-case implementation does not expect cloning:
 
 * `AsyncFunction`
 * `Boolean`
@@ -75,7 +75,7 @@ The following object types are copied directly, as they are either primitives, c
 * `WeakMap`
 * `WeakSet`
 
-Circular objects are supported out of the box as well. By default a cache of `WeakSet` is used, but if `WeakSet` is not available then a standard object fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
+Circular objects are supported out of the box as well. By default a cache based on `WeakSet` is used, but if `WeakSet` is not available then a standard `Object` fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
 
 ## Benchmarks
 
