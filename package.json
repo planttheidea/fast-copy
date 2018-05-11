@@ -60,6 +60,7 @@
   "keywords": ["clone", "deep", "copy", "fast"],
   "license": "MIT",
   "main": "lib/index.js",
+  "module": "es/index.js",
   "types": "index.d.ts",
   "module": "es/index.js",
   "name": "fast-copy",
