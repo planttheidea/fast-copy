@@ -3,9 +3,15 @@
   "ava": {
     "babel": "inherit",
     "failFast": true,
-    "files": ["test/*.js"],
-    "require": ["babel-register"],
-    "source": ["src/*.js"],
+    "files": [
+      "test/*.js"
+    ],
+    "require": [
+      "babel-register"
+    ],
+    "source": [
+      "src/*.js"
+    ],
     "verbose": true
   },
   "bugs": {
@@ -57,7 +63,12 @@
     "webpack-dev-server": "^3.1.4"
   },
   "homepage": "https://github.com/planttheidea/fast-copy#readme",
-  "keywords": ["clone", "deep", "copy", "fast"],
+  "keywords": [
+    "clone",
+    "deep",
+    "copy",
+    "fast"
+  ],
   "license": "MIT",
   "main": "lib/index.js",
   "module": "es/index.js",
@@ -78,8 +89,7 @@
     "lint": "NODE_ENV=test eslint src --max-warnings 0",
     "lint:fix": "NODE_ENV=test eslint src --fix",
     "prepublish": "if in-publish; then npm run prepublish:compile; fi",
-    "prepublish:compile":
-      "npm run lint && npm run test:coverage && npm run transpile:lib && npm run transpile:es && npm run dist",
+    "prepublish:compile": "npm run lint && npm run test:coverage && npm run transpile:lib && npm run transpile:es && npm run dist",
     "start": "npm run dev",
     "test": "NODE_PATH=. BABEL_ENV=test ava",
     "test:coverage": "nyc npm test",
@@ -88,5 +98,5 @@
     "transpile:lib": "npm run clean:lib && BABEL_ENV=lib babel src --out-dir lib"
   },
   "types": "index.d.ts",
-  "version": "1.0.1"
+  "version": "1.1.0"
 }
