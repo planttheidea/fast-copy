@@ -49,6 +49,10 @@ module.exports = Object.assign({}, defaultConfig, {
     })
   }),
 
+  node: {
+    fs: 'empty'
+  },
+
   output: Object.assign({}, defaultConfig.output, {
     publicPath: `http://localhost:${PORT}/`
   }),

@@ -11,7 +11,8 @@ import {
   copyRegExp,
   copyTypedArray,
   getNewCache,
-  isObjectCopyable
+  isObjectCopyable,
+  shouldObjectBeCopied
 } from './utils';
 
 /**
@@ -51,6 +52,18 @@ export default function copy(object) {
       return copyRegExp(object);
     }
 
+    if (HAS_MAP_SUPPORT && object instanceof Map) {
+      cache.add(object);
+
+      return copyIterable(object, handleCopy, true);
+    }
+
+    if (HAS_SET_SUPPORT && object instanceof Set) {
+      cache.add(object);
+
+      return copyIterable(object, handleCopy, false);
+    }
+
     if (HAS_BUFFER_SUPPORT && Buffer.isBuffer(object)) {
       return copyBuffer(object);
     }
@@ -65,17 +78,13 @@ export default function copy(object) {
       }
     }
 
-    cache.add(object);
+    if (shouldObjectBeCopied(object)) {
+      cache.add(object);
 
-    if (HAS_MAP_SUPPORT && object instanceof Map) {
-      return copyIterable(object, handleCopy, true);
+      return copyObject(object, handleCopy);
     }
 
-    if (HAS_SET_SUPPORT && object instanceof Set) {
-      return copyIterable(object, handleCopy, false);
-    }
-
-    return copyObject(object, handleCopy, false);
+    return object;
   }
 
   return handleCopy(object);

@@ -3,6 +3,8 @@
 const Benchmark = require('benchmark');
 const React = require('react');
 
+const BIG_DATA = require('./bigData');
+
 function Foo(value) {
   this.value = value;
 
@@ -140,6 +142,33 @@ const runComplexSuite = () => {
   });
 };
 
+const runBigDataSuite = () => {
+  console.log('Running big data object performance comparison...');
+  console.log('');
+
+  const suite = new Benchmark.Suite();
+
+  for (let name in packages) {
+    suite.add(name, () => packages[name](BIG_DATA));
+  }
+
+  return new Promise((resolve) => {
+    suite
+      .on('cycle', (event) => {
+        const result = event.target.toString();
+
+        return console.log(result);
+      })
+      .on('complete', function() {
+        console.log('');
+        console.log(`...complete, the fastest is ${this.filter('fastest').map('name')}.`);
+
+        resolve();
+      })
+      .run({async: true});
+  });
+};
+
 const runCircularSuite = () => {
   console.log('Running circular object performance comparison...');
   console.log('');
@@ -199,6 +228,8 @@ Promise.resolve()
   .then(runSimpleSuite)
   .then(addNewline)
   .then(runComplexSuite)
+  .then(addNewline)
+  .then(runBigDataSuite)
   .then(addNewline)
   .then(runCircularSuite)
   .then(addNewline)

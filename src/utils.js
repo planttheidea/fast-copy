@@ -75,10 +75,18 @@ export const getSymbols = (object) =>
  * @param {Object|Weakset} cache the cache of copied values
  * @returns {boolean} can the object be copied
  */
-export const isObjectCopyable = (object, cache) =>
-  typeof object === 'object' &&
-  !!object &&
-  !cache.has(object) &&
+export const isObjectCopyable = (object, cache) => typeof object === 'object' && object !== null && !cache.has(object);
+
+/**
+ * @function shouldObjectBeCopied
+ *
+ * @description
+ * should the object be copied
+ *
+ * @param {any} object the object to test
+ * @returns {boolean} should the object be copied
+ */
+export const shouldObjectBeCopied = (object) =>
   typeof object.then !== 'function' &&
   !(object instanceof Error) &&
   !(HAS_WEAKMAP_SUPPORT && object instanceof WeakMap) &&

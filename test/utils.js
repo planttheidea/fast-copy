@@ -139,47 +139,56 @@ test('if isObjectCopyable will return false when the object passed is in the cac
   t.false(result);
 });
 
-test('if isObjectCopyable will return false when the object passed is thenable', (t) => {
-  const object = {foo: 'bar', then() {}};
-  const cache = new WeakSet();
-
-  const result = utils.isObjectCopyable(object, cache);
-
-  t.false(result);
-});
-
-test('if isObjectCopyable will return false when the object passed is an Error', (t) => {
-  const object = new Error('boom');
-  const cache = new WeakSet();
-
-  const result = utils.isObjectCopyable(object, cache);
-
-  t.false(result);
-});
-
-test('if isObjectCopyable will return false when the object passed is a WeakMap', (t) => {
-  const object = new WeakMap();
-  const cache = new WeakSet();
-
-  const result = utils.isObjectCopyable(object, cache);
-
-  t.false(result);
-});
-
-test('if isObjectCopyable will return false when the object passed is a WeakSet', (t) => {
-  const object = new WeakSet();
-  const cache = new WeakSet();
-
-  const result = utils.isObjectCopyable(object, cache);
-
-  t.false(result);
-});
-
 test('if isObjectCopyable will return true when all conditions are met', (t) => {
   const object = {should: 'pass'};
   const cache = new WeakSet();
 
   const result = utils.isObjectCopyable(object, cache);
+
+  t.true(result);
+});
+
+test('if shouldObjectBeCopied will return false when the object passed is thenable', (t) => {
+  const object = {foo: 'bar', then() {}};
+  const cache = new WeakSet();
+
+  const result = utils.shouldObjectBeCopied(object, cache);
+
+  t.false(result);
+});
+
+test('if shouldObjectBeCopied will return false when the object passed is an Error', (t) => {
+  const object = new Error('boom');
+  const cache = new WeakSet();
+
+  const result = utils.shouldObjectBeCopied(object, cache);
+
+  t.false(result);
+});
+
+test('if shouldObjectBeCopied will return false when the object passed is a WeakMap', (t) => {
+  const object = new WeakMap();
+  const cache = new WeakSet();
+
+  const result = utils.shouldObjectBeCopied(object, cache);
+
+  t.false(result);
+});
+
+test('if shouldObjectBeCopied will return false when the object passed is a WeakSet', (t) => {
+  const object = new WeakSet();
+  const cache = new WeakSet();
+
+  const result = utils.shouldObjectBeCopied(object, cache);
+
+  t.false(result);
+});
+
+test('if shouldObjectBeCopied will return true when all conditions are met', (t) => {
+  const object = {should: 'pass'};
+  const cache = new WeakSet();
+
+  const result = utils.shouldObjectBeCopied(object, cache);
 
   t.true(result);
 });

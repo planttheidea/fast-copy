@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 1.1.2
+
+* Optimize order of operations for common use cases
+
 ## 1.1.1
 
 * Fix cache using `WeakSet` when there was support for `WeakMap`s instead of `WeakSet`s (in case one was polyfilled but not the other)

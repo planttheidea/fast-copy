@@ -1,6 +1,8 @@
 // external dependencies
 import {deepEqual, sameValueZeroEqual, shallowEqual} from 'fast-equals';
 import _ from 'lodash';
+import clone from 'clone';
+import deepClone from 'deepclone';
 import React from 'react';
 
 import copy from '../src';
@@ -95,6 +97,8 @@ console.log('is shallowEqual object', shallowEqual(object, newObject));
 console.log('is deepEqual object', deepEqual(object, newObject));
 
 console.log('lodash copy', _.cloneDeep(object));
+console.log('clone copy', clone(object));
+console.log('deepclone copy', deepClone(object));
 
 Object.keys(object).forEach((key) => {
   console.group(key);
