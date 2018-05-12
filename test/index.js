@@ -24,6 +24,9 @@ const SIMPLE_TYPES = {
 };
 
 const COMPLEX_TYPES = {
+  arguments: (function() {
+    return arguments;
+  }('foo', 'bar', 'baz')),
   array: ['foo', {bar: 'baz'}],
   arrayBuffer: new ArrayBuffer(8),
   buffer: new Buffer('this is a test buffer'),
@@ -111,12 +114,16 @@ test.serial('if copy will copy the simple types directly', (t) => {
 test.serial('if copy will copy the complex types deeply', (t) => {
   const result = copy(COMPLEX_TYPES);
 
-  t.not(result, COMPLEX_TYPES);
-  t.deepEqual(result, COMPLEX_TYPES);
+  const {arguments: originalArgs, ...complexTypes} = COMPLEX_TYPES;
+  const {arguments: newArgs, ...equivalentComplexTypes} = result;
 
-  Object.keys(COMPLEX_TYPES).forEach((key) => {
-    t.not(result[key], COMPLEX_TYPES[key]);
-    t.deepEqual(result[key], COMPLEX_TYPES[key], key);
+  t.not(equivalentComplexTypes, complexTypes);
+  t.deepEqual(equivalentComplexTypes, complexTypes);
+  t.deepEqual(newArgs, {...originalArgs});
+
+  Object.keys(complexTypes).forEach((key) => {
+    t.not(equivalentComplexTypes[key], complexTypes[key]);
+    t.deepEqual(equivalentComplexTypes[key], complexTypes[key], key);
   });
 });
 
@@ -150,7 +157,7 @@ test.serial('if copy will handle when buffers are not supported', (t) => {
   constants.HAS_BUFFER_SUPPORT = false;
 
   const cleanComplexTypes = Object.keys(COMPLEX_TYPES).reduce((types, key) => {
-    if (key !== 'buffer') {
+    if (key !== 'buffer' && key !== 'arguments') {
       types[key] = COMPLEX_TYPES[key];
     }
 
@@ -175,6 +182,7 @@ test.serial('if copy will handle when arrayBuffers are not supported', (t) => {
   const cleanComplexTypes = Object.keys(COMPLEX_TYPES).reduce((types, key) => {
     if (
       !~[
+        'arguments',
         'arrayBuffer',
         'dataView',
         'float32Array',

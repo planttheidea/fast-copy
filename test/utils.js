@@ -13,9 +13,9 @@ test.serial('if getNewCache will return a new WeakSet when support is present', 
 });
 
 test.serial('if getNewCache will return a new WeakSet-like object when support is not present', (t) => {
-  const support = constants.HAS_WEAKMAP_SUPPORT;
+  const support = constants.HAS_WEAKSET_SUPPORT;
 
-  constants.HAS_WEAKMAP_SUPPORT = false;
+  constants.HAS_WEAKSET_SUPPORT = false;
 
   const result = utils.getNewCache();
 
@@ -29,7 +29,7 @@ test.serial('if getNewCache will return a new WeakSet-like object when support i
   t.deepEqual(result._values, [value]);
   t.true(result.has(value));
 
-  constants.HAS_WEAKMAP_SUPPORT = support;
+  constants.HAS_WEAKSET_SUPPORT = support;
 });
 
 test('if getRegExpFlags will return an empty string when no flags are on the regExp', (t) => {
