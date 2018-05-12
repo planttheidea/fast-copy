@@ -13,6 +13,9 @@ function Foo(value) {
 }
 
 const object = {
+  arguments: (function() {
+    return arguments;
+  }('foo', 'bar', 'baz')),
   array: ['foo', {bar: 'baz'}],
   arrayBuffer: new ArrayBuffer(8),
   boolean: true,

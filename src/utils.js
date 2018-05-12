@@ -12,7 +12,7 @@ const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
  * @returns {Object|Weakset} the new cache object
  */
 export const getNewCache = () =>
-  HAS_WEAKMAP_SUPPORT
+  HAS_WEAKSET_SUPPORT
     ? new WeakSet()
     : Object.create({
       _values: [],
