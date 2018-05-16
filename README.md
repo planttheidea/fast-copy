@@ -9,6 +9,7 @@ A [blazing fast](#benchmarks) deep object copier
 ## Table of contents
 
 * [Usage](#usage)
+  * [Multiple realms](#multiple-realms)
 * [Types supported](#types-supported)
 * [Benchmarks](#benchmarks)
   * [Simple objects](#simple-objects)
@@ -32,6 +33,21 @@ const copiedObject = copy(object);
 
 console.log(copiedObject === object); // false
 console.log(deepEqual(copiedObject, object)); // true
+```
+
+#### Multiple realms
+
+Under the hood, `fast-copy` uses `instanceof` to determine object types, which can cause false negatives when used in combination with `iframe`-based objects. To handle this edge case, you can pass the optional second parameter of `realm` to the `copy` method, which identifies which realm the object comes from and will use that realm to drive both comparisons and constructors for the copies.
+
+```html
+<iframe srcdoc="<script>var arr = ['foo', 'bar'];</script>"></iframe>
+```
+
+```javascript
+const iframe = document.querySelector("iframe");
+const arr = iframe.contentWindow.arr;
+
+console.log(copy(arr, iframe.contentWindow)); // ['foo', 'bar']
 ```
 
 ## Types supported

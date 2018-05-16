@@ -1,5 +1,5 @@
 // constants
-import {HAS_PROPERTY_SYMBOL_SUPPORT, HAS_WEAKMAP_SUPPORT, HAS_WEAKSET_SUPPORT} from './constants';
+import {HAS_PROPERTY_SYMBOL_SUPPORT, HAS_WEAKSET_SUPPORT} from './constants';
 
 const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -84,13 +84,14 @@ export const isObjectCopyable = (object, cache) => typeof object === 'object' &&
  * should the object be copied
  *
  * @param {any} object the object to test
+ * @param {any} realm the realm to check instanceof in
  * @returns {boolean} should the object be copied
  */
-export const shouldObjectBeCopied = (object) =>
+export const shouldObjectBeCopied = (object, realm) =>
   typeof object.then !== 'function' &&
-  !(object instanceof Error) &&
-  !(HAS_WEAKMAP_SUPPORT && object instanceof WeakMap) &&
-  !(HAS_WEAKSET_SUPPORT && object instanceof WeakSet);
+  !(object instanceof realm.Error) &&
+  !(realm.WeakMap && object instanceof realm.WeakMap) &&
+  !(realm.WeakSet && object instanceof realm.WeakSet);
 
 /**
  * @function copyArray
@@ -100,13 +101,14 @@ export const shouldObjectBeCopied = (object) =>
  *
  * @param {Array<any>} array the array to copy
  * @param {function} copy the function to copy values
+ * @param {any} realm the realm to check instanceof in
  * @returns {Array<any>} the copied array
  */
-export const copyArray = (array, copy) => {
+export const copyArray = (array, copy, realm) => {
   const newArray = new array.constructor();
 
   for (let index = 0; index < array.length; index++) {
-    newArray.push(copy(array[index]));
+    newArray.push(copy(array[index], realm));
   }
 
   return newArray;
@@ -130,10 +132,13 @@ export const copyArrayBuffer = (arrayBuffer) => arrayBuffer.slice();
  * copy the buffer, deeply copying the values
  *
  * @param {Buffer} buffer the buffer to copy
+ * @param {any} realm the realm to check instanceof in
  * @returns {Buffer} the copied buffer
  */
-export const copyBuffer = (buffer) => {
-  const newBuffer = Buffer.allocUnsafe ? Buffer.allocUnsafe(buffer.length) : new Buffer(buffer.length);
+export const copyBuffer = (buffer, realm) => {
+  const newBuffer = realm.Buffer.allocUnsafe
+    ? realm.Buffer.allocUnsafe(buffer.length)
+    : new realm.Buffer(buffer.length);
 
   buffer.copy(newBuffer);
 
@@ -148,17 +153,18 @@ export const copyBuffer = (buffer) => {
  *
  * @param {Map|Set} iterable the iterable to copy
  * @param {function} copy the copy method
+ * @param {any} realm the realm to check instanceof in
  * @param {boolean} isMap is the iterable a map
  * @returns {Map|Set} the copied iterable
  */
-export const copyIterable = (iterable, copy, isMap) => {
+export const copyIterable = (iterable, copy, realm, isMap) => {
   const newIterable = new iterable.constructor();
 
   iterable.forEach((value, key) => {
     if (isMap) {
-      newIterable.set(key, copy(value));
+      newIterable.set(key, copy(value, realm));
     } else {
-      newIterable.add(copy(value));
+      newIterable.add(copy(value, realm));
     }
   });
 
@@ -173,10 +179,11 @@ export const copyIterable = (iterable, copy, isMap) => {
  *
  * @param {Object} object the object to copy
  * @param {function} copy the copy method
+ * @param {any} realm the realm to check instanceof in
  * @param {boolean} isPlainObject is the object to copy a plain object
  * @returns {Object} the copied object
  */
-export const copyObject = (object, copy, isPlainObject) => {
+export const copyObject = (object, copy, realm, isPlainObject) => {
   const newObject = isPlainObject ? {} : object.constructor ? new object.constructor() : Object.create(null);
   const keys = Object.keys(object);
 
@@ -186,7 +193,7 @@ export const copyObject = (object, copy, isPlainObject) => {
     for (let index = 0; index < keys.length; index++) {
       key = keys[index];
 
-      newObject[key] = copy(object[key]);
+      newObject[key] = copy(object[key], realm);
     }
   }
 
@@ -198,7 +205,7 @@ export const copyObject = (object, copy, isPlainObject) => {
     for (let index = 0; index < symbols.length; index++) {
       symbol = symbols[index];
 
-      newObject[symbol] = copy(object[symbol]);
+      newObject[symbol] = copy(object[symbol], realm);
     }
   }
 
@@ -212,10 +219,11 @@ export const copyObject = (object, copy, isPlainObject) => {
  * copy the RegExp to a new RegExp with the same properties
  *
  * @param {RegExp} regExp the RegExp to copy
+ * @param {any} realm the realm to check instanceof in
  * @returns {RegExp} the copied RegExp
  */
-export const copyRegExp = (regExp) => {
-  const newRegExp = new RegExp(regExp.source, getRegExpFlags(regExp));
+export const copyRegExp = (regExp, realm) => {
+  const newRegExp = new realm.RegExp(regExp.source, getRegExpFlags(regExp));
 
   newRegExp.lastIndex = regExp.lastIndex;
 

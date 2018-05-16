@@ -1,6 +1,3 @@
-// constants
-import {HAS_ARRAYBUFFER_SUPPORT, HAS_BUFFER_SUPPORT, HAS_MAP_SUPPORT, HAS_SET_SUPPORT} from './constants';
-
 // utils
 import {
   copyArray,
@@ -22,9 +19,10 @@ import {
  * deeply copy the object to a new object of the same type
  *
  * @param {any} object the object to copy
+ * @param {any} [realm=global] the realm to check instanceof in
  * @returns {any} the copied object
  */
-export default function copy(object) {
+export default function copy(object, realm = global) {
   const cache = getNewCache();
 
   function handleCopy(object) {
@@ -35,53 +33,53 @@ export default function copy(object) {
     if (Array.isArray(object)) {
       cache.add(object);
 
-      return copyArray(object, handleCopy);
+      return copyArray(object, handleCopy, realm);
     }
 
-    if (object.constructor === Object) {
+    if (object.constructor === realm.Object) {
       cache.add(object);
 
-      return copyObject(object, handleCopy, true);
+      return copyObject(object, handleCopy, realm, true);
     }
 
-    if (object instanceof Date) {
+    if (object instanceof realm.Date) {
       return new Date(object.getTime());
     }
 
-    if (object instanceof RegExp) {
-      return copyRegExp(object);
+    if (object instanceof realm.RegExp) {
+      return copyRegExp(object, realm);
     }
 
-    if (HAS_MAP_SUPPORT && object instanceof Map) {
+    if (realm.Map && object instanceof realm.Map) {
       cache.add(object);
 
-      return copyIterable(object, handleCopy, true);
+      return copyIterable(object, handleCopy, realm, true);
     }
 
-    if (HAS_SET_SUPPORT && object instanceof Set) {
+    if (realm.Set && object instanceof realm.Set) {
       cache.add(object);
 
-      return copyIterable(object, handleCopy, false);
+      return copyIterable(object, handleCopy, realm, false);
     }
 
-    if (HAS_BUFFER_SUPPORT && Buffer.isBuffer(object)) {
-      return copyBuffer(object);
+    if (realm.Buffer && realm.Buffer.isBuffer(object)) {
+      return copyBuffer(object, realm);
     }
 
-    if (HAS_ARRAYBUFFER_SUPPORT) {
-      if (ArrayBuffer.isView(object)) {
+    if (realm.ArrayBuffer) {
+      if (realm.ArrayBuffer.isView(object)) {
         return copyTypedArray(object);
       }
 
-      if (object instanceof ArrayBuffer) {
+      if (object instanceof realm.ArrayBuffer) {
         return copyArrayBuffer(object);
       }
     }
 
-    if (shouldObjectBeCopied(object)) {
+    if (shouldObjectBeCopied(object, realm)) {
       cache.add(object);
 
-      return copyObject(object, handleCopy);
+      return copyObject(object, handleCopy, realm);
     }
 
     return object;
