@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 1.2.0
+
+* Add support for multiple realms
+
 ## 1.1.2
 
 * Optimize order of operations for common use cases
