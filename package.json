@@ -98,5 +98,5 @@
     "transpile:lib": "npm run clean:lib && BABEL_ENV=lib babel src --out-dir lib"
   },
   "types": "index.d.ts",
-  "version": "1.1.2"
+  "version": "1.2.0"
 }
