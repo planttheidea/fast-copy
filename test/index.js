@@ -211,3 +211,21 @@ test.serial('if copy will handle when arrayBuffers are not supported', (t) => {
 
   constants.HAS_ARRAYBUFFER_SUPPORT = support;
 });
+
+test('if copy will handle alternative scope', (t) => {
+  const scope = {
+    Object(key, value) {
+      this[key] = value;
+
+      return this;
+    }
+  };
+  const object = new scope.Object('foo', 'bar');
+
+  t.false(object.constructor === Object);
+
+  const result = copy(object, scope);
+
+  t.false(object.constructor === Object);
+  t.deepEqual(result, {foo: 'bar'});
+});

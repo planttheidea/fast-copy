@@ -150,45 +150,45 @@ test('if isObjectCopyable will return true when all conditions are met', (t) => 
 
 test('if shouldObjectBeCopied will return false when the object passed is thenable', (t) => {
   const object = {foo: 'bar', then() {}};
-  const cache = new WeakSet();
+  const realm = global;
 
-  const result = utils.shouldObjectBeCopied(object, cache);
+  const result = utils.shouldObjectBeCopied(object, realm);
 
   t.false(result);
 });
 
 test('if shouldObjectBeCopied will return false when the object passed is an Error', (t) => {
   const object = new Error('boom');
-  const cache = new WeakSet();
+  const realm = global;
 
-  const result = utils.shouldObjectBeCopied(object, cache);
+  const result = utils.shouldObjectBeCopied(object, realm);
 
   t.false(result);
 });
 
 test('if shouldObjectBeCopied will return false when the object passed is a WeakMap', (t) => {
   const object = new WeakMap();
-  const cache = new WeakSet();
+  const realm = global;
 
-  const result = utils.shouldObjectBeCopied(object, cache);
+  const result = utils.shouldObjectBeCopied(object, realm);
 
   t.false(result);
 });
 
 test('if shouldObjectBeCopied will return false when the object passed is a WeakSet', (t) => {
   const object = new WeakSet();
-  const cache = new WeakSet();
+  const realm = global;
 
-  const result = utils.shouldObjectBeCopied(object, cache);
+  const result = utils.shouldObjectBeCopied(object, realm);
 
   t.false(result);
 });
 
 test('if shouldObjectBeCopied will return true when all conditions are met', (t) => {
   const object = {should: 'pass'};
-  const cache = new WeakSet();
+  const realm = global;
 
-  const result = utils.shouldObjectBeCopied(object, cache);
+  const result = utils.shouldObjectBeCopied(object, realm);
 
   t.true(result);
 });
@@ -196,8 +196,9 @@ test('if shouldObjectBeCopied will return true when all conditions are met', (t)
 test('if copyArray will copy the array to a new array', (t) => {
   const array = ['foo', {bar: 'baz'}];
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
 
-  const result = utils.copyArray(array, copy);
+  const result = utils.copyArray(array, copy, realm);
 
   t.not(result, array);
   t.is(copy.callCount, array.length);
@@ -215,8 +216,9 @@ test('if copyArrayBuffer will copy the arrayBuffer to a new arrayBuffer', (t) =>
 
 test.serial('if copyBuffer will copy the buffer to a new buffer', (t) => {
   const buffer = new Buffer('this is a test buffer');
+  const realm = global;
 
-  const result = utils.copyBuffer(buffer);
+  const result = utils.copyBuffer(buffer, realm);
 
   t.not(result, buffer);
   t.is(result.toString(), buffer.toString());
@@ -225,10 +227,11 @@ test.serial('if copyBuffer will copy the buffer to a new buffer', (t) => {
 test.serial('if copyBuffer will copy the buffer to a new buffer for older node systems', (t) => {
   const allocUnsafe = Buffer.allocUnsafe;
   const buffer = new Buffer('this is a test buffer');
+  const realm = global;
 
   Buffer.allocUnsafe = undefined;
 
-  const result = utils.copyBuffer(buffer);
+  const result = utils.copyBuffer(buffer, realm);
 
   t.not(result, buffer);
   t.is(result.toString(), buffer.toString());
@@ -239,9 +242,10 @@ test.serial('if copyBuffer will copy the buffer to a new buffer for older node s
 test('if copyIterable will copy the map to a new map', (t) => {
   const iterable = new Map([['foo', 'bar'], ['bar', 'baz']]);
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
   const isMap = true;
 
-  const result = utils.copyIterable(iterable, copy, isMap);
+  const result = utils.copyIterable(iterable, copy, realm, isMap);
 
   t.not(result, iterable);
   t.deepEqual(result, iterable);
@@ -251,9 +255,10 @@ test('if copyIterable will copy the map to a new map', (t) => {
 test('if copyIterable will copy the set to a new set', (t) => {
   const iterable = new Set(['foo', 'bar']);
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
   const isMap = false;
 
-  const result = utils.copyIterable(iterable, copy, isMap);
+  const result = utils.copyIterable(iterable, copy, realm, isMap);
 
   t.not(result, iterable);
   t.deepEqual(result, iterable);
@@ -263,9 +268,10 @@ test('if copyIterable will copy the set to a new set', (t) => {
 test('if copyObject will copy the object to a new object', (t) => {
   const object = {foo: 'bar', bar: {baz: 'quz'}};
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
   const isPlainObject = true;
 
-  const result = utils.copyObject(object, copy, isPlainObject);
+  const result = utils.copyObject(object, copy, realm, isPlainObject);
 
   t.not(result, object);
   t.deepEqual(result, object);
@@ -275,9 +281,10 @@ test('if copyObject will copy the object to a new object', (t) => {
 test('if copyObject will copy the object to a new object when there are symbols', (t) => {
   const object = {foo: 'bar', bar: {baz: 'quz'}, [Symbol('blah')]: 'why not'};
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
   const isPlainObject = true;
 
-  const result = utils.copyObject(object, copy, isPlainObject);
+  const result = utils.copyObject(object, copy, realm, isPlainObject);
 
   t.not(result, object);
   t.deepEqual(result, object);
@@ -287,9 +294,10 @@ test('if copyObject will copy the object to a new object when there are symbols'
 test('if copyObject will copy the object to a new object when there are only symbols', (t) => {
   const object = {[Symbol('blah')]: 'why not'};
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
   const isPlainObject = true;
 
-  const result = utils.copyObject(object, copy, isPlainObject);
+  const result = utils.copyObject(object, copy, realm, isPlainObject);
 
   t.not(result, object);
   t.deepEqual(result, object);
@@ -303,9 +311,10 @@ test('if copyObject will copy the pure object to a new pure object', (t) => {
   object.bar = {baz: 'quz'};
 
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
   const isPlainObject = false;
 
-  const result = utils.copyObject(object, copy, isPlainObject);
+  const result = utils.copyObject(object, copy, realm, isPlainObject);
 
   t.not(result, object);
   t.is(Object.getPrototypeOf(result), null);
@@ -322,9 +331,10 @@ test('if copyObject will copy the non-standard object to a new object of the sam
 
   const object = new Foo({foo: 'bar', bar: {baz: 'quz'}});
   const copy = sinon.stub().returnsArg(0);
+  const realm = global;
   const isPlainObject = false;
 
-  const result = utils.copyObject(object, copy, isPlainObject);
+  const result = utils.copyObject(object, copy, realm, isPlainObject);
 
   t.not(result, object);
   t.true(result instanceof Foo);
@@ -334,8 +344,9 @@ test('if copyObject will copy the non-standard object to a new object of the sam
 
 test('if copyRegExp will copy the regExp to a new regExp', (t) => {
   const regExp = /foo/gi;
+  const realm = global;
 
-  const result = utils.copyRegExp(regExp);
+  const result = utils.copyRegExp(regExp, realm);
 
   t.not(result, regExp);
   t.deepEqual(result, regExp);
