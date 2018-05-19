@@ -101,12 +101,12 @@ _Small number of properties, all values are primitives_
 
 |                  | Operations / second | Relative margin of error |
 | ---------------- | ------------------- | ------------------------ |
-| **fast-copy**    | **1,536,378**       | **0.90%**                |
-| clone            | 1,146,433           | 0.76%                    |
-| lodash.cloneDeep | 955,818             | 0.59%                    |
-| fast-deepclone   | 746,497             | 0.75%                    |
-| fast-clone       | 515,248             | 0.94%                    |
-| deepclone        | 444,649             | 0.73%                    |
+| **fast-copy**    | **1,725,552**       | **0.89%**                |
+| clone            | 1,114,295           | 0.82%                    |
+| lodash.cloneDeep | 904,031             | 0.51%                    |
+| fast-deepclone   | 716,908             | 0.87%                    |
+| fast-clone       | 497,748             | 0.88%                    |
+| deepclone        | 420,962             | 0.59%                    |
 
 #### Complex objects
 
@@ -114,12 +114,12 @@ _Large number of properties, values are a combination of primitives and complex 
 
 |                  | Operations / second | Relative margin of error |
 | ---------------- | ------------------- | ------------------------ |
-| **fast-copy**    | **110,295**         | **0.75%**                |
-| fast-deepclone   | 102,497             | 0.81%                    |
-| deepclone        | 57,582              | 0.75%                    |
-| clone            | 51,563              | 1.01%                    |
-| fast-clone       | 43,956              | 0.74%                    |
-| lodash.cloneDeep | 40,257              | 0.79%                    |
+| **fast-copy**    | **113,553**         | **0.76%**                |
+| fast-deepclone   | 101,356             | 0.76%                    |
+| deepclone        | 54,401              | 0.80%                    |
+| clone            | 51,183              | 0.79%                    |
+| fast-clone       | 46,165              | 0.66%                    |
+| lodash.cloneDeep | 39,395              | 0.78%                    |
 
 #### Circular objects
 
@@ -127,11 +127,11 @@ _Objects that deeply reference themselves_
 
 |                            | Operations / second | Relative margin of error |
 | -------------------------- | ------------------- | ------------------------ |
-| **fast-copy**              | **921,656**         | **0.72%**                |
-| clone                      | 651,385             | 0.69%                    |
-| lodash.cloneDeep           | 621,131             | 0.60%                    |
-| fast-deepclone             | 385,925             | 0.84%                    |
-| deepclone                  | 377,517             | 0.65%                    |
+| **fast-copy**              | **1,011,337**       | **0.80%**                |
+| clone                      | 644,481             | 0.67%                    |
+| lodash.cloneDeep           | 577,534             | 0.48%                    |
+| fast-deepclone             | 359,288             | 0.79%                    |
+| deepclone                  | 371,971             | 0.55%                    |
 | fast-clone (not supported) | 0                   | 0.00%                    |
 
 #### Special objects
@@ -140,12 +140,12 @@ _Custom constructors, React components, etc_
 
 |                  | Operations / second | Relative margin of error |
 | ---------------- | ------------------- | ------------------------ |
-| **fast-copy**    | **50,839**          | **0.61%**                |
-| clone            | 44,504              | 0.78%                    |
-| lodash.cloneDeep | 38,210              | 0.62%                    |
-| fast-deepclone   | 26,635              | 0.85%                    |
-| fast-clone       | 22,422              | 0.67%                    |
-| deepclone        | 13,753              | 0.84%                    |
+| **fast-copy**    | **56,013**          | **0.97%**                |
+| clone            | 42,107              | 0.87%                    |
+| lodash.cloneDeep | 36,113              | 0.74%                    |
+| fast-deepclone   | 25,278              | 1.45%                    |
+| fast-clone       | 21,450              | 0.86%                    |
+| deepclone        | 12,768              | 0.77%                    |
 
 ## Development
 

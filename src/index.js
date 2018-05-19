@@ -3,9 +3,10 @@ import {
   copyArray,
   copyArrayBuffer,
   copyBuffer,
-  copyIterable,
+  copyMap,
   copyObject,
   copyRegExp,
+  copySet,
   copyTypedArray,
   getNewCache,
   isObjectCopyable,
@@ -53,13 +54,13 @@ export default function copy(object, realm = global) {
     if (realm.Map && object instanceof realm.Map) {
       cache.add(object);
 
-      return copyIterable(object, handleCopy, realm, true);
+      return copyMap(object, handleCopy, realm);
     }
 
     if (realm.Set && object instanceof realm.Set) {
       cache.add(object);
 
-      return copyIterable(object, handleCopy, realm, false);
+      return copySet(object, handleCopy, realm);
     }
 
     if (realm.Buffer && realm.Buffer.isBuffer(object)) {

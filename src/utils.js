@@ -1,5 +1,5 @@
 // constants
-import {HAS_PROPERTY_SYMBOL_SUPPORT, HAS_WEAKSET_SUPPORT} from './constants';
+import {HAS_FLAGS_SUPPORT, HAS_PROPERTY_SYMBOL_SUPPORT, HAS_WEAKSET_SUPPORT} from './constants';
 
 const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
 
@@ -48,22 +48,16 @@ export const getRegExpFlags = (regExp) => {
     flags += 'm';
   }
 
+  if (regExp.unicode) {
+    flags += 'u';
+  }
+
+  if (regExp.sticky) {
+    flags += 'y';
+  }
+
   return flags;
 };
-
-/**
- * @function getSymbols
- *
- * @description
- * get the symbols present in the object that are enumerable
- *
- * @param {Object} object the object to get the symbols from
- * @returns {Array<Symbol>} the symbols in the object
- */
-export const getSymbols = (object) =>
-  HAS_PROPERTY_SYMBOL_SUPPORT
-    ? Object.getOwnPropertySymbols(object).filter((symbol) => propertyIsEnumerable.call(object, symbol))
-    : [];
 
 /**
  * @function isObjectCopyable
@@ -151,25 +145,21 @@ export const copyBuffer = (buffer, realm) => {
  * @description
  * copy the iterable values into a new iterable of the same type
  *
- * @param {Map|Set} iterable the iterable to copy
- * @param {function} copy the copy method
- * @param {any} realm the realm to check instanceof in
- * @param {boolean} isMap is the iterable a map
- * @returns {Map|Set} the copied iterable
+ * @param {function} assignmentHandler the handler for assigning the values to the new iterable
+ * @returns {function((Map|Set), function, any): (Map|Set)} the copied iterable
  */
-export const copyIterable = (iterable, copy, realm, isMap) => {
+export const createCopyIterable = (assignmentHandler) => (iterable, copy, realm) => {
   const newIterable = new iterable.constructor();
 
-  iterable.forEach((value, key) => {
-    if (isMap) {
-      newIterable.set(key, copy(value, realm));
-    } else {
-      newIterable.add(copy(value, realm));
-    }
-  });
+  iterable.forEach(assignmentHandler(newIterable, copy, realm));
 
   return newIterable;
 };
+
+export const copyMap = createCopyIterable((iterable, copy, realm) => (value, key) =>
+  iterable.set(key, copy(value, realm))
+);
+export const copySet = createCopyIterable((iterable, copy, realm) => (value) => iterable.add(copy(value, realm)));
 
 /**
  * @function copyObject
@@ -197,15 +187,19 @@ export const copyObject = (object, copy, realm, isPlainObject) => {
     }
   }
 
-  const symbols = getSymbols(object);
+  if (HAS_PROPERTY_SYMBOL_SUPPORT) {
+    const symbols = Object.getOwnPropertySymbols(object);
 
-  if (symbols.length) {
-    let symbol;
+    if (symbols.length) {
+      let symbol;
 
-    for (let index = 0; index < symbols.length; index++) {
-      symbol = symbols[index];
+      for (let index = 0; index < symbols.length; index++) {
+        symbol = symbols[index];
 
-      newObject[symbol] = copy(object[symbol], realm);
+        if (propertyIsEnumerable.call(object, symbol)) {
+          newObject[symbol] = copy(object[symbol], realm);
+        }
+      }
     }
   }
 
@@ -223,7 +217,7 @@ export const copyObject = (object, copy, realm, isPlainObject) => {
  * @returns {RegExp} the copied RegExp
  */
 export const copyRegExp = (regExp, realm) => {
-  const newRegExp = new realm.RegExp(regExp.source, getRegExpFlags(regExp));
+  const newRegExp = new realm.RegExp(regExp.source, HAS_FLAGS_SUPPORT ? regExp.flags : getRegExpFlags(regExp));
 
   newRegExp.lastIndex = regExp.lastIndex;
 
@@ -239,4 +233,4 @@ export const copyRegExp = (regExp, realm) => {
  * @param {TypedArray} typedArray the typedArray to copy
  * @returns {TypedArray} the copied typedArray
  */
-export const copyTypedArray = (typedArray) => new typedArray.constructor(typedArray.buffer);
+export const copyTypedArray = (typedArray) => new typedArray.constructor(copyArrayBuffer(typedArray.buffer));
