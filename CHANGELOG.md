@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 1.2.1
+
+* Under-the-hood optimizations per recommendations from #7
+
 ## 1.2.0
 
 * Add support for multiple realms

@@ -64,52 +64,28 @@ test('if getRegExpFlags will add the m flag when one is on the regExp', (t) => {
   t.is(result, 'm');
 });
 
+test('if getRegExpFlags will add the u flag when one is on the regExp', (t) => {
+  const regExp = new RegExp('\u{61}', 'u');
+
+  const result = utils.getRegExpFlags(regExp);
+
+  t.is(result, 'u');
+});
+
+test('if getRegExpFlags will add the y flag when one is on the regExp', (t) => {
+  const regExp = /foo/y;
+
+  const result = utils.getRegExpFlags(regExp);
+
+  t.is(result, 'y');
+});
+
 test('if getRegExpFlags will add multiple flags when they are all on the regExp', (t) => {
   const regExp = /foo/gim;
 
   const result = utils.getRegExpFlags(regExp);
 
   t.is(result, 'gim');
-});
-
-test.serial('if getSymbols will get the symbols that are enumerable on the object', (t) => {
-  const symbol = Symbol('enumerable');
-
-  const object = {
-    [symbol]: 'present'
-  };
-
-  Object.defineProperty(object, Symbol('non-enumerable'), {
-    enumerable: false,
-    value: 'hidden'
-  });
-
-  const result = utils.getSymbols(object);
-
-  t.deepEqual(result, [symbol]);
-});
-
-test.serial('if getSymbols will return an empty array when the getOwnPropertySymbols method does not exist', (t) => {
-  const support = constants.HAS_PROPERTY_SYMBOL_SUPPORT;
-
-  constants.HAS_PROPERTY_SYMBOL_SUPPORT = false;
-
-  const symbol = Symbol('enumerable');
-
-  const object = {
-    [symbol]: 'present'
-  };
-
-  Object.defineProperty(object, Symbol('non-enumerable'), {
-    enumerable: false,
-    value: 'hidden'
-  });
-
-  const result = utils.getSymbols(object);
-
-  t.deepEqual(result, []);
-
-  constants.HAS_PROPERTY_SYMBOL_SUPPORT = support;
 });
 
 test('if isObjectCopyable will return false when the object passed is not an object type', (t) => {
@@ -239,33 +215,31 @@ test.serial('if copyBuffer will copy the buffer to a new buffer for older node s
   Buffer.allocUnsafe = allocUnsafe;
 });
 
-test('if copyIterable will copy the map to a new map', (t) => {
+test('if copyMap will copy the map to a new map', (t) => {
   const iterable = new Map([['foo', 'bar'], ['bar', 'baz']]);
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
-  const isMap = true;
 
-  const result = utils.copyIterable(iterable, copy, realm, isMap);
+  const result = utils.copyMap(iterable, copy, realm);
 
   t.not(result, iterable);
   t.deepEqual(result, iterable);
   t.is(copy.callCount, iterable.size);
 });
 
-test('if copyIterable will copy the set to a new set', (t) => {
+test('if copySet will copy the set to a new set', (t) => {
   const iterable = new Set(['foo', 'bar']);
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
-  const isMap = false;
 
-  const result = utils.copyIterable(iterable, copy, realm, isMap);
+  const result = utils.copySet(iterable, copy, realm);
 
   t.not(result, iterable);
   t.deepEqual(result, iterable);
   t.is(copy.callCount, iterable.size);
 });
 
-test('if copyObject will copy the object to a new object', (t) => {
+test.serial('if copyObject will copy the object to a new object', (t) => {
   const object = {foo: 'bar', bar: {baz: 'quz'}};
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
@@ -278,20 +252,45 @@ test('if copyObject will copy the object to a new object', (t) => {
   t.is(copy.callCount, Object.keys(object).length);
 });
 
-test('if copyObject will copy the object to a new object when there are symbols', (t) => {
-  const object = {foo: 'bar', bar: {baz: 'quz'}, [Symbol('blah')]: 'why not'};
+test.serial('if copyObject will copy the object to a new object when there are symbols', (t) => {
+  const support = constants.HAS_PROPERTY_SYMBOL_SUPPORT;
+
+  const symbolKey = Symbol('blah');
+
+  constants.HAS_PROPERTY_SYMBOL_SUPPORT = false;
+
+  const object = {foo: 'bar', bar: {baz: 'quz'}, [symbolKey]: 'why not'};
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
   const isPlainObject = true;
 
   const result = utils.copyObject(object, copy, realm, isPlainObject);
+  const {[symbolKey]: ignored, ...expectedResult} = object;
 
   t.not(result, object);
-  t.deepEqual(result, object);
-  t.is(copy.callCount, Object.keys(object).length + Object.getOwnPropertySymbols(object).length);
+  t.deepEqual(result, expectedResult);
+  t.is(copy.callCount, Object.keys(object).length);
+
+  constants.HAS_PROPERTY_SYMBOL_SUPPORT = support;
 });
 
-test('if copyObject will copy the object to a new object when there are only symbols', (t) => {
+test.serial(
+  'if copyObject will copy the object to a new object when there are symbols but symbols are not considered supported',
+  (t) => {
+    const object = {foo: 'bar', bar: {baz: 'quz'}, [Symbol('blah')]: 'why not'};
+    const copy = sinon.stub().returnsArg(0);
+    const realm = global;
+    const isPlainObject = true;
+
+    const result = utils.copyObject(object, copy, realm, isPlainObject);
+
+    t.not(result, object);
+    t.deepEqual(result, object);
+    t.is(copy.callCount, Object.keys(object).length + Object.getOwnPropertySymbols(object).length);
+  }
+);
+
+test.serial('if copyObject will copy the object to a new object when there are only symbols', (t) => {
   const object = {[Symbol('blah')]: 'why not'};
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
@@ -304,7 +303,7 @@ test('if copyObject will copy the object to a new object when there are only sym
   t.is(copy.callCount, Object.getOwnPropertySymbols(object).length);
 });
 
-test('if copyObject will copy the pure object to a new pure object', (t) => {
+test.serial('if copyObject will copy the pure object to a new pure object', (t) => {
   const object = Object.create(null);
 
   object.foo = 'bar';
@@ -322,7 +321,7 @@ test('if copyObject will copy the pure object to a new pure object', (t) => {
   t.is(copy.callCount, Object.keys(object).length);
 });
 
-test('if copyObject will copy the non-standard object to a new object of the same type', (t) => {
+test.serial('if copyObject will copy the non-standard object to a new object of the same type', (t) => {
   function Foo(values) {
     Object.assign(this, values);
 
@@ -342,7 +341,7 @@ test('if copyObject will copy the non-standard object to a new object of the sam
   t.is(copy.callCount, Object.keys(object).length);
 });
 
-test('if copyRegExp will copy the regExp to a new regExp', (t) => {
+test.serial('if copyRegExp will copy the regExp to a new regExp', (t) => {
   const regExp = /foo/gi;
   const realm = global;
 
@@ -350,6 +349,22 @@ test('if copyRegExp will copy the regExp to a new regExp', (t) => {
 
   t.not(result, regExp);
   t.deepEqual(result, regExp);
+});
+
+test.serial('if copyRegExp will copy the regExp to a new regExp when flags are not supported', (t) => {
+  const support = constants.HAS_FLAGS_SUPPORT;
+
+  constants.HAS_FLAGS_SUPPORT = false;
+
+  const regExp = /foo/gi;
+  const realm = global;
+
+  const result = utils.copyRegExp(regExp, realm);
+
+  t.not(result, regExp);
+  t.deepEqual(result, regExp);
+
+  constants.HAS_FLAGS_SUPPORT = support;
 });
 
 test('if copyTypedArray will copy the dataView to a new arrayBuffer', (t) => {
