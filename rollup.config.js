@@ -1,44 +1,44 @@
-import babel from "rollup-plugin-babel";
-import resolve from "rollup-plugin-node-resolve";
-import uglify from "rollup-plugin-uglify";
+import babel from 'rollup-plugin-babel';
+import resolve from 'rollup-plugin-node-resolve';
+import {uglify} from 'rollup-plugin-uglify';
 
 export default [
   {
-    input: "src/index.js",
+    input: 'src/index.js',
     output: {
-      exports: "named",
-      name: "fastCopy",
-      file: "dist/fast-copy.js",
-      format: "umd",
-      sourcemap: true
+      exports: 'named',
+      file: 'dist/fast-copy.js',
+      format: 'umd',
+      name: 'fastCopy',
+      sourcemap: true,
     },
     plugins: [
       resolve({
+        main: true,
         module: true,
-        main: true
       }),
       babel({
-        exclude: "node_modules/**"
-      })
-    ]
+        exclude: 'node_modules/**',
+      }),
+    ],
   },
   {
-    input: "src/index.js",
+    input: 'src/index.js',
     output: {
-      exports: "named",
-      name: "fastCopy",
-      file: "dist/fast-copy.min.js",
-      format: "umd"
+      exports: 'named',
+      file: 'dist/fast-copy.min.js',
+      format: 'umd',
+      name: 'fastCopy',
     },
     plugins: [
       resolve({
+        main: true,
         module: true,
-        main: true
       }),
       babel({
-        exclude: "node_modules/**"
+        exclude: 'node_modules/**',
       }),
-      uglify()
-    ]
-  }
+      uglify(),
+    ],
+  },
 ];

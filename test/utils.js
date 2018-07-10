@@ -125,7 +125,10 @@ test('if isObjectCopyable will return true when all conditions are met', (t) => 
 });
 
 test('if shouldObjectBeCopied will return false when the object passed is thenable', (t) => {
-  const object = {foo: 'bar', then() {}};
+  const object = {
+    foo: 'bar',
+    then() {},
+  };
   const realm = global;
 
   const result = utils.shouldObjectBeCopied(object, realm);
@@ -240,7 +243,10 @@ test('if copySet will copy the set to a new set', (t) => {
 });
 
 test.serial('if copyObject will copy the object to a new object', (t) => {
-  const object = {foo: 'bar', bar: {baz: 'quz'}};
+  const object = {
+    bar: {baz: 'quz'},
+    foo: 'bar',
+  };
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
   const isPlainObject = true;
@@ -259,7 +265,11 @@ test.serial('if copyObject will copy the object to a new object when there are s
 
   constants.HAS_PROPERTY_SYMBOL_SUPPORT = false;
 
-  const object = {foo: 'bar', bar: {baz: 'quz'}, [symbolKey]: 'why not'};
+  const object = {
+    bar: {baz: 'quz'},
+    foo: 'bar',
+    [symbolKey]: 'why not',
+  };
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
   const isPlainObject = true;
@@ -277,7 +287,11 @@ test.serial('if copyObject will copy the object to a new object when there are s
 test.serial(
   'if copyObject will copy the object to a new object when there are symbols but symbols are not considered supported',
   (t) => {
-    const object = {foo: 'bar', bar: {baz: 'quz'}, [Symbol('blah')]: 'why not'};
+    const object = {
+      bar: {baz: 'quz'},
+      foo: 'bar',
+      [Symbol('blah')]: 'why not',
+    };
     const copy = sinon.stub().returnsArg(0);
     const realm = global;
     const isPlainObject = true;
@@ -328,7 +342,10 @@ test.serial('if copyObject will copy the non-standard object to a new object of 
     return this;
   }
 
-  const object = new Foo({foo: 'bar', bar: {baz: 'quz'}});
+  const object = new Foo({
+    bar: {baz: 'quz'},
+    foo: 'bar',
+  });
   const copy = sinon.stub().returnsArg(0);
   const realm = global;
   const isPlainObject = false;

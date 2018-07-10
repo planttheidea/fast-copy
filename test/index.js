@@ -20,7 +20,7 @@ const SIMPLE_TYPES = {
   undef: undefined,
   weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
   weakset: new WeakSet([{}, {}]),
-  [Symbol('key')]: 'value'
+  [Symbol('key')]: 'value',
 };
 
 const COMPLEX_TYPES = {
@@ -44,16 +44,16 @@ const COMPLEX_TYPES = {
   uint8Array: new Uint8Array([12, 15]),
   uint8ClampedArray: new Uint8ClampedArray([12, 15]),
   uint16Array: new Uint16Array([12, 15]),
-  uint32Array: new Uint32Array([12, 15])
+  uint32Array: new Uint32Array([12, 15]),
 };
 
 const CIRCULAR = {
   deeply: {
     nested: {
-      reference: {}
-    }
+      reference: {},
+    },
   },
-  other: {}
+  other: {},
 };
 
 CIRCULAR.deeply.nested.reference = CIRCULAR;
@@ -78,17 +78,17 @@ const SPECIAL_TYPES = {
         children: [
           React.createElement('div', {
             children: 'Item',
-            style: {flex: '1 1 auto'}
+            style: {flex: '1 1 auto'},
           }),
           React.createElement('div', {
             children: 'Item',
-            style: {flex: '1 1 0'}
-          })
+            style: {flex: '1 1 0'},
+          }),
         ],
-        style: {display: 'flex'}
-      })
-    ]
-  })
+        style: {display: 'flex'},
+      }),
+    ],
+  }),
 };
 
 test('if copy will copy an empty object', (t) => {
@@ -193,7 +193,7 @@ test.serial('if copy will handle when arrayBuffers are not supported', (t) => {
         'uint8Array',
         'uint8ClampedArray',
         'uint16Array',
-        'uint32Array'
+        'uint32Array',
       ].indexOf(key)
     ) {
       types[key] = COMPLEX_TYPES[key];
@@ -218,7 +218,7 @@ test('if copy will handle alternative scope', (t) => {
       this[key] = value;
 
       return this;
-    }
+    },
   };
   const object = new scope.Object('foo', 'bar');
 
