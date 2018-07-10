@@ -1,7 +1,12 @@
 // constants
-import {HAS_FLAGS_SUPPORT, HAS_PROPERTY_SYMBOL_SUPPORT, HAS_WEAKSET_SUPPORT} from './constants';
+import {
+  HAS_FLAGS_SUPPORT,
+  HAS_PROPERTY_SYMBOL_SUPPORT,
+  HAS_WEAKSET_SUPPORT
+} from './constants';
 
-const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
+const {create, keys: getKeys, getOwnPropertySymbols: getSymbols} = Object;
+const {propertyIsEnumerable} = Object.prototype;
 
 /**
  * @function getNewCache
@@ -14,14 +19,14 @@ const propertyIsEnumerable = Object.prototype.propertyIsEnumerable;
 export const getNewCache = () =>
   HAS_WEAKSET_SUPPORT
     ? new WeakSet()
-    : Object.create({
+    : create({
       _values: [],
       add(value) {
         this._values.push(value);
       },
       has(value) {
         return !!~this._values.indexOf(value);
-      }
+      },
     });
 
 /**
@@ -82,10 +87,10 @@ export const isObjectCopyable = (object, cache) => typeof object === 'object' &&
  * @returns {boolean} should the object be copied
  */
 export const shouldObjectBeCopied = (object, realm) =>
-  typeof object.then !== 'function' &&
-  !(object instanceof realm.Error) &&
-  !(realm.WeakMap && object instanceof realm.WeakMap) &&
-  !(realm.WeakSet && object instanceof realm.WeakSet);
+  typeof object.then !== 'function'
+  && !(object instanceof realm.Error)
+  && !(realm.WeakMap && object instanceof realm.WeakMap)
+  && !(realm.WeakSet && object instanceof realm.WeakSet);
 
 /**
  * @function copyArray
@@ -102,7 +107,7 @@ export const copyArray = (array, copy, realm) => {
   const newArray = new array.constructor();
 
   for (let index = 0; index < array.length; index++) {
-    newArray.push(copy(array[index], realm));
+    newArray[index] = copy(array[index], realm);
   }
 
   return newArray;
@@ -117,7 +122,7 @@ export const copyArray = (array, copy, realm) => {
  * @param {ArrayBuffer} arrayBuffer the arrayBuffer to copy
  * @returns {ArrayBuffer} the copied bufarrayBufferfer
  */
-export const copyArrayBuffer = (arrayBuffer) => arrayBuffer.slice();
+export const copyArrayBuffer = (arrayBuffer) => arrayBuffer.slice(0);
 
 /**
  * @function copyBuffer
@@ -174,8 +179,8 @@ export const copySet = createCopyIterable((iterable, copy, realm) => (value) => 
  * @returns {Object} the copied object
  */
 export const copyObject = (object, copy, realm, isPlainObject) => {
-  const newObject = isPlainObject ? {} : object.constructor ? new object.constructor() : Object.create(null);
-  const keys = Object.keys(object);
+  const newObject = isPlainObject ? {} : object.constructor ? new object.constructor() : create(null);
+  const keys = getKeys(object);
 
   if (keys.length) {
     let key;
@@ -188,7 +193,7 @@ export const copyObject = (object, copy, realm, isPlainObject) => {
   }
 
   if (HAS_PROPERTY_SYMBOL_SUPPORT) {
-    const symbols = Object.getOwnPropertySymbols(object);
+    const symbols = getSymbols(object);
 
     if (symbols.length) {
       let symbol;

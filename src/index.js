@@ -26,7 +26,7 @@ import {
 export default function copy(object, realm = global) {
   const cache = getNewCache();
 
-  function handleCopy(object) {
+  const handleCopy = (object) => {
     if (!isObjectCopyable(object, cache)) {
       return object;
     }
@@ -84,7 +84,7 @@ export default function copy(object, realm = global) {
     }
 
     return object;
-  }
+  };
 
   return handleCopy(object);
 }

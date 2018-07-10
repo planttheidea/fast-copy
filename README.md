@@ -8,15 +8,15 @@ A [blazing fast](#benchmarks) deep object copier
 
 ## Table of contents
 
-* [Usage](#usage)
-  * [Multiple realms](#multiple-realms)
-* [Types supported](#types-supported)
-* [Benchmarks](#benchmarks)
-  * [Simple objects](#simple-objects)
-  * [Complex objects](#complex-objects)
-  * [Circular objects](#circular-objects)
-  * [Special objects](#special-objects)
-* [Development](#development)
+- [Usage](#usage)
+  - [Multiple realms](#multiple-realms)
+- [Types supported](#types-supported)
+- [Benchmarks](#benchmarks)
+  - [Simple objects](#simple-objects)
+  - [Complex objects](#complex-objects)
+  - [Circular objects](#circular-objects)
+  - [Special objects](#special-objects)
+- [Development](#development)
 
 ## Usage
 
@@ -54,42 +54,42 @@ console.log(copy(arr, iframe.contentWindow)); // ['foo', 'bar']
 
 The following object types are deeply cloned when they are either properties on the object passed, or the object itself:
 
-* `Array`
-* `ArrayBuffer`
-* `Buffer`
-* `DataView`
-* `Date`
-* `Float32Array`
-* `Float64Array`
-* `Int8Array`
-* `Int16Array`
-* `Int32Array`
-* `Map`
-* `Object`
-* `RegExp`
-* `Set`
-* `Uint8Array`
-* `Uint8ClampedArray`
-* `Uint16Array`
-* `Uint32Array`
-* `React` components
-* Custom constructors
+- `Array`
+- `ArrayBuffer`
+- `Buffer`
+- `DataView`
+- `Date`
+- `Float32Array`
+- `Float64Array`
+- `Int8Array`
+- `Int16Array`
+- `Int32Array`
+- `Map`
+- `Object`
+- `RegExp`
+- `Set`
+- `Uint8Array`
+- `Uint8ClampedArray`
+- `Uint16Array`
+- `Uint32Array`
+- `React` components
+- Custom constructors
 
 The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use-case implementation does not expect cloning:
 
-* `AsyncFunction`
-* `Boolean`
-* `Error`
-* `Function`
-* `GeneratorFunction`
-* `Number`
-* `Null`
-* `Promise`
-* `String`
-* `Symbol`
-* `Undefined`
-* `WeakMap`
-* `WeakSet`
+- `AsyncFunction`
+- `Boolean`
+- `Error`
+- `Function`
+- `GeneratorFunction`
+- `Number`
+- `Null`
+- `Promise`
+- `String`
+- `Symbol`
+- `Undefined`
+- `WeakMap`
+- `WeakSet`
 
 Circular objects are supported out of the box as well. By default a cache based on `WeakSet` is used, but if `WeakSet` is not available then a standard `Object` fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
 
@@ -151,20 +151,20 @@ _Custom constructors, React components, etc_
 
 Standard practice, clone the repo and `npm i` to get the dependencies. The following npm scripts are available:
 
-* benchmark => run benchmark tests against other equality libraries
-* build => build dist files with `rollup`
-* clean => run `clean:dist`, `clean:es`, and `clean:lib` scripts
-* clean:dist => run `rimraf` on the `dist` folder
-* clean:es => run `rimraf` on the `es` folder
-* clean:lib => run `rimraf` on the `lib` folder
-* dev => start webpack playground App
-* dist => run `build` and `build:minified` scripts
-* lint => run ESLint on all files in `src` folder (also runs on `dev` script)
-* lint:fix => run `lint` script, but with auto-fixer
-* prepublish:compile => run `lint`, `test:coverage`, `transpile:lib`, `transpile:es`, and `dist` scripts
-* start => run `dev`
-* test => run AVA with NODE_ENV=test on all files in `test` folder
-* test:coverage => run same script as `test` with code coverage calculation via `nyc`
-* test:watch => run same script as `test` but keep persistent watcher
-* transpile:es => run Babel on all files in `src` folder (transpiled to `es` folder without transpilation of ES2015 export syntax)
-* transpile:lib => run Babel on all files in `src` folder (transpiled to `lib` folder)
+- benchmark => run benchmark tests against other equality libraries
+- build => build dist files with `rollup`
+- clean => run `clean:dist`, `clean:es`, and `clean:lib` scripts
+- clean:dist => run `rimraf` on the `dist` folder
+- clean:es => run `rimraf` on the `es` folder
+- clean:lib => run `rimraf` on the `lib` folder
+- dev => start webpack playground App
+- dist => run `build` and `build:minified` scripts
+- lint => run ESLint on all files in `src` folder (also runs on `dev` script)
+- lint:fix => run `lint` script, but with auto-fixer
+- prepublish:compile => run `lint`, `test:coverage`, `transpile:lib`, `transpile:es`, and `dist` scripts
+- start => run `dev`
+- test => run AVA with NODE_ENV=test on all files in `test` folder
+- test:coverage => run same script as `test` with code coverage calculation via `nyc`
+- test:watch => run same script as `test` but keep persistent watcher
+- transpile:es => run Babel on all files in `src` folder (transpiled to `es` folder without transpilation of ES2015 export syntax)
+- transpile:lib => run Babel on all files in `src` folder (transpiled to `lib` folder)
