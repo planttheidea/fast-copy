@@ -5,7 +5,7 @@ import {
   HAS_WEAKSET_SUPPORT
 } from './constants';
 
-const {create, keys: getKeys, getOwnPropertySymbols: getSymbols} = Object;
+const {create, keys: getKeys, getOwnPropertySymbols: getSymbols, getPrototypeOf} = Object;
 const {propertyIsEnumerable} = Object.prototype;
 
 /**
@@ -179,7 +179,11 @@ export const copySet = createCopyIterable((iterable, copy, realm) => (value) => 
  * @returns {Object} the copied object
  */
 export const copyObject = (object, copy, realm, isPlainObject) => {
-  const newObject = isPlainObject ? {} : object.constructor ? new object.constructor() : create(null);
+  const newObject = isPlainObject
+    ? create(getPrototypeOf(object))
+    : object.constructor
+      ? new object.constructor()
+      : create(getPrototypeOf(object));
   const keys = getKeys(object);
 
   if (keys.length) {
