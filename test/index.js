@@ -65,8 +65,16 @@ function Foo(value) {
   return this;
 }
 
+const CUSTOM_PROTOTYPE = {
+  value: 'value',
+  method() {
+    return 'foo';
+  }
+}
+
 const SPECIAL_TYPES = {
   foo: new Foo('value'),
+  customProto: Object.create(CUSTOM_PROTOTYPE),
   react: React.createElement('main', {
     children: [
       React.createElement('h1', {children: 'Title'}),
@@ -148,6 +156,7 @@ test.serial('if copy will copy the special types correctly', (t) => {
   Object.keys(SPECIAL_TYPES).forEach((key) => {
     t.not(result[key], SPECIAL_TYPES[key]);
     t.deepEqual(result[key], SPECIAL_TYPES[key], key);
+    t.is(Object.getPrototypeOf(result[key]), Object.getPrototypeOf(SPECIAL_TYPES[key]), key + ' prototypes do not match');
   });
 });
 
