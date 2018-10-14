@@ -30,6 +30,12 @@ const COMPLEX_TYPES = {
   array: ['foo', {bar: 'baz'}],
   arrayBuffer: new ArrayBuffer(8),
   buffer: new Buffer('this is a test buffer'),
+  customPrototype: Object.create({
+    method() {
+      return 'foo';
+    },
+    value: 'value',
+  }),
   dataView: new DataView(new ArrayBuffer(16)),
   date: new Date(),
   float32Array: new Float32Array([12, 15]),
@@ -148,6 +154,11 @@ test.serial('if copy will copy the special types correctly', (t) => {
   Object.keys(SPECIAL_TYPES).forEach((key) => {
     t.not(result[key], SPECIAL_TYPES[key]);
     t.deepEqual(result[key], SPECIAL_TYPES[key], key);
+    t.is(
+      Object.getPrototypeOf(result[key]),
+      Object.getPrototypeOf(SPECIAL_TYPES[key]),
+      `${key} prototypes do not match`
+    );
   });
 });
 

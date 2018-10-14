@@ -10,7 +10,7 @@ import {
   copyTypedArray,
   getNewCache,
   isObjectCopyable,
-  shouldObjectBeCopied
+  shouldObjectBeCopied,
 } from './utils';
 
 /**
