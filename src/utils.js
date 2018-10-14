@@ -2,10 +2,10 @@
 import {
   HAS_FLAGS_SUPPORT,
   HAS_PROPERTY_SYMBOL_SUPPORT,
-  HAS_WEAKSET_SUPPORT
+  HAS_WEAKSET_SUPPORT,
 } from './constants';
 
-const {create, keys: getKeys, getOwnPropertySymbols: getSymbols} = Object;
+const {create, keys: getKeys, getOwnPropertySymbols: getSymbols, getPrototypeOf} = Object;
 const {propertyIsEnumerable} = Object.prototype;
 
 /**
@@ -28,6 +28,62 @@ export const getNewCache = () =>
         return !!~this._values.indexOf(value);
       },
     });
+
+/**
+ * @function getProto
+ *
+ * @description
+ * get the __proto__ prototype property from the object
+ *
+ * @param {any} object the object to get the __proto__ from
+ * @returns {Object} tthe prototype of the object
+ */
+export const getProto = (object) => (object ? object.__proto__ : null);
+
+/**
+ * @function getPrototype
+ *
+ * @description
+ * get the prototype of the object passed, using __proto__ when supported and
+ * falling back to getPrototypeOf
+ *
+ * @param {any} object the object to get the prototype of
+ * @returns {Object} the object's prototype
+ */
+export const getPrototype = (() => {
+  try {
+    const object = {};
+
+    if (object.__proto__ !== void 0) {
+      return getProto;
+    }
+
+    throw new Error();
+  } catch (error) {
+    return getPrototypeOf;
+  }
+})();
+
+/**
+ * @function getObjectToCopy
+ *
+ * @description
+ * get the object to copy, including appropriate prototype
+ *
+ * @param {Object} object the object to copy
+ * @param {any} realm the realm to base the object prototype on
+ * @param {boolean} isPlainObject is the object a plain object
+ * @returns {Object} an empty version of the object to copy
+ */
+export const getObjectToCopy = (object, realm, isPlainObject) => {
+  if (isPlainObject) {
+    const prototype = getPrototype(object);
+
+    return prototype === realm.Object.prototype ? {} : create(prototype);
+  }
+
+  return object.constructor ? new object.constructor() : create(null);
+};
 
 /**
  * @function getRegExpFlags
@@ -179,7 +235,7 @@ export const copySet = createCopyIterable((iterable, copy, realm) => (value) => 
  * @returns {Object} the copied object
  */
 export const copyObject = (object, copy, realm, isPlainObject) => {
-  const newObject = isPlainObject ? {} : object.constructor ? new object.constructor() : create(null);
+  const newObject = getObjectToCopy(object, realm, isPlainObject);
   const keys = getKeys(object);
 
   if (keys.length) {

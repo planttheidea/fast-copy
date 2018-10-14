@@ -1,5 +1,9 @@
 // external dependencies
-import {deepEqual, sameValueZeroEqual, shallowEqual} from 'fast-equals';
+import {
+  deepEqual,
+  sameValueZeroEqual,
+  shallowEqual,
+} from 'fast-equals';
 import _ from 'lodash';
 import clone from 'clone';
 import deepClone from 'deepclone';
@@ -21,11 +25,17 @@ const object = {
   array: ['foo', {bar: 'baz'}],
   arrayBuffer: new ArrayBuffer(8),
   boolean: true,
+  customPrototype: Object.create({
+    method() {
+      return 'foo';
+    },
+    value: 'value',
+  }),
   dataView: new DataView(new ArrayBuffer(16)),
   deeply: {
     nested: {
-      reference: {}
-    }
+      reference: {},
+    },
   },
   error: new Error('boom'),
   fn() {
@@ -49,16 +59,16 @@ const object = {
         children: [
           React.createElement('div', {
             children: 'Item',
-            style: {flex: '1 1 auto'}
+            style: {flex: '1 1 auto'},
           }),
           React.createElement('div', {
             children: 'Item',
-            style: {flex: '1 1 0'}
-          })
+            style: {flex: '1 1 0'},
+          }),
         ],
-        style: {display: 'flex'}
-      })
-    ]
+        style: {display: 'flex'},
+      }),
+    ],
   }),
   regexp: /foo/,
   set: new Set().add('foo').add({bar: 'baz'}),
@@ -68,7 +78,7 @@ const object = {
   undef: undefined,
   weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
   weakset: new WeakSet([{}, {}]),
-  [Symbol('key')]: 'value'
+  [Symbol('key')]: 'value',
 };
 
 object.deeply.nested.reference = object;
@@ -85,7 +95,7 @@ const primitiveKeys = [
   'symbol',
   'undef',
   'weakmap',
-  'weakset'
+  'weakset',
 ];
 
 const newObject = copy(object);
@@ -109,6 +119,10 @@ Object.keys(object).forEach((key) => {
   } else {
     console.log(`is ${key} not equal`, !sameValueZeroEqual(object[key], newObject[key]));
     console.log(`is ${key} equivalent`, deepEqual(object[key], newObject[key]));
+    console.log(
+      `is prototype of ${key} equal`,
+      sameValueZeroEqual(Object.getPrototypeOf(object[key]), Object.getPrototypeOf(newObject[key]))
+    );
   }
 
   console.log('can copy deeply', isObjectCopyable(object[key], {has: () => false}));

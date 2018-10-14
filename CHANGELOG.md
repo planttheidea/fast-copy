@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 1.2.3
+
+- Support custom prototype applied to plain object via `Object.create()`
+
 ## 1.2.2
 
 - Support copy of extensions of native `Array` with alternative `push()` method

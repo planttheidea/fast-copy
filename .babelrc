@@ -3,64 +3,54 @@
     "development": {
       "presets": [
         [
-          "env",
+          "@babel/preset-env",
           {
-            "exclude": ["transform-es2015-typeof-symbol"],
             "loose": true,
             "modules": false
           }
-        ],
-        "stage-2"
+        ]
       ]
     },
     "es": {
       "presets": [
         [
-          "env",
+          "@babel/preset-env",
           {
-            "exclude": ["transform-es2015-typeof-symbol"],
             "loose": true,
             "modules": false
           }
-        ],
-        "stage-2"
+        ]
       ]
     },
     "lib": {
       "presets": [
         [
-          "env",
+          "@babel/preset-env",
           {
-            "exclude": ["transform-es2015-typeof-symbol"],
             "loose": true
           }
-        ],
-        "stage-2"
+        ]
       ]
     },
     "production": {
       "presets": [
         [
-          "env",
+          "@babel/preset-env",
           {
-            "exclude": ["transform-es2015-typeof-symbol"],
             "loose": true,
             "modules": false
           }
-        ],
-        "stage-2"
+        ]
       ]
     },
     "test": {
       "presets": [
         [
-          "env",
+          "@babel/preset-env",
           {
-            "exclude": ["transform-es2015-typeof-symbol"],
             "loose": true
           }
-        ],
-        "stage-2"
+        ]
       ]
     }
   }

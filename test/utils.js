@@ -32,6 +32,71 @@ test.serial('if getNewCache will return a new WeakSet-like object when support i
   constants.HAS_WEAKSET_SUPPORT = support;
 });
 
+test('if getObjectToCopy will return a plain object when the object passed is a standard plain object', (t) => {
+  const object = {foo: 'bar'};
+
+  const result = utils.getObjectToCopy(object, global, true);
+
+  t.deepEqual(result, {});
+  t.is(Object.getPrototypeOf(result), Object.prototype);
+});
+
+test('if getObjectToCopy will return an object with the matching prototype when the object passed is a plain object created via Object.create()', (t) => {
+  const proto = {
+    method() {
+      return 'baz';
+    },
+  };
+  const object = Object.create(proto);
+
+  object.foo = 'bar';
+
+  const result = utils.getObjectToCopy(object, global, true);
+
+  t.deepEqual(result, {});
+  t.is(Object.getPrototypeOf(result), proto);
+});
+
+test('if getObjectToCopy will return an object based on a custom constructor when it is not a plain object', (t) => {
+  function Foo(value) {
+    this.value = value;
+
+    return this;
+  }
+
+  const object = new Foo('bar');
+
+  const result = utils.getObjectToCopy(object, global, false);
+
+  t.deepEqual(result, new Foo());
+  t.is(Object.getPrototypeOf(result), Foo.prototype);
+});
+
+test('if getObjectToCopy will return a pure object when the object passed is not a plain object and has no constructor', (t) => {
+  const object = Object.create(null);
+
+  object.foo = 'bar';
+
+  const result = utils.getObjectToCopy(object, global, false);
+
+  t.deepEqual(result, {});
+  t.is(Object.getPrototypeOf(result), null);
+});
+
+test('if getProto will return the prototype of the object', (t) => {
+  const object = Object.create({foo: 'bar'});
+
+  const result = utils.getProto(object);
+
+  t.is(result, Object.getPrototypeOf(object));
+});
+
+test('if getProto will return null when no object is passed', (t) => {
+  const result = utils.getProto(null);
+
+  t.is(result, null);
+});
+
 test('if getRegExpFlags will return an empty string when no flags are on the regExp', (t) => {
   const regExp = /foo/;
 
@@ -357,6 +422,32 @@ test.serial('if copyObject will copy the non-standard object to a new object of 
   t.deepEqual(result, object);
   t.is(copy.callCount, Object.keys(object).length);
 });
+
+test.serial(
+  'if copyObject will copy the object created via Object.create() to a new object with the same prototype',
+  (t) => {
+    const object = Object.create({
+      method() {
+        return 'foo';
+      },
+      value: 'value',
+    });
+
+    object.foo = 'bar';
+    object.bar = {baz: 'quz'};
+
+    const copy = sinon.stub().returnsArg(0);
+    const realm = global;
+    const isPlainObject = true;
+
+    const result = utils.copyObject(object, copy, realm, isPlainObject);
+
+    t.not(result, object);
+    t.is(Object.getPrototypeOf(result), Object.getPrototypeOf(object));
+    t.deepEqual(result, object);
+    t.is(copy.callCount, Object.keys(object).length);
+  }
+);
 
 test.serial('if copyRegExp will copy the regExp to a new regExp', (t) => {
   const regExp = /foo/gi;
