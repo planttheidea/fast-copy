@@ -4,7 +4,6 @@ import React from 'react';
 
 // src
 import copy from 'src/index';
-import * as constants from 'src/constants';
 
 const SIMPLE_TYPES = {
   boolean: true,
@@ -163,10 +162,6 @@ test.serial('if copy will copy the special types correctly', (t) => {
 });
 
 test.serial('if copy will handle when buffers are not supported', (t) => {
-  const support = constants.HAS_BUFFER_SUPPORT;
-
-  constants.HAS_BUFFER_SUPPORT = false;
-
   const cleanComplexTypes = Object.keys(COMPLEX_TYPES).reduce((types, key) => {
     if (key !== 'buffer' && key !== 'arguments') {
       types[key] = COMPLEX_TYPES[key];
@@ -181,15 +176,9 @@ test.serial('if copy will handle when buffers are not supported', (t) => {
     t.not(result[key], cleanComplexTypes[key]);
     t.deepEqual(result[key], cleanComplexTypes[key], key);
   });
-
-  constants.HAS_BUFFER_SUPPORT = support;
 });
 
 test.serial('if copy will handle when arrayBuffers are not supported', (t) => {
-  const support = constants.HAS_ARRAYBUFFER_SUPPORT;
-
-  constants.HAS_ARRAYBUFFER_SUPPORT = false;
-
   const cleanComplexTypes = Object.keys(COMPLEX_TYPES).reduce((types, key) => {
     if (
       !~[
@@ -219,8 +208,6 @@ test.serial('if copy will handle when arrayBuffers are not supported', (t) => {
     t.not(result[key], cleanComplexTypes[key]);
     t.deepEqual(result[key], cleanComplexTypes[key], key);
   });
-
-  constants.HAS_ARRAYBUFFER_SUPPORT = support;
 });
 
 test('if copy will handle alternative scope', (t) => {

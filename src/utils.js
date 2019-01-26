@@ -1,12 +1,14 @@
-// constants
-import {
-  HAS_FLAGS_SUPPORT,
-  HAS_PROPERTY_SYMBOL_SUPPORT,
-  HAS_WEAKSET_SUPPORT,
-} from './constants';
+const {create, getOwnPropertySymbols: getSymbols, getPrototypeOf} = Object;
+const {hasOwnProperty, propertyIsEnumerable} = Object.prototype;
 
-const {create, keys: getKeys, getOwnPropertySymbols: getSymbols, getPrototypeOf} = Object;
-const {propertyIsEnumerable} = Object.prototype;
+/**
+ * @constant {Object} SUPPORTS cache of values supported
+ */
+export const SUPPORTS = {
+  FLAGS: typeof /foo/g.flags === 'string',
+  SYMBOL_PROPERTIES: typeof global.Object.getOwnPropertySymbols === 'function',
+  WEAKSET: typeof global.WeakSet === 'function',
+};
 
 /**
  * @function getNewCache
@@ -17,7 +19,7 @@ const {propertyIsEnumerable} = Object.prototype;
  * @returns {Object|Weakset} the new cache object
  */
 export const getNewCache = () =>
-  HAS_WEAKSET_SUPPORT
+  SUPPORTS.WEAKSET
     ? new WeakSet()
     : create({
       _values: [],
@@ -30,56 +32,21 @@ export const getNewCache = () =>
     });
 
 /**
- * @function getProto
- *
- * @description
- * get the __proto__ prototype property from the object
- *
- * @param {any} object the object to get the __proto__ from
- * @returns {Object} tthe prototype of the object
- */
-export const getProto = (object) => (object ? object.__proto__ : null);
-
-/**
- * @function getPrototype
- *
- * @description
- * get the prototype of the object passed, using __proto__ when supported and
- * falling back to getPrototypeOf
- *
- * @param {any} object the object to get the prototype of
- * @returns {Object} the object's prototype
- */
-export const getPrototype = (() => {
-  try {
-    const object = {};
-
-    if (object.__proto__ !== void 0) {
-      return getProto;
-    }
-
-    throw new Error();
-  } catch (error) {
-    return getPrototypeOf;
-  }
-})();
-
-/**
  * @function getObjectToCopy
  *
  * @description
  * get the object to copy, including appropriate prototype
  *
  * @param {Object} object the object to copy
- * @param {any} realm the realm to base the object prototype on
+ * @param {function} RealmObject the realm-specific Object constructor
  * @param {boolean} isPlainObject is the object a plain object
  * @returns {Object} an empty version of the object to copy
  */
-export const getObjectToCopy = (object, realm, isPlainObject) => {
+export const getObjectToCopy = (object, RealmObject, isPlainObject) => {
   if (isPlainObject) {
-    const prototype = getPrototype(object);
+    const prototype = object.__proto__ || getPrototypeOf(object);
 
-    return prototype === realm.Object.prototype ? {} : create(prototype);
+    return prototype === RealmObject.prototype ? {} : create(prototype);
   }
 
   return object.constructor ? new object.constructor() : create(null);
@@ -191,9 +158,8 @@ export const copyArrayBuffer = (arrayBuffer) => arrayBuffer.slice(0);
  * @returns {Buffer} the copied buffer
  */
 export const copyBuffer = (buffer, realm) => {
-  const newBuffer = realm.Buffer.allocUnsafe
-    ? realm.Buffer.allocUnsafe(buffer.length)
-    : new realm.Buffer(buffer.length);
+  const {Buffer: RealmBuffer} = realm;
+  const newBuffer = RealmBuffer.allocUnsafe ? RealmBuffer.allocUnsafe(buffer.length) : new RealmBuffer(buffer.length);
 
   buffer.copy(newBuffer);
 
@@ -201,26 +167,42 @@ export const copyBuffer = (buffer, realm) => {
 };
 
 /**
- * @function copyIterable
+ * @function copyMap
  *
  * @description
- * copy the iterable values into a new iterable of the same type
+ * copy the map values into a new map
  *
- * @param {function} assignmentHandler the handler for assigning the values to the new iterable
- * @returns {function((Map|Set), function, any): (Map|Set)} the copied iterable
+ * @param {Map} map the map to copy
+ * @param {function} copy the copy object method
+ * @param {Object} realm the realm the constructor resides in
+ * @returns {Map} the copied map
  */
-export const createCopyIterable = (assignmentHandler) => (iterable, copy, realm) => {
-  const newIterable = new iterable.constructor();
+export const copyMap = (map, copy, realm) => {
+  const newMap = new map.constructor();
 
-  iterable.forEach(assignmentHandler(newIterable, copy, realm));
+  map.forEach((value, key) => newMap.set(key, copy(value, realm)));
 
-  return newIterable;
+  return newMap;
 };
 
-export const copyMap = createCopyIterable((iterable, copy, realm) => (value, key) =>
-  iterable.set(key, copy(value, realm))
-);
-export const copySet = createCopyIterable((iterable, copy, realm) => (value) => iterable.add(copy(value, realm)));
+/**
+ * @function copySet
+ *
+ * @description
+ * copy the set values into a new set
+ *
+ * @param {Set} set the set to copy
+ * @param {function} copy the copy object method
+ * @param {Object} realm the realm the constructor resides in
+ * @returns {Set} the copied set
+ */
+export const copySet = (set, copy, realm) => {
+  const newSet = new set.constructor();
+
+  set.forEach((value) => newSet.add(copy(value, realm)));
+
+  return newSet;
+};
 
 /**
  * @function copyObject
@@ -235,26 +217,19 @@ export const copySet = createCopyIterable((iterable, copy, realm) => (value) => 
  * @returns {Object} the copied object
  */
 export const copyObject = (object, copy, realm, isPlainObject) => {
-  const newObject = getObjectToCopy(object, realm, isPlainObject);
-  const keys = getKeys(object);
+  const newObject = getObjectToCopy(object, realm.Object, isPlainObject);
 
-  if (keys.length) {
-    let key;
-
-    for (let index = 0; index < keys.length; index++) {
-      key = keys[index];
-
+  for (let key in object) {
+    if (hasOwnProperty.call(object, key)) {
       newObject[key] = copy(object[key], realm);
     }
   }
 
-  if (HAS_PROPERTY_SYMBOL_SUPPORT) {
+  if (SUPPORTS.SYMBOL_PROPERTIES) {
     const symbols = getSymbols(object);
 
     if (symbols.length) {
-      let symbol;
-
-      for (let index = 0; index < symbols.length; index++) {
+      for (let index = 0, symbol; index < symbols.length; index++) {
         symbol = symbols[index];
 
         if (propertyIsEnumerable.call(object, symbol)) {
@@ -274,11 +249,11 @@ export const copyObject = (object, copy, realm, isPlainObject) => {
  * copy the RegExp to a new RegExp with the same properties
  *
  * @param {RegExp} regExp the RegExp to copy
- * @param {any} realm the realm to check instanceof in
+ * @param {function} RealmRegExp the realm-specific RegExp constructor
  * @returns {RegExp} the copied RegExp
  */
-export const copyRegExp = (regExp, realm) => {
-  const newRegExp = new realm.RegExp(regExp.source, HAS_FLAGS_SUPPORT ? regExp.flags : getRegExpFlags(regExp));
+export const copyRegExp = (regExp, RealmRegExp) => {
+  const newRegExp = new RealmRegExp(regExp.source, SUPPORTS.FLAGS ? regExp.flags : getRegExpFlags(regExp));
 
   newRegExp.lastIndex = regExp.lastIndex;
 

@@ -1,44 +1,11 @@
 {
   "env": {
-    "development": {
-      "presets": [
-        [
-          "@babel/preset-env",
-          {
-            "loose": true,
-            "modules": false
-          }
-        ]
-      ]
-    },
-    "es": {
-      "presets": [
-        [
-          "@babel/preset-env",
-          {
-            "loose": true,
-            "modules": false
-          }
-        ]
-      ]
-    },
     "lib": {
       "presets": [
         [
           "@babel/preset-env",
           {
             "loose": true
-          }
-        ]
-      ]
-    },
-    "production": {
-      "presets": [
-        [
-          "@babel/preset-env",
-          {
-            "loose": true,
-            "modules": false
           }
         ]
       ]
@@ -53,5 +20,14 @@
         ]
       ]
     }
-  }
+  },
+  "presets": [
+    [
+      "@babel/preset-env",
+      {
+        "loose": true,
+        "modules": false
+      }
+    ]
+  ]
 }

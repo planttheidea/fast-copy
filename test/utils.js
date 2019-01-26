@@ -4,7 +4,6 @@ import sinon from 'sinon';
 
 // src
 import * as utils from 'src/utils';
-import * as constants from 'src/constants';
 
 test.serial('if getNewCache will return a new WeakSet when support is present', (t) => {
   const result = utils.getNewCache();
@@ -13,9 +12,9 @@ test.serial('if getNewCache will return a new WeakSet when support is present', 
 });
 
 test.serial('if getNewCache will return a new WeakSet-like object when support is not present', (t) => {
-  const support = constants.HAS_WEAKSET_SUPPORT;
+  const support = utils.SUPPORTS.WEAKSET;
 
-  constants.HAS_WEAKSET_SUPPORT = false;
+  utils.SUPPORTS.WEAKSET = false;
 
   const result = utils.getNewCache();
 
@@ -29,7 +28,7 @@ test.serial('if getNewCache will return a new WeakSet-like object when support i
   t.deepEqual(result._values, [value]);
   t.true(result.has(value));
 
-  constants.HAS_WEAKSET_SUPPORT = support;
+  utils.SUPPORTS.WEAKSET = support;
 });
 
 test('if getObjectToCopy will return a plain object when the object passed is a standard plain object', (t) => {
@@ -81,20 +80,6 @@ test('if getObjectToCopy will return a pure object when the object passed is not
 
   t.deepEqual(result, {});
   t.is(Object.getPrototypeOf(result), null);
-});
-
-test('if getProto will return the prototype of the object', (t) => {
-  const object = Object.create({foo: 'bar'});
-
-  const result = utils.getProto(object);
-
-  t.is(result, Object.getPrototypeOf(object));
-});
-
-test('if getProto will return null when no object is passed', (t) => {
-  const result = utils.getProto(null);
-
-  t.is(result, null);
 });
 
 test('if getRegExpFlags will return an empty string when no flags are on the regExp', (t) => {
@@ -324,11 +309,11 @@ test.serial('if copyObject will copy the object to a new object', (t) => {
 });
 
 test.serial('if copyObject will copy the object to a new object when there are symbols', (t) => {
-  const support = constants.HAS_PROPERTY_SYMBOL_SUPPORT;
+  const support = utils.SUPPORTS.SYMBOL_PROPERTIES;
 
   const symbolKey = Symbol('blah');
 
-  constants.HAS_PROPERTY_SYMBOL_SUPPORT = false;
+  utils.SUPPORTS.SYMBOL_PROPERTIES = false;
 
   const object = {
     bar: {baz: 'quz'},
@@ -346,7 +331,7 @@ test.serial('if copyObject will copy the object to a new object when there are s
   t.deepEqual(result, expectedResult);
   t.is(copy.callCount, Object.keys(object).length);
 
-  constants.HAS_PROPERTY_SYMBOL_SUPPORT = support;
+  utils.SUPPORTS.SYMBOL_PROPERTIES = support;
 });
 
 test.serial(
@@ -453,26 +438,26 @@ test.serial('if copyRegExp will copy the regExp to a new regExp', (t) => {
   const regExp = /foo/gi;
   const realm = global;
 
-  const result = utils.copyRegExp(regExp, realm);
+  const result = utils.copyRegExp(regExp, realm.RegExp);
 
   t.not(result, regExp);
   t.deepEqual(result, regExp);
 });
 
 test.serial('if copyRegExp will copy the regExp to a new regExp when flags are not supported', (t) => {
-  const support = constants.HAS_FLAGS_SUPPORT;
+  const support = utils.SUPPORTS.FLAGS;
 
-  constants.HAS_FLAGS_SUPPORT = false;
+  utils.SUPPORTS.FLAGS = false;
 
   const regExp = /foo/gi;
   const realm = global;
 
-  const result = utils.copyRegExp(regExp, realm);
+  const result = utils.copyRegExp(regExp, realm.RegExp);
 
   t.not(result, regExp);
   t.deepEqual(result, regExp);
 
-  constants.HAS_FLAGS_SUPPORT = support;
+  utils.SUPPORTS.FLAGS = support;
 });
 
 test('if copyTypedArray will copy the dataView to a new arrayBuffer', (t) => {
