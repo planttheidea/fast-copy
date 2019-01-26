@@ -15,7 +15,7 @@ const simpleObject = {
   boolean: true,
   nil: null,
   number: 123,
-  string: 'foo'
+  string: 'foo',
 };
 
 const complexObject = Object.assign({}, simpleObject, {
@@ -38,15 +38,15 @@ const complexObject = Object.assign({}, simpleObject, {
   undef: undefined,
   weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
   weakset: new WeakSet([{}, {}]),
-  [Symbol('key')]: 'value'
+  [Symbol('key')]: 'value',
 });
 
 const circularObject = {
   deeply: {
     nested: {
-      reference: {}
-    }
-  }
+      reference: {},
+    },
+  },
 };
 
 circularObject.deeply.nested.reference = circularObject;
@@ -64,26 +64,26 @@ const specialObject = {
         children: [
           React.createElement('div', {
             children: 'Item',
-            style: {flex: '1 1 auto'}
+            style: {flex: '1 1 auto'},
           }),
           React.createElement('div', {
             children: 'Item',
-            style: {flex: '1 1 0'}
-          })
+            style: {flex: '1 1 0'},
+          }),
         ],
-        style: {display: 'flex'}
-      })
-    ]
-  })
+        style: {display: 'flex'},
+      }),
+    ],
+  }),
 };
 
 const packages = {
   clone: require('clone'),
   deepclone: require('deepclone'),
   'fast-clone': require('fast-clone'),
-  'fast-copy': require('../lib').default,
+  'fast-copy': require('../dist/fast-copy.cjs').default,
   'fast-deepclone': require('fast-deepclone'),
-  'lodash.cloneDeep': require('lodash').cloneDeep
+  'lodash.cloneDeep': require('lodash').cloneDeep,
 };
 
 const addNewline = () => console.log('');

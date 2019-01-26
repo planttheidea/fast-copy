@@ -13,6 +13,8 @@ import {
   shouldObjectBeCopied,
 } from './utils';
 
+const {isArray} = Array;
+
 /**
  * @function copy
  *
@@ -24,6 +26,16 @@ import {
  * @returns {any} the copied object
  */
 export default function copy(object, realm = global) {
+  const {
+    ArrayBuffer: RealmArrayBuffer,
+    Buffer: RealmBuffer,
+    Date: RealmDate,
+    Map: RealmMap,
+    Object: RealmObject,
+    RegExp: RealmRegExp,
+    Set: RealmSet,
+  } = realm;
+
   const cache = getNewCache();
 
   const handleCopy = (object) => {
@@ -31,48 +43,48 @@ export default function copy(object, realm = global) {
       return object;
     }
 
-    if (Array.isArray(object)) {
+    if (isArray(object)) {
       cache.add(object);
 
       return copyArray(object, handleCopy, realm);
     }
 
-    if (object.constructor === realm.Object) {
+    if (object.constructor === RealmObject) {
       cache.add(object);
 
       return copyObject(object, handleCopy, realm, true);
     }
 
-    if (object instanceof realm.Date) {
-      return new Date(object.getTime());
+    if (object instanceof RealmDate) {
+      return new RealmDate(object.getTime());
     }
 
-    if (object instanceof realm.RegExp) {
-      return copyRegExp(object, realm);
+    if (object instanceof RealmRegExp) {
+      return copyRegExp(object, RealmRegExp);
     }
 
-    if (realm.Map && object instanceof realm.Map) {
+    if (RealmMap && object instanceof RealmMap) {
       cache.add(object);
 
       return copyMap(object, handleCopy, realm);
     }
 
-    if (realm.Set && object instanceof realm.Set) {
+    if (RealmSet && object instanceof RealmSet) {
       cache.add(object);
 
       return copySet(object, handleCopy, realm);
     }
 
-    if (realm.Buffer && realm.Buffer.isBuffer(object)) {
+    if (RealmBuffer && RealmBuffer.isBuffer(object)) {
       return copyBuffer(object, realm);
     }
 
-    if (realm.ArrayBuffer) {
-      if (realm.ArrayBuffer.isView(object)) {
+    if (RealmArrayBuffer) {
+      if (RealmArrayBuffer.isView(object)) {
         return copyTypedArray(object);
       }
 
-      if (object instanceof realm.ArrayBuffer) {
+      if (object instanceof RealmArrayBuffer) {
         return copyArrayBuffer(object);
       }
     }

@@ -13,6 +13,7 @@
     ],
     "verbose": true
   },
+  "browser": "dist/fast-copy.js",
   "bugs": {
     "url": "https://github.com/planttheidea/fast-copy/issues"
   },
@@ -53,7 +54,7 @@
     "rollup": "^0.66.6",
     "rollup-plugin-babel": "^4.0.1",
     "rollup-plugin-node-resolve": "^3.4.0",
-    "rollup-plugin-uglify": "^6.0.0",
+    "rollup-plugin-terser": "^4.0.3",
     "shallow-equal-fuzzy": "^0.0.2",
     "sinon": "^7.0.0",
     "underscore": "^1.9.1",
@@ -69,15 +70,15 @@
     "fast"
   ],
   "license": "MIT",
-  "main": "lib/index.js",
-  "module": "es/index.js",
+  "main": "dist/fast-copy.cjs.js",
+  "module": "dist/fast-copy.esm.js",
   "name": "fast-copy",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/planttheidea/fast-copy.git"
   },
   "scripts": {
-    "benchmark": "NODE_ENV=production BABEL_ENV=test babel src --out-dir lib --no-comments && node benchmark/index.js",
+    "benchmark": "npm run build && node benchmark/index.js",
     "build": "NODE_ENV=production rollup -c",
     "clean": "npm run clean:es && npm run clean:lib && npm run clean:dist",
     "clean:dist": "rimraf dist",
