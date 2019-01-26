@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 1.2.4
+
+- Ensure `Date` copy uses realm-specific constructor
+
 ## 1.2.3
 
 - Support custom prototype applied to plain object via `Object.create()`

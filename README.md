@@ -153,18 +153,13 @@ Standard practice, clone the repo and `npm i` to get the dependencies. The follo
 
 - benchmark => run benchmark tests against other equality libraries
 - build => build dist files with `rollup`
-- clean => run `clean:dist`, `clean:es`, and `clean:lib` scripts
-- clean:dist => run `rimraf` on the `dist` folder
-- clean:es => run `rimraf` on the `es` folder
-- clean:lib => run `rimraf` on the `lib` folder
+- clean => run `rimraf` on the `dist` folder
 - dev => start webpack playground App
 - dist => run `build` and `build:minified` scripts
 - lint => run ESLint on all files in `src` folder (also runs on `dev` script)
 - lint:fix => run `lint` script, but with auto-fixer
-- prepublish:compile => run `lint`, `test:coverage`, `transpile:lib`, `transpile:es`, and `dist` scripts
+- prepublish:compile => run `lint`, `test:coverage`, and `dist` scripts
 - start => run `dev`
 - test => run AVA with NODE_ENV=test on all files in `test` folder
 - test:coverage => run same script as `test` with code coverage calculation via `nyc`
 - test:watch => run same script as `test` but keep persistent watcher
-- transpile:es => run Babel on all files in `src` folder (transpiled to `es` folder without transpilation of ES2015 export syntax)
-- transpile:lib => run Babel on all files in `src` folder (transpiled to `lib` folder)

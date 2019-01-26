@@ -1,4 +1,4 @@
-const {create, keys: getKeys, getOwnPropertySymbols: getSymbols, getPrototypeOf} = Object;
+const {create, getOwnPropertySymbols: getSymbols, getPrototypeOf} = Object;
 const {hasOwnProperty, propertyIsEnumerable} = Object.prototype;
 
 /**
