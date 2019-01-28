@@ -32,5 +32,3 @@ declare function copy<T>(object: any, options?: FastCopy.Options): T;
 declare namespace copy {
   function strictCopy<T>(object: any, options?: FastCopy.Options): T;
 }
-
-export default copy;

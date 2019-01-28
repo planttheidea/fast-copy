@@ -1,236 +1,196 @@
-'use strict';
+/* eslint-disable no-magic-numbers, no-param-reassign, import/no-commonjs */
 
-const Benchmark = require('benchmark');
-const React = require('react');
+const { createSuite } = require("benchee");
+const Table = require("cli-table2");
 
-const BIG_DATA = require('./bigData');
+const React = require("react");
 
-function Foo(value) {
-  this.value = value;
+/************* data *************/
 
-  return this;
+const BIG_DATA = require("./bigData");
+
+class Foo {
+  constructor(value) {
+    this.value = value;
+  }
 }
 
 const simpleObject = {
   boolean: true,
   nil: null,
   number: 123,
-  string: 'foo',
+  string: "foo"
 };
 
 const complexObject = Object.assign({}, simpleObject, {
-  array: ['foo', {bar: 'baz'}],
+  array: ["foo", { bar: "baz" }],
   arrayBuffer: new ArrayBuffer(8),
-  buffer: new Buffer('this is a test buffer'),
+  buffer: new Buffer("this is a test buffer"),
   dataView: new DataView(new ArrayBuffer(16)),
   date: new Date(),
-  error: new Error('boom'),
+  error: new Error("boom"),
   fn() {
-    return 'foo';
+    return "foo";
   },
-  map: new Map().set('foo', {bar: {baz: 'quz'}}),
+  map: new Map().set("foo", { bar: { baz: "quz" } }),
   nan: NaN,
-  object: {foo: {bar: 'baz'}},
-  promise: Promise.resolve('foo'),
+  object: { foo: { bar: "baz" } },
+  promise: Promise.resolve("foo"),
   regexp: /foo/,
-  set: new Set().add('foo').add({bar: {baz: 'quz'}}),
+  set: new Set().add("foo").add({ bar: { baz: "quz" } }),
   typedArray: new Uint8Array([12, 15]),
   undef: undefined,
-  weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
+  weakmap: new WeakMap([[{}, "foo"], [{}, "bar"]]),
   weakset: new WeakSet([{}, {}]),
-  [Symbol('key')]: 'value',
+  [Symbol("key")]: "value"
 });
 
 const circularObject = {
   deeply: {
     nested: {
-      reference: {},
-    },
-  },
+      reference: {}
+    }
+  }
 };
 
 circularObject.deeply.nested.reference = circularObject;
 
 const specialObject = {
-  foo: new Foo('value'),
-  react: React.createElement('main', {
+  foo: new Foo("value"),
+  react: React.createElement("main", {
     children: [
-      React.createElement('h1', {children: 'Title'}),
-      React.createElement('p', {children: 'Content'}),
-      React.createElement('p', {children: 'Content'}),
-      React.createElement('p', {children: 'Content'}),
-      React.createElement('p', {children: 'Content'}),
-      React.createElement('div', {
+      React.createElement("h1", { children: "Title" }),
+      React.createElement("p", { children: "Content" }),
+      React.createElement("p", { children: "Content" }),
+      React.createElement("p", { children: "Content" }),
+      React.createElement("p", { children: "Content" }),
+      React.createElement("div", {
         children: [
-          React.createElement('div', {
-            children: 'Item',
-            style: {flex: '1 1 auto'},
+          React.createElement("div", {
+            children: "Item",
+            style: { flex: "1 1 auto" }
           }),
-          React.createElement('div', {
-            children: 'Item',
-            style: {flex: '1 1 0'},
-          }),
+          React.createElement("div", {
+            children: "Item",
+            style: { flex: "1 1 0" }
+          })
         ],
-        style: {display: 'flex'},
-      }),
-    ],
-  }),
+        style: { display: "flex" }
+      })
+    ]
+  })
+};
+
+/************* setup *************/
+
+const getResults = results => {
+  const table = new Table({
+    head: ["Name", "Ops / sec"]
+  });
+
+  results.forEach(({ name, stats }) => {
+    table.push([name, stats.ops.toLocaleString()]);
+  });
+
+  return table.toString();
 };
 
 const packages = {
-  clone: require('clone'),
-  deepclone: require('deepclone'),
-  'fast-clone': require('fast-clone'),
-  'fast-copy': require('../dist/fast-copy.cjs').default,
-  'fast-deepclone': require('fast-deepclone'),
-  'lodash.cloneDeep': require('lodash').cloneDeep,
+  clone: require("clone"),
+  deepclone: require("deepclone"),
+  "fast-clone": require("fast-clone"),
+  "fast-copy": require("../dist/fast-copy.cjs"),
+  "fast-copy (strict)": require("../dist/fast-copy.cjs").strict,
+  "fast-deepclone": require("fast-deepclone"),
+  "lodash.cloneDeep": require("lodash").cloneDeep,
+  ramda: require("ramda").clone
 };
 
-const addNewline = () => console.log('');
+const suite = createSuite({
+  minTime: 3000,
+  onComplete(results) {
+    const combinedResults = Object.keys(results)
+      .reduce((combined, group) => {
+        const groupResults = results[group];
 
-const runSimpleSuite = () => {
-  console.log('Running simple object performance comparison...');
-  console.log('');
+        return groupResults.map(({ name, stats }) => {
+          const existingRowIndex = combined.findIndex(
+            ({ name: rowName }) => name === rowName
+          );
 
-  const suite = new Benchmark.Suite();
+          return ~existingRowIndex
+            ? {
+                ...combined[existingRowIndex],
+                stats: {
+                  elapsed: (combined[existingRowIndex].stats.elapsed +=
+                    stats.elapsed),
+                  iterations: (combined[existingRowIndex].stats.iterations +=
+                    stats.iterations)
+                }
+              }
+            : {
+                name,
+                stats: {
+                  elapsed: stats.elapsed,
+                  iterations: stats.iterations
+                }
+              };
+        });
+      }, [])
+      .map(({ name, stats }) => ({
+        name,
+        stats: {
+          ...stats,
+          ops: stats.iterations / stats.elapsed
+        }
+      }))
+      .sort((a, b) => {
+        if (a.stats.ops > b.stats.ops) {
+          return -1;
+        }
 
-  for (let name in packages) {
-    suite.add(name, () => packages[name](simpleObject));
+        if (a.stats.ops < b.stats.ops) {
+          return 1;
+        }
+
+        return 0;
+      });
+
+    console.log("");
+    console.log("Benchmark results complete, overall averages:");
+    console.log("");
+    console.log(getResults(combinedResults));
+    console.log("");
+  },
+  onGroupComplete({ group, results }) {
+    console.log("");
+    console.log(`...finished group ${group}.`);
+    console.log("");
+    console.log(getResults(results));
+    console.log("");
+  },
+  onGroupStart(group) {
+    console.log("");
+    console.log(`Starting benchmarks for group ${group}...`);
+    console.log("");
+  },
+  onResult({ name, stats }) {
+    console.log(
+      `Benchmark completed for ${name}: ${stats.ops.toLocaleString()} ops/sec`
+    );
   }
+});
 
-  return new Promise((resolve) => {
-    suite
-      .on('cycle', (event) => {
-        const result = event.target.toString();
+/************* tests *************/
 
-        return console.log(result);
-      })
-      .on('complete', function() {
-        console.log('');
-        console.log(`...complete, the fastest is ${this.filter('fastest').map('name')}.`);
+for (let name in packages) {
+  const copy = packages[name];
 
-        resolve();
-      })
-      .run({async: true});
-  });
-};
+  suite.add(name, "simple object", () => copy(simpleObject));
+  suite.add(name, "complex object", () => copy(complexObject));
+  suite.add(name, "big data object", () => copy(BIG_DATA));
+  suite.add(name, "circular object", () => copy(circularObject));
+  suite.add(name, "special values object", () => copy(specialObject));
+}
 
-const runComplexSuite = () => {
-  console.log('Running complex object performance comparison...');
-  console.log('');
-
-  const suite = new Benchmark.Suite();
-
-  for (let name in packages) {
-    suite.add(name, () => packages[name](complexObject));
-  }
-
-  return new Promise((resolve) => {
-    suite
-      .on('cycle', (event) => {
-        const result = event.target.toString();
-
-        return console.log(result);
-      })
-      .on('complete', function() {
-        console.log('');
-        console.log(`...complete, the fastest is ${this.filter('fastest').map('name')}.`);
-
-        resolve();
-      })
-      .run({async: true});
-  });
-};
-
-const runBigDataSuite = () => {
-  console.log('Running big data object performance comparison...');
-  console.log('');
-
-  const suite = new Benchmark.Suite();
-
-  for (let name in packages) {
-    suite.add(name, () => packages[name](BIG_DATA));
-  }
-
-  return new Promise((resolve) => {
-    suite
-      .on('cycle', (event) => {
-        const result = event.target.toString();
-
-        return console.log(result);
-      })
-      .on('complete', function() {
-        console.log('');
-        console.log(`...complete, the fastest is ${this.filter('fastest').map('name')}.`);
-
-        resolve();
-      })
-      .run({async: true});
-  });
-};
-
-const runCircularSuite = () => {
-  console.log('Running circular object performance comparison...');
-  console.log('');
-
-  const suite = new Benchmark.Suite();
-
-  for (let name in packages) {
-    suite.add(name, () => packages[name](circularObject));
-  }
-
-  return new Promise((resolve) => {
-    suite
-      .on('cycle', (event) => {
-        const result = event.target.toString();
-
-        return console.log(result);
-      })
-      .on('complete', function() {
-        console.log('');
-        console.log(`...complete, the fastest is ${this.filter('fastest').map('name')}.`);
-
-        resolve();
-      })
-      .run({async: true});
-  });
-};
-
-const runSpecialSuite = () => {
-  console.log('Running special values object performance comparison...');
-  console.log('');
-
-  const suite = new Benchmark.Suite();
-
-  for (let name in packages) {
-    suite.add(name, () => packages[name](specialObject));
-  }
-
-  return new Promise((resolve) => {
-    suite
-      .on('cycle', (event) => {
-        const result = event.target.toString();
-
-        return console.log(result);
-      })
-      .on('complete', function() {
-        console.log('');
-        console.log(`...complete, the fastest is ${this.filter('fastest').map('name')}.`);
-
-        resolve();
-      })
-      .run({async: true});
-  });
-};
-
-Promise.resolve()
-  .then(addNewline)
-  .then(runSimpleSuite)
-  .then(addNewline)
-  .then(runComplexSuite)
-  .then(addNewline)
-  .then(runBigDataSuite)
-  .then(addNewline)
-  .then(runCircularSuite)
-  .then(addNewline)
-  .then(runSpecialSuite);
+suite.run();

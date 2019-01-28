@@ -1,49 +1,67 @@
-'use strict';
+"use strict";
 
-const path = require('path');
-const webpack = require('webpack');
+const HtmlWebpackPlugin = require("html-webpack-plugin");
+const path = require("path");
+const webpack = require("webpack");
 
-const statics = require('./webpackStatics');
+const ROOT = path.resolve(__dirname, "..");
 
 module.exports = {
-  cache: true,
+  devServer: {
+    contentBase: "./dist",
+    inline: true,
+    port: 3000,
+    stats: {
+      assets: false,
+      chunks: true,
+      chunkModules: false,
+      colors: true,
+      hash: false,
+      timings: true,
+      version: false
+    }
+  },
 
-  devtool: '#source-map',
+  devtool: "#source-map",
 
-  entry: [path.resolve(statics.ROOT, 'src', 'index.js')],
+  entry: path.join(ROOT, "DEV_ONLY", "index.ts"),
 
-  mode: 'development',
+  mode: "development",
 
   module: {
     rules: [
       {
-        enforce: 'pre',
-        include: [path.resolve(statics.ROOT, 'src')],
-        loader: 'eslint-loader',
-        options: {
-          configFile: '.eslintrc',
-          failOnError: true,
-          failOnWarning: false,
-          fix: true,
-          formatter: require('eslint-friendly-formatter')
-        },
-        test: /\.js$/
+        enforce: "pre",
+        include: [path.resolve(ROOT, "src")],
+        loader: "tslint-loader",
+        test: /\.ts$/
       },
       {
-        include: [path.resolve(statics.ROOT, 'DEV_ONLY'), path.resolve(statics.ROOT, 'src')],
-        test: /\.js$/,
-        loader: 'babel-loader'
+        include: [path.resolve(ROOT, "src"), /DEV_ONLY/],
+        loader: "ts-loader",
+        test: /\.tsx?$/
       }
     ]
   },
 
+  node: {
+    fs: "empty"
+  },
+
   output: {
-    filename: 'fast-copy.js',
-    library: 'fastCopy',
-    libraryTarget: 'umd',
-    path: path.resolve(statics.ROOT, 'dist'),
+    filename: "fast-copy.js",
+    library: "fastCopy",
+    libraryTarget: "umd",
+    path: path.resolve(ROOT, "dist"),
     umdNamedDefine: true
   },
 
-  plugins: [new webpack.EnvironmentPlugin(['NODE_ENV'])]
+  plugins: [
+    new webpack.EnvironmentPlugin(["NODE_ENV"]),
+    new HtmlWebpackPlugin()
+  ],
+
+  resolve: {
+    extensions: [".ts", ".js"]
+  }
 };
