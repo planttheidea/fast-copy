@@ -8,9 +8,9 @@
   "devDependencies": {
     "@types/jest": "^23.3.13",
     "@types/lodash": "^4.14.120",
-    "@types/node": "^10.12.18",
+    "@types/node": "^10.12.19",
     "@types/ramda": "^0.25.47",
-    "@types/react": "^16.7.21",
+    "@types/react": "^16.7.22",
     "benchee": "^1.0.3",
     "cli-table2": "^0.2.0",
     "clone": "^2.1.2",
