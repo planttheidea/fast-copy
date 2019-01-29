@@ -49,7 +49,15 @@ Starting in `2.0.0`, you can use the `isStrict` option to copy the object based 
 
 This is significantly slower, so you should only use this if you believe it necessary.
 
+```javascript
+console.log(copy(object, { isStrict: true }));
+```
+
 **NOTE**: This option is also aliased as `copy.strict`.
+
+```javascript
+console.log(copy.strict(object));
+```
 
 #### realm
 
