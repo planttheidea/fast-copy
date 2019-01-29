@@ -45,10 +45,10 @@ const GLOBAL_THIS = (() => {
  * @param [options.realm] the realm (this) object the object is copied from
  * @returns the copied object
  */
-function copy(
-  object: any,
+function copy<T>(
+  object: T,
   { isStrict = false, realm = GLOBAL_THIS }: FastCopy.Options = {},
-): any {
+): T {
   const {
     ArrayBuffer: RealmArrayBuffer,
     Buffer: RealmBuffer,
