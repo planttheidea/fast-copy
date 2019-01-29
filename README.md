@@ -63,7 +63,7 @@ Under the hood, `fast-copy` uses `instanceof` to determine object types, which c
 const iframe = document.querySelector("iframe");
 const arr = iframe.contentWindow.arr;
 
-console.log(copy(arr, iframe.contentWindow)); // ['foo', 'bar']
+console.log(copy(arr, { realm: iframe.contentWindow })); // ['foo', 'bar']
 ```
 
 ## Types supported
