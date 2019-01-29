@@ -62,8 +62,6 @@ function copy(
     ? getObjectCloneStrict
     : getObjectCloneLoose;
 
-  let Constructor: FastCopy.Constructor;
-
   /**
    * @function handleCopy
    *
@@ -81,7 +79,7 @@ function copy(
       return object;
     }
 
-    Constructor = object.constructor;
+    const Constructor: FastCopy.Constructor = object.constructor;
 
     // plain objects
     if (Constructor === realm.Object) {
@@ -133,9 +131,9 @@ function copy(
 
       clone = new Constructor();
 
-      object.forEach((value: any, key: any) =>
-        clone.set(key, handleCopy(value, cache)),
-      );
+      object.forEach((value: any, key: any) => {
+        clone.set(key, handleCopy(value, cache));
+      });
 
       return clone;
     }
@@ -146,7 +144,9 @@ function copy(
 
       clone = new Constructor();
 
-      object.forEach((value: any) => clone.add(handleCopy(value, cache)));
+      object.forEach((value: any) => {
+        clone.add(handleCopy(value, cache));
+      });
 
       return clone;
     }

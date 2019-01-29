@@ -9,7 +9,9 @@ A [blazing fast](#benchmarks) deep object copier
 ## Table of contents
 
 - [Usage](#usage)
-  - [Multiple realms](#multiple-realms)
+- [Options](#options)
+  - [isStrict](#isstrict)
+  - [realm](#realm)
 - [Types supported](#types-supported)
 - [Benchmarks](#benchmarks)
   - [Simple objects](#simple-objects)
@@ -35,9 +37,23 @@ console.log(copiedObject === object); // false
 console.log(deepEqual(copiedObject, object)); // true
 ```
 
-#### Multiple realms
+## Options
 
-Under the hood, `fast-copy` uses `instanceof` to determine object types, which can cause false negatives when used in combination with `iframe`-based objects. To handle this edge case, you can pass the `realm` to the `copy` method in the [options](#options), which identifies which realm the object comes from and will use that realm to drive both comparisons and constructors for the copies.
+#### isStrict
+
+Starting in `2.0.0`, you can use the `isStrict` option to copy the object based on strict standards, meaning:
+
+- Properties retain their original property descriptor
+- Non-enumerable properties are copied
+- Non-standard properties (e.g., keys on an `Array` object) are copied
+
+This is significantly slower, so you should only use this if you believe it necessary.
+
+**NOTE**: This option is also aliased as `copy.strict`.
+
+#### realm
+
+Under the hood, `fast-copy` uses `instanceof` to determine object types, which can cause false negatives when used in combination with `iframe`-based objects. To handle this edge case, you can pass the `realm` in options, which identifies which realm the object comes from and will use that realm to drive both comparisons and constructors for the copies.
 
 ```html
 <iframe srcdoc="<script>var arr = ['foo', 'bar'];</script>"></iframe>

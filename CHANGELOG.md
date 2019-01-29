@@ -3,13 +3,13 @@
 ## 2.0.0
 
 - Rewrite in TypeScript
-- Add strict mode (for more accurate copying, at the expense of less performance)
+- Add strict mode (for more accurate and thorough copying, at the expense of less performance)
 
 #### BREAKING CHANGES
 
 - Second parameter is now an object of options
   - `isStrict` determines if strict copying is used (defaults to `false`)
-  - `realm` determines the realm the object comparison is based on
+  - `realm` determines the realm the object comparison is based on (defaults to global object)
 
 ## 1.2.4
 
