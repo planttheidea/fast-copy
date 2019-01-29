@@ -7,9 +7,7 @@
 
 #### BREAKING CHANGES
 
-- Second parameter is now an object of options
-  - `isStrict` determines if strict copying is used (defaults to `false`)
-  - `realm` determines the realm the object comparison is based on (defaults to global object)
+- Second parameter is now an object of [options](README.md#options)
 
 ## 1.2.4
 
