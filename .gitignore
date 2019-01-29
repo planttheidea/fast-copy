@@ -1,8 +1,7 @@
 .idea
 .nyc_output
+.rpt2_cache
 coverage
 dist
 node_modules
-lib
-es
 *.log

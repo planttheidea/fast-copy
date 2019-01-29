@@ -1,5 +1,14 @@
 # fast-copy CHANGELOG
 
+## 2.0.0
+
+- Rewrite in TypeScript
+- Add strict mode (for more accurate and thorough copying, at the expense of less performance)
+
+#### BREAKING CHANGES
+
+- Second parameter is now an object of [options](README.md#options)
+
 ## 1.2.4
 
 - Ensure `Date` copy uses realm-specific constructor
