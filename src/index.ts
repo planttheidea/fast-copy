@@ -45,18 +45,10 @@ const GLOBAL_THIS = (() => {
  * @param [options.realm] the realm (this) object the object is copied from
  * @returns the copied object
  */
-function copy<T>(
-  object: T,
-  { isStrict = false, realm = GLOBAL_THIS }: FastCopy.Options = {},
-): T {
-  const {
-    ArrayBuffer: RealmArrayBuffer,
-    Buffer: RealmBuffer,
-    Map: RealmMap,
-    Set: RealmSet,
-    WeakMap: RealmWeakMap,
-    WeakSet: RealmWeakSet,
-  } = realm;
+function copy<T>(object: T, options?: FastCopy.Options): T {
+  // manually coalesced instead of default parameters for performance
+  const isStrict: boolean = !!(options && options.isStrict);
+  const realm: FastCopy.Realm = (options && options.realm) || GLOBAL_THIS;
 
   const getObjectClone: FastCopy.ObjectCloner = isStrict
     ? getObjectCloneStrict
@@ -126,7 +118,7 @@ function copy<T>(
     }
 
     // maps
-    if (RealmMap && object instanceof RealmMap) {
+    if (realm.Map && object instanceof realm.Map) {
       cache.add(object);
 
       clone = new Constructor();
@@ -139,7 +131,7 @@ function copy<T>(
     }
 
     // sets
-    if (RealmSet && object instanceof RealmSet) {
+    if (realm.Set && object instanceof realm.Set) {
       cache.add(object);
 
       clone = new Constructor();
@@ -152,9 +144,9 @@ function copy<T>(
     }
 
     // buffers (node-only)
-    if (RealmBuffer && RealmBuffer.isBuffer(object)) {
-      clone = RealmBuffer.allocUnsafe
-        ? RealmBuffer.allocUnsafe(object.length)
+    if (realm.Buffer && realm.Buffer.isBuffer(object)) {
+      clone = realm.Buffer.allocUnsafe
+        ? realm.Buffer.allocUnsafe(object.length)
         : new Constructor(object.length);
 
       object.copy(clone);
@@ -163,14 +155,14 @@ function copy<T>(
     }
 
     // arraybuffers / dataviews
-    if (RealmArrayBuffer) {
+    if (realm.ArrayBuffer) {
       // dataviews
-      if (RealmArrayBuffer.isView(object)) {
+      if (realm.ArrayBuffer.isView(object)) {
         return new Constructor(object.buffer.slice(0));
       }
 
       // arraybuffers
-      if (object instanceof RealmArrayBuffer) {
+      if (object instanceof realm.ArrayBuffer) {
         return object.slice(0);
       }
     }
@@ -182,9 +174,9 @@ function copy<T>(
       // errors
       object instanceof Error ||
       // weakmaps
-      (RealmWeakMap && object instanceof RealmWeakMap) ||
+      (realm.WeakMap && object instanceof realm.WeakMap) ||
       // weaksets
-      (RealmWeakSet && object instanceof RealmWeakSet)
+      (realm.WeakSet && object instanceof realm.WeakSet)
     ) {
       return object;
     }
