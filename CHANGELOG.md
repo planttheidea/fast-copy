@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 2.0.1
+
+- Fix typings declarations - [#17](https://github.com/planttheidea/fast-copy/pull/17)
+
 ## 2.0.0
 
 - Rewrite in TypeScript
