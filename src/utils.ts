@@ -67,7 +67,9 @@ export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
   }
 
   if (~toStringFunction.call(object.constructor).indexOf('[native code]')) {
-    return new object.constructor();
+    try {
+      return new object.constructor();
+    } catch {}
   }
 
   return create(prototype);

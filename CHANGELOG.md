@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 2.0.3
+
+- Add safety to constructing native objects (fixes #19)
+
 ## 2.0.2
 
 - Manually coalesce options instead of use destructuring (performance)
