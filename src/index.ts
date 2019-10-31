@@ -81,9 +81,9 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     }
 
     let clone: any;
-    const objectLength = object.length;
     // arrays
     if (isArray(object)) {
+      const objectLength = object.length;
       cache.add(object);
 
       // if strict, include non-standard properties
@@ -145,8 +145,8 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     // buffers (node-only)
     if (realm.Buffer && realm.Buffer.isBuffer(object)) {
       clone = realm.Buffer.allocUnsafe
-        ? realm.Buffer.allocUnsafe(objectLength)
-        : new Constructor(objectLength);
+        ? realm.Buffer.allocUnsafe(object.length)
+        : new Constructor(object.length);
 
       object.copy(clone);
 
