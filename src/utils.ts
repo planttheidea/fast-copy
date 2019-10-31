@@ -103,9 +103,9 @@ export const getObjectCloneLoose: FastCopy.ObjectCloner = (
 
   if (SUPPORTS.SYMBOL_PROPERTIES) {
     const symbols: symbol[] = getOwnPropertySymbols(object);
-
-    if (symbols.length) {
-      for (let index = 0, symbol; index < symbols.length; index++) {
+    const symbolsLength = symbols.length;
+    if (symbolsLength) {
+      for (let index = 0, symbol; index < symbolsLength; index++) {
         symbol = symbols[index];
 
         if (propertyIsEnumerable.call(object, symbol)) {
@@ -141,11 +141,11 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
   const properties: (string | symbol)[] = SUPPORTS.SYMBOL_PROPERTIES
     ? [].concat(getOwnPropertyNames(object), getOwnPropertySymbols(object))
     : getOwnPropertyNames(object);
-
-  if (properties.length) {
+  const propertiesLength = properties.length
+  if (propertiesLength) {
     for (
       let index = 0, property, descriptor;
-      index < properties.length;
+      index < propertiesLength;
       index++
     ) {
       property = properties[index];
