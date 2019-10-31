@@ -141,7 +141,7 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
   const properties: (string | symbol)[] = SUPPORTS.SYMBOL_PROPERTIES
     ? [].concat(getOwnPropertyNames(object), getOwnPropertySymbols(object))
     : getOwnPropertyNames(object);
-  const propertiesLength = properties.length
+  const propertiesLength = properties.length;
   if (propertiesLength) {
     for (
       let index = 0, property, descriptor;
