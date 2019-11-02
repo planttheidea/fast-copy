@@ -83,7 +83,6 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     let clone: any;
     // arrays
     if (isArray(object)) {
-      const objectLength = object.length;
       cache.add(object);
 
       // if strict, include non-standard properties
@@ -91,8 +90,11 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
         return getObjectCloneStrict(object, realm, handleCopy, cache);
       }
 
+      const { length } = object;
+
       clone = new Constructor();
-      for (let index: number = 0; index < objectLength; index++) {
+
+      for (let index: number = 0; index < length; index++) {
         clone[index] = handleCopy(object[index], cache);
       }
 
