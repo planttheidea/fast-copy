@@ -60,15 +60,16 @@ export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
     return create(null);
   }
 
+  const { constructor: Constructor } = object;
   const prototype = object.__proto__ || getPrototypeOf(object);
 
-  if (object.constructor === realm.Object) {
+  if (Constructor === realm.Object) {
     return prototype === realm.Object.prototype ? {} : create(prototype);
   }
 
-  if (~toStringFunction.call(object.constructor).indexOf('[native code]')) {
+  if (~toStringFunction.call(Constructor).indexOf('[native code]')) {
     try {
-      return new object.constructor();
+      return new Constructor();
     } catch {}
   }
 
