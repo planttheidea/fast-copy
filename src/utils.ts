@@ -60,15 +60,16 @@ export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
     return create(null);
   }
 
+  const { constructor: Constructor } = object;
   const prototype = object.__proto__ || getPrototypeOf(object);
 
-  if (object.constructor === realm.Object) {
+  if (Constructor === realm.Object) {
     return prototype === realm.Object.prototype ? {} : create(prototype);
   }
 
-  if (~toStringFunction.call(object.constructor).indexOf('[native code]')) {
+  if (~toStringFunction.call(Constructor).indexOf('[native code]')) {
     try {
-      return new object.constructor();
+      return new Constructor();
     } catch {}
   }
 
@@ -103,9 +104,11 @@ export const getObjectCloneLoose: FastCopy.ObjectCloner = (
 
   if (SUPPORTS.SYMBOL_PROPERTIES) {
     const symbols: symbol[] = getOwnPropertySymbols(object);
-    const symbolsLength = symbols.length;
-    if (symbolsLength) {
-      for (let index = 0, symbol; index < symbolsLength; index++) {
+
+    const { length } = symbols;
+
+    if (length) {
+      for (let index = 0, symbol; index < length; index++) {
         symbol = symbols[index];
 
         if (propertyIsEnumerable.call(object, symbol)) {
@@ -139,15 +142,13 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
   const clone: any = getCleanClone(object, realm);
 
   const properties: (string | symbol)[] = SUPPORTS.SYMBOL_PROPERTIES
-    ? [].concat(getOwnPropertyNames(object), getOwnPropertySymbols(object))
+    ? getOwnPropertyNames(object).concat((getOwnPropertySymbols(object) as unknown) as string[])
     : getOwnPropertyNames(object);
-  const propertiesLength = properties.length;
-  if (propertiesLength) {
-    for (
-      let index = 0, property, descriptor;
-      index < propertiesLength;
-      index++
-    ) {
+
+  const { length } = properties;
+
+  if (length) {
+    for (let index = 0, property, descriptor; index < length; index++) {
       property = properties[index];
 
       if (property !== 'callee' && property !== 'caller') {

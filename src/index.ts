@@ -1,10 +1,5 @@
 // utils
-import {
-  createCache,
-  getObjectCloneLoose,
-  getObjectCloneStrict,
-  getRegExpFlags,
-} from './utils';
+import { createCache, getObjectCloneLoose, getObjectCloneStrict, getRegExpFlags } from './utils';
 
 const { isArray } = Array;
 
@@ -63,15 +58,12 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
    * @param object the object to copy
    * @returns the copied object
    */
-  const handleCopy: FastCopy.Copier = (
-    object: any,
-    cache: FastCopy.Cache,
-  ): any => {
+  const handleCopy: FastCopy.Copier = (object: any, cache: FastCopy.Cache): any => {
     if (!object || typeof object !== 'object' || cache.has(object)) {
       return object;
     }
 
-    const Constructor: FastCopy.Constructor = object.constructor;
+    const { constructor: Constructor } = object;
 
     // plain objects
     if (Constructor === realm.Object) {
@@ -83,7 +75,6 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     let clone: any;
     // arrays
     if (isArray(object)) {
-      const objectLength = object.length;
       cache.add(object);
 
       // if strict, include non-standard properties
@@ -91,8 +82,11 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
         return getObjectCloneStrict(object, realm, handleCopy, cache);
       }
 
+      const { length } = object;
+
       clone = new Constructor();
-      for (let index: number = 0; index < objectLength; index++) {
+
+      for (let index: number = 0; index < length; index++) {
         clone[index] = handleCopy(object[index], cache);
       }
 
@@ -106,10 +100,7 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
 
     // regexps
     if (object instanceof realm.RegExp) {
-      clone = new Constructor(
-        object.source,
-        object.flags || getRegExpFlags(object),
-      );
+      clone = new Constructor(object.source, object.flags || getRegExpFlags(object));
 
       clone.lastIndex = object.lastIndex;
 
