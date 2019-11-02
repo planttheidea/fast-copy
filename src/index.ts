@@ -81,9 +81,9 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     }
 
     let clone: any;
-
     // arrays
     if (isArray(object)) {
+      const objectLength = object.length;
       cache.add(object);
 
       // if strict, include non-standard properties
@@ -92,8 +92,7 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
       }
 
       clone = new Constructor();
-
-      for (let index: number = 0; index < object.length; index++) {
+      for (let index: number = 0; index < objectLength; index++) {
         clone[index] = handleCopy(object[index], cache);
       }
 
