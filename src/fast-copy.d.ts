@@ -8,10 +8,7 @@ declare namespace FastCopy {
     has: (value: any) => boolean;
   }
 
-  export type Copier = <ObjectType extends any = any>(
-    object: ObjectType,
-    cache: Cache,
-  ) => ObjectType;
+  export type Copier = (object: any, cache: Cache) => any;
 
   export type ObjectCloner = (object: any, realm: Realm, handleCopy: Copier, cache: Cache) => any;
 
