@@ -8,17 +8,20 @@ A [blazing fast](#benchmarks) deep object copier
 
 ## Table of contents
 
-- [Usage](#usage)
-- [Options](#options)
-  - [isStrict](#isstrict)
-  - [realm](#realm)
-- [Types supported](#types-supported)
-- [Benchmarks](#benchmarks)
-  - [Simple objects](#simple-objects)
-  - [Complex objects](#complex-objects)
-  - [Circular objects](#circular-objects)
-  - [Special objects](#special-objects)
-- [Development](#development)
+- [fast-copy](#fast-copy)
+  - [Table of contents](#table-of-contents)
+  - [Usage](#usage)
+  - [Options](#options)
+      - [isStrict](#isstrict)
+      - [realm](#realm)
+  - [Types supported](#types-supported)
+  - [Benchmarks](#benchmarks)
+      - [Simple objects](#simple-objects)
+      - [Complex objects](#complex-objects)
+      - [Big data](#big-data)
+      - [Circular objects](#circular-objects)
+      - [Special objects](#special-objects)
+  - [Development](#development)
 
 ## Usage
 
@@ -205,7 +208,10 @@ Standard practice, clone the repo and `npm i` to get the dependencies. The follo
 - dist => run `build` and `build:minified` scripts
 - lint => run ESLint on all files in `src` folder (also runs on `dev` script)
 - lint:fix => run `lint` script, but with auto-fixer
-- prepublish:compile => run `lint`, `test:coverage`, and `dist` scripts
+- prepublishOnly => run `lint`, `test:coverage`, and `dist` scripts
+- release => run `prepublishOnly` and release with new version
+- release:beta => run `prepublishOnly` and release with new beta version
+- release:dry => run `prepublishOnly` and simulate a new release
 - start => run `dev`
 - test => run AVA with NODE_ENV=test on all files in `test` folder
 - test:coverage => run same script as `test` with code coverage calculation via `nyc`
