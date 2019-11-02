@@ -1,5 +1,10 @@
 # fast-copy CHANGELOG
 
+## 2.0.4
+
+- Cache length of arrays for faster iteration [#22](https://github.com/planttheidea/fast-copy/pull/22)
+- Update dev dependencies and types
+
 ## 2.0.3
 
 - Add safety to constructing native objects (fixes #19)
