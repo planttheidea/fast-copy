@@ -199,7 +199,7 @@ _Custom constructors, React components, etc_
 
 ## Development
 
-Standard practice, clone the repo and `npm i` to get the dependencies. The following npm scripts are available:
+Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencies. The following npm scripts are available:
 
 - benchmark => run benchmark tests against other equality libraries
 - build => build dist files with `rollup`
