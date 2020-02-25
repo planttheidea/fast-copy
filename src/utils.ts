@@ -15,11 +15,11 @@ const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
  * @const {Object} SUPPORTS
  *
  * @property {boolean} SYMBOL_PROPERTIES are symbol properties supported
- * @property {boolean} WEAKSET is WeakSet supported
+ * @property {boolean} WEAKMAP is WeakMap supported
  */
 export const SUPPORTS = {
   SYMBOL_PROPERTIES: typeof getOwnPropertySymbols === 'function',
-  WEAKSET: typeof WeakSet === 'function',
+  WEAKMAP: typeof WeakMap === 'function',
 };
 
 /**
@@ -31,15 +31,21 @@ export const SUPPORTS = {
  * @returns the new cache object
  */
 export const createCache = (): FastCopy.Cache => {
-  if (SUPPORTS.WEAKSET) {
-    return new WeakSet();
+  if (SUPPORTS.WEAKMAP) {
+    return new WeakMap();
   }
 
+  // tiny implementation of WeakMap
   const object = create({
-    add: (value: any) => object._values.push(value),
-    has: (value: any) => !!~object._values.indexOf(value),
+    has: (key: any) => !!~object._keys.indexOf(key),
+    set: (key: any, value: any) => {
+      object._keys.push(key);
+      object._values.push(value);
+    },
+    get: (key: any) => object._values[object._keys.indexOf(key)]
   });
 
+  object._keys = [];
   object._values = [];
 
   return object;
@@ -95,6 +101,8 @@ export const getObjectCloneLoose: FastCopy.ObjectCloner = (
   cache: FastCopy.Cache,
 ): any => {
   const clone: any = getCleanClone(object, realm);
+  // set in the cache immediately to be able to reuse the object recursively
+  cache.set(object, clone);
 
   for (const key in object) {
     if (hasOwnProperty.call(object, key)) {
@@ -140,6 +148,8 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
   cache: FastCopy.Cache,
 ): any => {
   const clone: any = getCleanClone(object, realm);
+  // set in the cache immediately to be able to reuse the object recursively
+  cache.set(object, clone);
 
   const properties: (string | symbol)[] = SUPPORTS.SYMBOL_PROPERTIES
     ? getOwnPropertyNames(object).concat((getOwnPropertySymbols(object) as unknown) as string[])

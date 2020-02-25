@@ -96,7 +96,9 @@ const CIRCULAR: PlainObject = {
       reference: {},
     },
   },
-  other: {},
+  other: {
+    reference: {}
+  },
 };
 
 CIRCULAR.deeply.nested.reference = CIRCULAR;
@@ -247,6 +249,31 @@ describe('copy', () => {
     expect(result).not.toBe(cleanComplexTypes);
     expect(result).toEqual(cleanComplexTypes);
   });
+
+  it('will copy referenced objects', () => {
+    const reusedObject = {
+      name: 'I like trains!'
+    };
+
+    const data = {
+      a: reusedObject,
+      b: reusedObject,
+      array: [reusedObject, reusedObject]
+    }
+
+    const result = copy(data);
+
+    const cloneReusedObject = result.a;
+
+    expect(result.a).not.toBe(reusedObject);
+    expect(result.a).toEqual(reusedObject);
+    expect(result.b).not.toBe(reusedObject);
+    expect(result.b).toBe(cloneReusedObject);
+    expect(result.array[0]).not.toBe(reusedObject);
+    expect(result.array[0]).toBe(cloneReusedObject);
+    expect(result.array[1]).not.toBe(reusedObject);
+    expect(result.array[1]).toBe(cloneReusedObject);
+  })
 });
 
 describe('copy.strict', () => {
@@ -393,4 +420,29 @@ describe('copy.strict', () => {
     expect(result).toEqual(cleanComplexTypes);
     expect(result2).toEqual(cleanComplexTypes);
   });
+
+  it('will copy referenced objects', () => {
+    const reusedObject = {
+      name: 'I like trains!'
+    };
+
+    const data = {
+      a: reusedObject,
+      b: reusedObject,
+      array: [reusedObject, reusedObject]
+    }
+
+    const result = copy(data, { isStrict: true });
+
+    const cloneReusedObject = result.a;
+
+    expect(result.a).not.toBe(reusedObject);
+    expect(result.a).toEqual(reusedObject);
+    expect(result.b).not.toBe(reusedObject);
+    expect(result.b).toBe(cloneReusedObject);
+    expect(result.array[0]).not.toBe(reusedObject);
+    expect(result.array[0]).toBe(cloneReusedObject);
+    expect(result.array[1]).not.toBe(reusedObject);
+    expect(result.array[1]).toBe(cloneReusedObject);
+  })
 });
