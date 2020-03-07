@@ -19,7 +19,6 @@
     "clone": "^2.1.2",
     "deepclone": "^1.0.2",
     "fast-clone": "^1.5.3",
-    "fast-deepclone": "^1.0.1",
     "html-webpack-plugin": "^3.2.0",
     "in-publish": "^2.0.0",
     "jest": "^24.9.0",
