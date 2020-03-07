@@ -42,7 +42,7 @@ export const createCache = (): FastCopy.Cache => {
       object._keys.push(key);
       object._values.push(value);
     },
-    get: (key: any) => object._values[object._keys.indexOf(key)]
+    get: (key: any) => object._values[object._keys.indexOf(key)],
   });
 
   object._keys = [];
