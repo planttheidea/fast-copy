@@ -13,39 +13,46 @@ type PlainObject = {
 };
 
 describe('createCache', () => {
-  it('will create a cache based on WeakSet if available globally', () => {
-    const support = SUPPORTS.WEAKSET;
+  it('will create a cache based on WeakMap if available globally', () => {
+    const support = SUPPORTS.WEAKMAP;
 
-    SUPPORTS.WEAKSET = true;
+    SUPPORTS.WEAKMAP = true;
 
     const result = createCache();
 
-    expect(result instanceof WeakSet).toBe(true);
+    expect(result instanceof WeakMap).toBe(true);
 
-    SUPPORTS.WEAKSET = support;
+    SUPPORTS.WEAKMAP = support;
   });
 
-  it('will create a cache based on a tiny WeakSet fill if not available globally', () => {
-    const support = SUPPORTS.WEAKSET;
+  it('will create a cache based on a tiny WeakMap fill if not available globally', () => {
+    const support = SUPPORTS.WEAKMAP;
 
-    SUPPORTS.WEAKSET = false;
+    SUPPORTS.WEAKMAP = false;
 
     const result = createCache();
 
-    expect(result instanceof WeakSet).toBe(false);
+    expect(result instanceof WeakMap).toBe(false);
 
     expect(result).toEqual({
+      _keys: [],
       _values: [],
     });
 
-    const value = {};
+    const key = { key: 'key' };
+    const value = { value: 'value' };
 
-    result.add(value);
+    result.set(key, value);
 
+    expect(result._keys).toEqual([key]);
     expect(result._values).toEqual([value]);
-    expect(result.has(value)).toBe(true);
+    expect(result.has(key)).toBe(true);
+    expect(result.get(key)).toBe(value);
+    const otherKey = {};
+    expect(result.has(otherKey)).toBeFalsy();
+    expect(result.get(otherKey)).toBeUndefined();
 
-    SUPPORTS.WEAKSET = support;
+    SUPPORTS.WEAKMAP = support;
   });
 });
 

@@ -59,24 +59,22 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
    * @returns the copied object
    */
   const handleCopy: FastCopy.Copier = (object: any, cache: FastCopy.Cache): any => {
-    if (!object || typeof object !== 'object' || cache.has(object)) {
+    if (!object || typeof object !== 'object') {
       return object;
+    } if (cache.has(object)) {
+      return cache.get(object);
     }
 
     const { constructor: Constructor } = object;
 
     // plain objects
     if (Constructor === realm.Object) {
-      cache.add(object);
-
       return getObjectClone(object, realm, handleCopy, cache);
     }
 
     let clone: any;
     // arrays
     if (isArray(object)) {
-      cache.add(object);
-
       // if strict, include non-standard properties
       if (isStrict) {
         return getObjectCloneStrict(object, realm, handleCopy, cache);
@@ -85,6 +83,7 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
       const { length } = object;
 
       clone = new Constructor();
+      cache.set(object, clone);
 
       for (let index: number = 0; index < length; index++) {
         clone[index] = handleCopy(object[index], cache);
@@ -109,9 +108,8 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
 
     // maps
     if (realm.Map && object instanceof realm.Map) {
-      cache.add(object);
-
       clone = new Constructor();
+      cache.set(object, clone);
 
       object.forEach((value: any, key: any) => {
         clone.set(key, handleCopy(value, cache));
@@ -122,9 +120,8 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
 
     // sets
     if (realm.Set && object instanceof realm.Set) {
-      cache.add(object);
-
       clone = new Constructor();
+      cache.set(object, clone);
 
       object.forEach((value: any) => {
         clone.add(handleCopy(value, cache));
@@ -139,6 +136,7 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
         ? realm.Buffer.allocUnsafe(object.length)
         : new Constructor(object.length);
 
+      cache.set(object, clone);
       object.copy(clone);
 
       return clone;
@@ -148,12 +146,16 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     if (realm.ArrayBuffer) {
       // dataviews
       if (realm.ArrayBuffer.isView(object)) {
-        return new Constructor(object.buffer.slice(0));
+        clone = new Constructor(object.buffer.slice(0));
+        cache.set(object, clone);
+        return clone;
       }
 
       // arraybuffers
       if (object instanceof realm.ArrayBuffer) {
-        return object.slice(0);
+        clone = object.slice(0);
+        cache.set(object, clone);
+        return clone;
       }
     }
 
@@ -170,8 +172,6 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     ) {
       return object;
     }
-
-    cache.add(object);
 
     // assume anything left is a custom constructor
     return getObjectClone(object, realm, handleCopy, cache);

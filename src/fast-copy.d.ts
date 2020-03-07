@@ -3,9 +3,11 @@ declare namespace FastCopy {
   export type Realm = Window | Global;
 
   export interface Cache {
+    _keys?: any[];
     _values?: any[];
-    add: (value: any) => void;
     has: (value: any) => boolean;
+    set: (key: any, value: any) => void;
+    get: (key: any) => any;
   }
 
   export type Copier = (object: any, cache: Cache) => any;
