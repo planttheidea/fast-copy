@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 2.0.5
+
+- Fix issue copying objects referenced multiple times in source[#28](https://github.com/planttheidea/fast-copy/pull/28) (thanks [@darkowic](https://github.com/darkowic))
+
 ## 2.0.4
 
 - Cache length of arrays for faster iteration [#22](https://github.com/planttheidea/fast-copy/pull/22)
