@@ -130,6 +130,12 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
       return clone;
     }
 
+    // blobs
+    if (realm.Blob && object instanceof realm.Blob) {
+      clone = new Blob([object], { type: object.type });
+      return clone
+    }
+
     // buffers (node-only)
     if (realm.Buffer && realm.Buffer.isBuffer(object)) {
       clone = realm.Buffer.allocUnsafe
