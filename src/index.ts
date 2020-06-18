@@ -133,7 +133,7 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     // blobs
     if (realm.Blob && object instanceof realm.Blob) {
       clone = new Blob([object], { type: object.type });
-      return clone
+      return clone;
     }
 
     // buffers (node-only)

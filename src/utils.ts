@@ -164,9 +164,23 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
       if (property !== 'callee' && property !== 'caller') {
         descriptor = getOwnPropertyDescriptor(object, property);
 
-        descriptor.value = handleCopy(object[property], cache);
+        if (descriptor) {
+          // Only clone the value if actually a value, not a getter / setter.
+          if (!descriptor.get && !descriptor.set) {
+            descriptor.value = handleCopy(object[property], cache);
+          }
 
-        defineProperty(clone, property, descriptor);
+          try {
+            defineProperty(clone, property, descriptor);
+          } catch (error) {
+            // Tee above can fail on node in edge cases, so fall back to the loose assignment.
+            clone[property] = descriptor.value;
+          }
+        } else {
+          // In extra edge cases where the property descriptor cannot be retrived, fall back to
+          // the loose assignment.
+          clone[property] = handleCopy(object[property], cache);
+        }
       }
     }
   }
