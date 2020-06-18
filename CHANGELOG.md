@@ -1,5 +1,11 @@
 # fast-copy CHANGELOG
 
+## 2.1.0
+
+- Support cloning `Blob` [#31](https://github.com/planttheidea/fast-copy/pull/31) (thanks [@fratzigner](https://github.com/fratzinger))
+- Fix cloning descriptors that only are getters / setters in strict mode
+- Handle errors when defining properties in strict mode
+
 ## 2.0.5
 
 - Fix issue copying objects referenced multiple times in source [#28](https://github.com/planttheidea/fast-copy/pull/28) (thanks [@darkowic](https://github.com/darkowic))
