@@ -13,6 +13,7 @@ const UMD_CONFIG = {
   external: EXTERNALS,
   input: 'src/index.ts',
   output: {
+    exports: 'default',
     file: pkg.browser,
     format: 'umd',
     globals: EXTERNALS.reduce((globals, name) => {

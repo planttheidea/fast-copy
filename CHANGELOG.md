@@ -1,5 +1,10 @@
 # fast-copy CHANGELOG
 
+## 2.1.1
+
+- Fix ESM-to-CommonJS issue when using TSC to consume [#37](https://github.com/planttheidea/fast-copy/issues/37)
+- Modify `Blob` cloning to use `blob.slice()` instead of `new Blob()` for speed
+
 ## 2.1.0
 
 - Support cloning `Blob` [#31](https://github.com/planttheidea/fast-copy/pull/31) (thanks [@fratzigner](https://github.com/fratzinger))
