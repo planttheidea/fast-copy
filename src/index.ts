@@ -186,6 +186,11 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
   return handleCopy(object, createCache());
 }
 
+// Adding reference to allow usage in CommonJS libraries compiled using TSC, which
+// expects there to be a default property on the exported object. See
+// [#37](https://github.com/planttheidea/fast-copy/issues/37) for details.
+copy.default = copy;
+
 /**
  * @function strictCopy
  *

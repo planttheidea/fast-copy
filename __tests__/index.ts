@@ -1,3 +1,4 @@
+import { executionAsyncId } from 'async_hooks';
 import crypto from 'crypto';
 import React from 'react';
 
@@ -446,5 +447,9 @@ describe('copy.strict', () => {
     expect(result.array[0]).toBe(cloneReusedObject);
     expect(result.array[1]).not.toBe(reusedObject);
     expect(result.array[1]).toBe(cloneReusedObject);
-  })
+  });
+
+  it('will have a version of itself as the `default` property to support ESM-to-CommonJS', () => {
+    expect(copy.default).toBe(copy);
+  });
 });
