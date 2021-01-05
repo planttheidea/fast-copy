@@ -70,6 +70,7 @@ const COMPLEX_TYPES: PlainObject = {
   object: { foo: { bar: 'baz' } },
   regexp: /foo/,
   set: new Set().add('foo').add({ bar: { baz: 'quz' } }),
+  // Disabling, as jest fails intermittently with blob construction.
   // blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
   uint8Array: new Uint8Array([12, 15]),
   uint8ClampedArray: new Uint8ClampedArray([12, 15]),
