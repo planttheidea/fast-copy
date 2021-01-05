@@ -180,12 +180,12 @@ describe('copy', () => {
 
     expect(result).toEqual(complexTypes);
 
-    const properties = [].concat(
-      Object.keys(COMPLEX_TYPES),
-      Object.getOwnPropertySymbols(COMPLEX_TYPES).filter((symbol) =>
+    const properties = [
+      ...Object.keys(COMPLEX_TYPES),
+      ...Object.getOwnPropertySymbols(COMPLEX_TYPES).filter((symbol) =>
         Object.prototype.propertyIsEnumerable.call(COMPLEX_TYPES, symbol),
-      ),
-    );
+      )
+    ];
 
     properties.forEach((property: string | symbol) => {
       if (property === 'arguments') {

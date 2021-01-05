@@ -23,6 +23,7 @@ const object: PlainObject = {
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
+  blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
   boolean: true,
   customPrototype: Object.create({
     method() {
@@ -104,5 +105,7 @@ Object.defineProperty(object.object, 'readonly', {
 
 object.deeply.nested.reference = object;
 
+const cloned = src(object);
+
+console.log(cloned);
 console.log(cloneDeep(object));
-console.log(src(object));
