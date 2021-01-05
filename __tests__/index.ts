@@ -70,7 +70,7 @@ const COMPLEX_TYPES: PlainObject = {
   object: { foo: { bar: 'baz' } },
   regexp: /foo/,
   set: new Set().add('foo').add({ bar: { baz: 'quz' } }),
-  blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
+  // blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
   uint8Array: new Uint8Array([12, 15]),
   uint8ClampedArray: new Uint8ClampedArray([12, 15]),
   uint16Array: new Uint16Array([12, 15]),
