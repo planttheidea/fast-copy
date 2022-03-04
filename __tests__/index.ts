@@ -277,7 +277,17 @@ describe('copy', () => {
     expect(result.array[0]).toBe(cloneReusedObject);
     expect(result.array[1]).not.toBe(reusedObject);
     expect(result.array[1]).toBe(cloneReusedObject);
-  })
+  });
+  
+  it('will copy an object with a constructor property', () => {
+    const data = {
+      'sys[constructor]': 'I am unable to comply.'
+    }
+    const result = copy(data);
+
+    expect(result).not.toBe(data);
+    expect(result).toEqual(data);
+  });
 });
 
 describe('copy.strict', () => {
