@@ -281,7 +281,7 @@ describe('copy', () => {
   
   it('will copy an object with a constructor property', () => {
     const data = {
-      'sys[constructor]': 'I am unable to comply.'
+      'constructor': 'I am unable to comply.'
     }
     const result = copy(data);
 
