@@ -62,7 +62,7 @@ export const createCache = (): FastCopy.Cache => {
  * @returns the empty cloned object
  */
 export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
-  if (!object.constructor) {
+  if (!object.constructor || !(object.constructor instanceof Function)) {
     return create(null);
   }
 
