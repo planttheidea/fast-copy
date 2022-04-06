@@ -102,7 +102,7 @@ function copy<Value>(value: Value, options?: FastCopy.Options): Value {
       for (
         let index: number = 0, length = value.length;
         index < length;
-        index++
+        ++index
       ) {
         clone[index] = handleCopy(value[index], cache);
       }
