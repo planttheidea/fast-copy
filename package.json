@@ -20,6 +20,7 @@
     "cli-table2": "^0.2.0",
     "clone": "^2.1.2",
     "deepclone": "^1.0.2",
+    "eslint": "^8.12.0",
     "fast-clone": "^1.5.3",
     "html-webpack-plugin": "^4.3.0",
     "in-publish": "^2.0.1",
