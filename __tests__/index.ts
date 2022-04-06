@@ -25,7 +25,10 @@ const SIMPLE_TYPES: PlainObject = {
   promise: Promise.resolve('foo'),
   string: 'foo',
   undef: undefined,
-  weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
+  weakmap: new WeakMap([
+    [{}, 'foo'],
+    [{}, 'bar'],
+  ]),
   weakset: new WeakSet([{}, {}]),
   [Symbol('key')]: 'value',
 };
@@ -100,7 +103,7 @@ const CIRCULAR: PlainObject = {
     },
   },
   other: {
-    reference: {}
+    reference: {},
   },
 };
 
@@ -191,7 +194,7 @@ describe('copy', () => {
       ...Object.keys(COMPLEX_TYPES),
       ...Object.getOwnPropertySymbols(COMPLEX_TYPES).filter((symbol) =>
         Object.prototype.propertyIsEnumerable.call(COMPLEX_TYPES, symbol),
-      )
+      ),
     ];
 
     properties.forEach((property: string | symbol) => {
@@ -262,14 +265,14 @@ describe('copy', () => {
 
   it('will copy referenced objects', () => {
     const reusedObject = {
-      name: 'I like trains!'
+      name: 'I like trains!',
     };
 
     const data = {
       a: reusedObject,
       b: reusedObject,
-      array: [reusedObject, reusedObject]
-    }
+      array: [reusedObject, reusedObject],
+    };
 
     const result = copy(data);
 
@@ -284,7 +287,7 @@ describe('copy', () => {
     expect(result.array[1]).not.toBe(reusedObject);
     expect(result.array[1]).toBe(cloneReusedObject);
   });
-  
+
   it('will copy a plain object with a constructor property', () => {
     const data = {
       constructor: 'I am unable to comply.',
@@ -296,13 +299,26 @@ describe('copy', () => {
     expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(data));
   });
 
-  it('will copy a object with a constructor property', () => {
+  it('will copy a custom object with a constructor property', () => {
     const bar = new Bar('value');
     const result = copy(bar);
 
     expect(result).not.toBe(bar);
     expect(result).toEqual(bar);
     expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(bar));
+  });
+
+  it('will copy an array with a constructor property', () => {
+    const data = ['foo'];
+
+    // @ts-expect-error - Reassigning `constructor` to test extreme edge case.
+    data.constructor = 'I am unable to comply.';
+
+    const result = copy(data, { isStrict: true });
+
+    expect(result).not.toBe(data);
+    expect(result).toEqual(data);
+    expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(data));
   });
 });
 
@@ -453,14 +469,14 @@ describe('copy.strict', () => {
 
   it('will copy referenced objects', () => {
     const reusedObject = {
-      name: 'I like trains!'
+      name: 'I like trains!',
     };
 
     const data = {
       a: reusedObject,
       b: reusedObject,
-      array: [reusedObject, reusedObject]
-    }
+      array: [reusedObject, reusedObject],
+    };
 
     const result = copy(data, { isStrict: true });
 

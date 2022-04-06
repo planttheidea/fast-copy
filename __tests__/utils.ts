@@ -167,14 +167,11 @@ describe('getObjectCloneLoose', () => {
 
     expect(result).not.toBe(object);
     expect(result).toEqual(
-      Object.keys(object).reduce(
-        (clone: PlainObject, key: string): PlainObject => {
-          clone[key] = object[key];
+      Object.keys(object).reduce((clone: PlainObject, key): PlainObject => {
+        clone[key] = object[key as keyof typeof object];
 
-          return clone;
-        },
-        {},
-      ),
+        return clone;
+      }, {}),
     );
 
     expect(handleCopy).toHaveBeenCalledTimes(Object.keys(object).length);
