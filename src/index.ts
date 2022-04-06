@@ -9,7 +9,7 @@ import {
 const { isArray } = Array;
 const { getPrototypeOf } = Object;
 
-const GLOBAL_THIS = (() => {
+const GLOBAL_THIS: FastCopy.Realm = (() => {
   if (typeof globalThis !== 'undefined') {
     return globalThis;
   }
@@ -52,12 +52,9 @@ const GLOBAL_THIS = (() => {
  */
 function copy<Value>(value: Value, options?: FastCopy.Options): Value {
   // manually coalesced instead of default parameters for performance
-  const isStrict: boolean = !!(options && options.isStrict);
-  const realm: FastCopy.Realm = (options && options.realm) || GLOBAL_THIS;
-
-  const getObjectClone: FastCopy.ObjectCloner = isStrict
-    ? getObjectCloneStrict
-    : getObjectCloneLoose;
+  const isStrict = !!(options && options.isStrict);
+  const realm = (options && options.realm) || GLOBAL_THIS;
+  const getObjectClone = isStrict ? getObjectCloneStrict : getObjectCloneLoose;
 
   /**
    * @function handleCopy
