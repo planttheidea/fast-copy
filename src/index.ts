@@ -27,7 +27,7 @@ const GLOBAL_THIS: FastCopy.Realm = (function () {
   }
 
   if (console && console.error) {
-    console.error('Unable to locate global value, returning "this".');
+    console.error('Unable to locate global object, returning "this".');
   }
 
   return this;
