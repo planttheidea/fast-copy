@@ -1,6 +1,6 @@
 declare namespace FastCopy {
   // @ts-ignore
-  export type Realm = Window | Global;
+  export type Realm = typeof globalThis;
 
   export interface Cache {
     _keys?: any[];
