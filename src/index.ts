@@ -9,7 +9,7 @@ import {
 const { isArray } = Array;
 const { getPrototypeOf } = Object;
 
-const GLOBAL_THIS: FastCopy.Realm = (() => {
+const GLOBAL_THIS: FastCopy.Realm = (function () {
   if (typeof globalThis !== 'undefined') {
     return globalThis;
   }
@@ -29,6 +29,8 @@ const GLOBAL_THIS: FastCopy.Realm = (() => {
   if (console && console.error) {
     console.error('Unable to locate global value, returning "this".');
   }
+
+  return this;
 })();
 
 /**
