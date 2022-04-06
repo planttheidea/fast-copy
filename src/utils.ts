@@ -62,21 +62,18 @@ export const createCache = (): FastCopy.Cache => {
  * @returns the empty cloned object
  */
 export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
-  if (!object.constructor) {
+  const prototype = object.__proto__ || getPrototypeOf(object);
+  const Constructor = prototype && prototype.constructor;
+
+  if (!Constructor) {
     return create(null);
   }
-
-  const { constructor: Constructor } = object;
-  const prototype = object.__proto__ || getPrototypeOf(object);
 
   if (Constructor === realm.Object) {
     return prototype === realm.Object.prototype ? {} : create(prototype);
   }
 
-  if (
-    typeof Constructor === 'function' &&
-    ~toStringFunction.call(Constructor).indexOf('[native code]')
-  ) {
+  if (~toStringFunction.call(Constructor).indexOf('[native code]')) {
     try {
       return new Constructor();
     } catch {}
@@ -155,7 +152,9 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
   cache.set(object, clone);
 
   const properties: (string | symbol)[] = SUPPORTS.SYMBOL_PROPERTIES
-    ? getOwnPropertyNames(object).concat((getOwnPropertySymbols(object) as unknown) as string[])
+    ? getOwnPropertyNames(object).concat(
+        getOwnPropertySymbols(object) as unknown as string[],
+      )
     : getOwnPropertyNames(object);
 
   const { length } = properties;
