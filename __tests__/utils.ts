@@ -1,38 +1,35 @@
-import {
-  SUPPORTS,
-  createCache,
-  getCleanClone,
-  getObjectCloneLoose,
-  getObjectCloneStrict,
-  getRegExpFlags,
-} from '../src/utils';
-
 type PlainObject = {
   [key: string]: any;
   [index: number]: any;
 };
 
+let utils: typeof import('../src/utils');
+
+beforeEach(() => {
+  jest.isolateModules(() => {
+    utils = require('../src/utils');
+  });
+});
+
 describe('createCache', () => {
   it('will create a cache based on WeakMap if available globally', () => {
-    const support = SUPPORTS.WEAKMAP;
-
-    SUPPORTS.WEAKMAP = true;
-
-    const result = createCache();
+    const result = utils.createCache();
 
     expect(result instanceof WeakMap).toBe(true);
-
-    SUPPORTS.WEAKMAP = support;
   });
 
   it('will create a cache based on a tiny WeakMap fill if not available globally', () => {
-    const support = SUPPORTS.WEAKMAP;
+    const original = globalThis.WeakMap;
 
-    SUPPORTS.WEAKMAP = false;
+    globalThis.WeakMap = undefined;
 
-    const result = createCache();
+    jest.isolateModules(() => {
+      utils = require('../src/utils');
+    });
 
-    expect(result instanceof WeakMap).toBe(false);
+    const result = utils.createCache();
+
+    expect(result instanceof original).toBe(false);
 
     expect(result).toEqual({
       _keys: [],
@@ -52,7 +49,7 @@ describe('createCache', () => {
     expect(result.has(otherKey)).toBeFalsy();
     expect(result.get(otherKey)).toBeUndefined();
 
-    SUPPORTS.WEAKMAP = support;
+    globalThis.WeakMap = original;
   });
 });
 
@@ -61,7 +58,7 @@ describe('getCleanClone', () => {
     const object = Object.create(null);
     const realm = global;
 
-    const result = getCleanClone(object, realm);
+    const result = utils.getCleanClone(object, realm);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -76,7 +73,7 @@ describe('getCleanClone', () => {
 
     const realm = global;
 
-    const result = getCleanClone(object, realm);
+    const result = utils.getCleanClone(object, realm);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -88,7 +85,7 @@ describe('getCleanClone', () => {
     const object = { foo: 'bar' };
     const realm = global;
 
-    const result = getCleanClone(object, realm);
+    const result = utils.getCleanClone(object, realm);
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -105,7 +102,7 @@ describe('getCleanClone', () => {
 
     const realm = global;
 
-    const result = getCleanClone(object, realm);
+    const result = utils.getCleanClone(object, realm);
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -117,7 +114,7 @@ describe('getCleanClone', () => {
     const object = new Map();
     const realm = global;
 
-    const result = getCleanClone(object, realm);
+    const result = utils.getCleanClone(object, realm);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(new Map());
@@ -139,7 +136,7 @@ describe('getCleanClone', () => {
     const object = new Foo('bar');
     const realm = global;
 
-    const result = getCleanClone(object, realm);
+    const result = utils.getCleanClone(object, realm);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(Object.create(Foo.prototype));
@@ -150,20 +147,26 @@ describe('getCleanClone', () => {
 
 describe('getObjectCloneLoose', () => {
   it('will create an object clone when property symbols are not supported', () => {
-    const support = SUPPORTS.SYMBOL_PROPERTIES;
+    const original = Object.getOwnPropertySymbols;
 
-    SUPPORTS.SYMBOL_PROPERTIES = false;
+    jest.isolateModules(() => {
+      Object.getOwnPropertySymbols = undefined;
+      utils = require('../src/utils');
+    });
 
+    const symbol = Symbol('quz');
     const object = {
       bar: { baz: 'quz' },
       foo: 'bar',
-      [Symbol('quz')]: 'blah',
+      [symbol]: 'blah',
     };
     const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = utils.createCache();
 
-    const result = getObjectCloneLoose(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneLoose(object, realm, handleCopy, cache);
+
+    Object.getOwnPropertySymbols = original;
 
     expect(result).not.toBe(object);
     expect(result).toEqual(
@@ -175,24 +178,18 @@ describe('getObjectCloneLoose', () => {
     );
 
     expect(handleCopy).toHaveBeenCalledTimes(Object.keys(object).length);
-
-    SUPPORTS.SYMBOL_PROPERTIES = support;
   });
 
   it('will create an object clone when property symbols are supported', () => {
-    const support = SUPPORTS.SYMBOL_PROPERTIES;
-
-    SUPPORTS.SYMBOL_PROPERTIES = true;
-
     const object = {
       bar: { baz: 'quz' },
       [Symbol('quz')]: 'blah',
     };
     const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = utils.createCache();
 
-    const result = getObjectCloneLoose(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneLoose(object, realm, handleCopy, cache);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -200,16 +197,17 @@ describe('getObjectCloneLoose', () => {
     expect(handleCopy).toHaveBeenCalledTimes(
       Object.keys(object).length + Object.getOwnPropertySymbols(object).length,
     );
-
-    SUPPORTS.SYMBOL_PROPERTIES = support;
   });
 });
 
 describe('getObjectCloneStrict', () => {
   it('will create an object clone when property symbols are not supported', () => {
-    const support = SUPPORTS.SYMBOL_PROPERTIES;
+    const original = Object.getOwnPropertySymbols;
 
-    SUPPORTS.SYMBOL_PROPERTIES = false;
+    jest.isolateModules(() => {
+      Object.getOwnPropertySymbols = undefined;
+      utils = require('../src/utils');
+    });
 
     const object: PlainObject = {
       bar: { baz: 'quz' },
@@ -226,9 +224,11 @@ describe('getObjectCloneStrict', () => {
 
     const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = utils.createCache();
 
-    const result = getObjectCloneStrict(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneStrict(object, realm, handleCopy, cache);
+
+    Object.getOwnPropertySymbols = original;
 
     expect(result).not.toBe(object);
     expect(result).toEqual(
@@ -245,15 +245,9 @@ describe('getObjectCloneStrict', () => {
     expect(handleCopy).toHaveBeenCalledTimes(
       Object.getOwnPropertyNames(object).length,
     );
-
-    SUPPORTS.SYMBOL_PROPERTIES = support;
   });
 
   it('will create an object clone when property symbols are not supported', () => {
-    const support = SUPPORTS.SYMBOL_PROPERTIES;
-
-    SUPPORTS.SYMBOL_PROPERTIES = true;
-
     const object: PlainObject = {
       bar: { baz: 'quz' },
     };
@@ -269,9 +263,9 @@ describe('getObjectCloneStrict', () => {
 
     const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = utils.createCache();
 
-    const result = getObjectCloneStrict(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneStrict(object, realm, handleCopy, cache);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -280,8 +274,6 @@ describe('getObjectCloneStrict', () => {
       Object.getOwnPropertyNames(object).length +
         Object.getOwnPropertySymbols(object).length,
     );
-
-    SUPPORTS.SYMBOL_PROPERTIES = support;
   });
 });
 
@@ -289,7 +281,7 @@ describe('getRegExpFlags', () => {
   it('will return an empty string when no flags are on the regexp', () => {
     const regexp = /foo/;
 
-    const result = getRegExpFlags(regexp);
+    const result = utils.getRegExpFlags(regexp);
 
     expect(result).toEqual('');
   });
@@ -297,7 +289,7 @@ describe('getRegExpFlags', () => {
   it('will add the g flag when one is on the regexp', () => {
     const regexp = /foo/g;
 
-    const result = getRegExpFlags(regexp);
+    const result = utils.getRegExpFlags(regexp);
 
     expect(result).toEqual('g');
   });
@@ -305,7 +297,7 @@ describe('getRegExpFlags', () => {
   it('will add the i flag when one is on the regexp', () => {
     const regexp = /foo/i;
 
-    const result = getRegExpFlags(regexp);
+    const result = utils.getRegExpFlags(regexp);
 
     expect(result).toEqual('i');
   });
@@ -313,7 +305,7 @@ describe('getRegExpFlags', () => {
   it('will add the m flag when one is on the regexp', () => {
     const regexp = /foo/m;
 
-    const result = getRegExpFlags(regexp);
+    const result = utils.getRegExpFlags(regexp);
 
     expect(result).toEqual('m');
   });
@@ -321,7 +313,7 @@ describe('getRegExpFlags', () => {
   it('will add the u flag when one is on the regexp', () => {
     const regexp = /foo/u;
 
-    const result = getRegExpFlags(regexp);
+    const result = utils.getRegExpFlags(regexp);
 
     expect(result).toEqual('u');
   });
@@ -329,7 +321,7 @@ describe('getRegExpFlags', () => {
   it('will add the g flag when one is on the regexp', () => {
     const regexp = /foo/y;
 
-    const result = getRegExpFlags(regexp);
+    const result = utils.getRegExpFlags(regexp);
 
     expect(result).toEqual('y');
   });
@@ -337,7 +329,7 @@ describe('getRegExpFlags', () => {
   it('will add all flags preset on the regexp', () => {
     const regexp = /foo/gimuy;
 
-    const result = getRegExpFlags(regexp);
+    const result = utils.getRegExpFlags(regexp);
 
     expect(result).toEqual('gimuy');
   });

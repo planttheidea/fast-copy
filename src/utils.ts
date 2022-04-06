@@ -9,18 +9,8 @@ const {
 } = Object;
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
-/**
- * @enum
- *
- * @const {Object} SUPPORTS
- *
- * @property {boolean} SYMBOL_PROPERTIES are symbol properties supported
- * @property {boolean} WEAKMAP is WeakMap supported
- */
-export const SUPPORTS = {
-  SYMBOL_PROPERTIES: typeof getOwnPropertySymbols === 'function',
-  WEAKMAP: typeof WeakMap === 'function',
-};
+const SYMBOL_PROPERTIES = typeof getOwnPropertySymbols === 'function';
+const WEAK_MAP = typeof WeakMap === 'function';
 
 /**
  * @function createCache
@@ -30,26 +20,28 @@ export const SUPPORTS = {
  *
  * @returns the new cache object
  */
-export const createCache = (): FastCopy.Cache => {
-  if (SUPPORTS.WEAKMAP) {
-    return new WeakMap();
+export const createCache = (() => {
+  if (WEAK_MAP) {
+    return (): FastCopy.Cache => new WeakMap();
   }
 
-  // tiny implementation of WeakMap
-  const object = create({
-    has: (key: any) => !!~object._keys.indexOf(key),
-    set: (key: any, value: any) => {
-      object._keys.push(key);
-      object._values.push(value);
-    },
-    get: (key: any) => object._values[object._keys.indexOf(key)],
-  });
+  return (): FastCopy.Cache => {
+    // tiny implementation of WeakMap
+    const object = create({
+      has: (key: any) => !!~object._keys.indexOf(key),
+      set: (key: any, value: any) => {
+        object._keys.push(key);
+        object._values.push(value);
+      },
+      get: (key: any) => object._values[object._keys.indexOf(key)],
+    });
 
-  object._keys = [];
-  object._values = [];
+    object._keys = [];
+    object._values = [];
 
-  return object;
-};
+    return object;
+  };
+})();
 
 /**
  * @function getCleanClone
@@ -110,7 +102,7 @@ export const getObjectCloneLoose: FastCopy.ObjectCloner = (
     }
   }
 
-  if (SUPPORTS.SYMBOL_PROPERTIES) {
+  if (SYMBOL_PROPERTIES) {
     const symbols: symbol[] = getOwnPropertySymbols(object);
 
     const { length } = symbols;
@@ -151,7 +143,7 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
 
-  const properties: (string | symbol)[] = SUPPORTS.SYMBOL_PROPERTIES
+  const properties: (string | symbol)[] = SYMBOL_PROPERTIES
     ? getOwnPropertyNames(object).concat(
         getOwnPropertySymbols(object) as unknown as string[],
       )
