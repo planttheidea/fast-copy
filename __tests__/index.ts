@@ -115,6 +115,12 @@ class Foo {
   }
 }
 
+class Bar {
+  constructor(value: any) {
+    this.constructor = value;
+  }
+}
+
 const SPECIAL_TYPES: PlainObject = {
   foo: new Foo('value'),
   react: React.createElement('main', {
@@ -277,7 +283,27 @@ describe('copy', () => {
     expect(result.array[0]).toBe(cloneReusedObject);
     expect(result.array[1]).not.toBe(reusedObject);
     expect(result.array[1]).toBe(cloneReusedObject);
-  })
+  });
+  
+  it('will copy a plain object with a constructor property', () => {
+    const data = {
+      constructor: 'I am unable to comply.',
+    };
+    const result = copy(data);
+
+    expect(result).not.toBe(data);
+    expect(result).toEqual(data);
+    expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(data));
+  });
+
+  it('will copy a object with a constructor property', () => {
+    const bar = new Bar('value');
+    const result = copy(bar);
+
+    expect(result).not.toBe(bar);
+    expect(result).toEqual(bar);
+    expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(bar));
+  });
 });
 
 describe('copy.strict', () => {
