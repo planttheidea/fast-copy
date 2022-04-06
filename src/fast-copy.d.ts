@@ -10,9 +10,14 @@ declare namespace FastCopy {
     get: (key: any) => any;
   }
 
-  export type Copier = (object: any, cache: Cache) => any;
+  export type Copier = <Value = any>(value: Value, cache: Cache) => Value;
 
-  export type ObjectCloner = (object: any, realm: Realm, handleCopy: Copier, cache: Cache) => any;
+  export type ObjectCloner = <Obj>(
+    object: Obj,
+    realm: Realm,
+    handleCopy: Copier,
+    cache: Cache,
+  ) => Obj;
 
   export type Options = {
     isStrict?: boolean;
@@ -20,14 +25,14 @@ declare namespace FastCopy {
   };
 }
 
-declare function copy<ObjectType extends any = any>(
-  object: ObjectType,
+declare function copy<Value = any>(
+  value: Value,
   options?: FastCopy.Options,
-): ObjectType;
+): Value;
 
 declare namespace copy {
-  function strictCopy<ObjectType extends any = any>(
-    object: ObjectType,
+  function strictCopy<Value = any>(
+    value: Value,
     options?: FastCopy.Options,
-  ): ObjectType;
+  ): Value;
 }

@@ -9,18 +9,8 @@ const {
 } = Object;
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
-/**
- * @enum
- *
- * @const {Object} SUPPORTS
- *
- * @property {boolean} SYMBOL_PROPERTIES are symbol properties supported
- * @property {boolean} WEAKMAP is WeakMap supported
- */
-export const SUPPORTS = {
-  SYMBOL_PROPERTIES: typeof getOwnPropertySymbols === 'function',
-  WEAKMAP: typeof WeakMap === 'function',
-};
+const SYMBOL_PROPERTIES = typeof getOwnPropertySymbols === 'function';
+const WEAK_MAP = typeof WeakMap === 'function';
 
 /**
  * @function createCache
@@ -30,26 +20,31 @@ export const SUPPORTS = {
  *
  * @returns the new cache object
  */
-export const createCache = (): FastCopy.Cache => {
-  if (SUPPORTS.WEAKMAP) {
-    return new WeakMap();
+export const createCache = (() => {
+  if (WEAK_MAP) {
+    return (): FastCopy.Cache => new WeakMap();
   }
 
-  // tiny implementation of WeakMap
-  const object = create({
-    has: (key: any) => !!~object._keys.indexOf(key),
-    set: (key: any, value: any) => {
-      object._keys.push(key);
-      object._values.push(value);
-    },
-    get: (key: any) => object._values[object._keys.indexOf(key)],
-  });
+  class Cache {
+    _keys: any[] = [];
+    _values: any[] = [];
 
-  object._keys = [];
-  object._values = [];
+    has(key: any) {
+      return !!~this._keys.indexOf(key);
+    }
 
-  return object;
-};
+    get(key: any) {
+      return this._values[this._keys.indexOf(key)];
+    }
+
+    set(key: any, value: any) {
+      this._keys.push(key);
+      this._values.push(value);
+    }
+  }
+
+  return (): FastCopy.Cache => new Cache();
+})();
 
 /**
  * @function getCleanClone
@@ -62,21 +57,19 @@ export const createCache = (): FastCopy.Cache => {
  * @returns the empty cloned object
  */
 export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
-  if (!object.constructor) {
+  const prototype = object.__proto__ || getPrototypeOf(object);
+
+  if (!prototype) {
     return create(null);
   }
 
-  const { constructor: Constructor } = object;
-  const prototype = object.__proto__ || getPrototypeOf(object);
+  const Constructor = prototype.constructor;
 
   if (Constructor === realm.Object) {
     return prototype === realm.Object.prototype ? {} : create(prototype);
   }
 
-  if (
-    typeof Constructor === 'function' &&
-    ~toStringFunction.call(Constructor).indexOf('[native code]')
-  ) {
+  if (~toStringFunction.call(Constructor).indexOf('[native code]')) {
     try {
       return new Constructor();
     } catch {}
@@ -104,6 +97,7 @@ export const getObjectCloneLoose: FastCopy.ObjectCloner = (
   cache: FastCopy.Cache,
 ): any => {
   const clone: any = getCleanClone(object, realm);
+
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
 
@@ -113,18 +107,18 @@ export const getObjectCloneLoose: FastCopy.ObjectCloner = (
     }
   }
 
-  if (SUPPORTS.SYMBOL_PROPERTIES) {
+  if (SYMBOL_PROPERTIES) {
     const symbols: symbol[] = getOwnPropertySymbols(object);
 
-    const { length } = symbols;
+    for (
+      let index = 0, length = symbols.length, symbol;
+      index < length;
+      ++index
+    ) {
+      symbol = symbols[index];
 
-    if (length) {
-      for (let index = 0, symbol; index < length; index++) {
-        symbol = symbols[index];
-
-        if (propertyIsEnumerable.call(object, symbol)) {
-          clone[symbol] = handleCopy(object[symbol], cache);
-        }
+      if (propertyIsEnumerable.call(object, symbol)) {
+        clone[symbol] = handleCopy(object[symbol], cache);
       }
     }
   }
@@ -151,39 +145,42 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
   cache: FastCopy.Cache,
 ): any => {
   const clone: any = getCleanClone(object, realm);
+
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
 
-  const properties: (string | symbol)[] = SUPPORTS.SYMBOL_PROPERTIES
-    ? getOwnPropertyNames(object).concat((getOwnPropertySymbols(object) as unknown) as string[])
+  const properties: (string | symbol)[] = SYMBOL_PROPERTIES
+    ? getOwnPropertyNames(object).concat(
+        getOwnPropertySymbols(object) as unknown as string[],
+      )
     : getOwnPropertyNames(object);
 
-  const { length } = properties;
+  for (
+    let index = 0, length = properties.length, property, descriptor;
+    index < length;
+    ++index
+  ) {
+    property = properties[index];
 
-  if (length) {
-    for (let index = 0, property, descriptor; index < length; index++) {
-      property = properties[index];
+    if (property !== 'callee' && property !== 'caller') {
+      descriptor = getOwnPropertyDescriptor(object, property);
 
-      if (property !== 'callee' && property !== 'caller') {
-        descriptor = getOwnPropertyDescriptor(object, property);
-
-        if (descriptor) {
-          // Only clone the value if actually a value, not a getter / setter.
-          if (!descriptor.get && !descriptor.set) {
-            descriptor.value = handleCopy(object[property], cache);
-          }
-
-          try {
-            defineProperty(clone, property, descriptor);
-          } catch (error) {
-            // Tee above can fail on node in edge cases, so fall back to the loose assignment.
-            clone[property] = descriptor.value;
-          }
-        } else {
-          // In extra edge cases where the property descriptor cannot be retrived, fall back to
-          // the loose assignment.
-          clone[property] = handleCopy(object[property], cache);
+      if (descriptor) {
+        // Only clone the value if actually a value, not a getter / setter.
+        if (!descriptor.get && !descriptor.set) {
+          descriptor.value = handleCopy(object[property], cache);
         }
+
+        try {
+          defineProperty(clone, property, descriptor);
+        } catch (error) {
+          // Tee above can fail on node in edge cases, so fall back to the loose assignment.
+          clone[property] = descriptor.value;
+        }
+      } else {
+        // In extra edge cases where the property descriptor cannot be retrived, fall back to
+        // the loose assignment.
+        clone[property] = handleCopy(object[property], cache);
       }
     }
   }

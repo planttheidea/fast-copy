@@ -1,9 +1,19 @@
 // utils
-import { createCache, getObjectCloneLoose, getObjectCloneStrict, getRegExpFlags } from './utils';
+import {
+  createCache,
+  getObjectCloneLoose,
+  getObjectCloneStrict,
+  getRegExpFlags,
+} from './utils';
 
 const { isArray } = Array;
+const { getPrototypeOf } = Object;
 
-const GLOBAL_THIS = (() => {
+const GLOBAL_THIS: FastCopy.Realm = (function () {
+  if (typeof globalThis !== 'undefined') {
+    return globalThis;
+  }
+
   if (typeof self !== 'undefined') {
     return self;
   }
@@ -19,99 +29,110 @@ const GLOBAL_THIS = (() => {
   if (console && console.error) {
     console.error('Unable to locate global object, returning "this".');
   }
+
+  return this;
 })();
 
 /**
  * @function copy
  *
  * @description
- * copy an object deeply as much as possible
+ * copy an value deeply as much as possible
  *
  * If `strict` is applied, then all properties (including non-enumerable ones)
  * are copied with their original property descriptors on both objects and arrays.
  *
- * The object is compared to the global constructors in the `realm` provided,
+ * The value is compared to the global constructors in the `realm` provided,
  * and the native constructor is always used to ensure that extensions of native
  * objects (allows in ES2015+) are maintained.
  *
- * @param object the object to copy
+ * @param value the value to copy
  * @param [options] the options for copying with
  * @param [options.isStrict] should the copy be strict
- * @param [options.realm] the realm (this) object the object is copied from
- * @returns the copied object
+ * @param [options.realm] the realm (this) value the value is copied from
+ * @returns the copied value
  */
-function copy<T>(object: T, options?: FastCopy.Options): T {
+function copy<Value>(value: Value, options?: FastCopy.Options): Value {
   // manually coalesced instead of default parameters for performance
-  const isStrict: boolean = !!(options && options.isStrict);
-  const realm: FastCopy.Realm = (options && options.realm) || GLOBAL_THIS;
-
-  const getObjectClone: FastCopy.ObjectCloner = isStrict
-    ? getObjectCloneStrict
-    : getObjectCloneLoose;
+  const isStrict = !!(options && options.isStrict);
+  const realm = (options && options.realm) || GLOBAL_THIS;
+  const getObjectClone = isStrict ? getObjectCloneStrict : getObjectCloneLoose;
 
   /**
    * @function handleCopy
    *
    * @description
-   * copy the object recursively based on its type
+   * copy the value recursively based on its type
    *
-   * @param object the object to copy
-   * @returns the copied object
+   * @param value the value to copy
+   * @returns the copied value
    */
-  const handleCopy: FastCopy.Copier = (object: any, cache: FastCopy.Cache): any => {
-    if (!object || typeof object !== 'object') {
-      return object;
-    } if (cache.has(object)) {
-      return cache.get(object);
+  const handleCopy: FastCopy.Copier = (
+    value: any,
+    cache: FastCopy.Cache,
+  ): any => {
+    if (!value || typeof value !== 'object') {
+      return value;
     }
 
-    const { constructor: Constructor } = object;
+    if (cache.has(value)) {
+      return cache.get(value);
+    }
+
+    const prototype = value.__proto__ || getPrototypeOf(value);
+    const Constructor = prototype && prototype.constructor;
 
     // plain objects
-    if (Constructor === realm.Object) {
-      return getObjectClone(object, realm, handleCopy, cache);
+    if (!Constructor || Constructor === realm.Object) {
+      return getObjectClone(value, realm, handleCopy, cache);
     }
 
     let clone: any;
+
     // arrays
-    if (isArray(object)) {
+    if (isArray(value)) {
       // if strict, include non-standard properties
       if (isStrict) {
-        return getObjectCloneStrict(object, realm, handleCopy, cache);
+        return getObjectCloneStrict(value, realm, handleCopy, cache);
       }
 
-      const { length } = object;
-
       clone = new Constructor();
-      cache.set(object, clone);
+      cache.set(value, clone);
 
-      for (let index: number = 0; index < length; index++) {
-        clone[index] = handleCopy(object[index], cache);
+      for (
+        let index: number = 0, length = value.length;
+        index < length;
+        ++index
+      ) {
+        clone[index] = handleCopy(value[index], cache);
       }
 
       return clone;
     }
 
     // dates
-    if (object instanceof realm.Date) {
-      return new Constructor(object.getTime());
+    if (value instanceof realm.Date) {
+      return new Constructor(value.getTime());
     }
 
     // regexps
-    if (object instanceof realm.RegExp) {
-      clone = new Constructor(object.source, object.flags || getRegExpFlags(object));
+    if (value instanceof realm.RegExp) {
+      clone = new Constructor(
+        value.source,
+        value.flags || getRegExpFlags(value),
+      );
 
-      clone.lastIndex = object.lastIndex;
+      clone.lastIndex = value.lastIndex;
 
       return clone;
     }
 
     // maps
-    if (realm.Map && object instanceof realm.Map) {
+    if (realm.Map && value instanceof realm.Map) {
       clone = new Constructor();
-      cache.set(object, clone);
+      cache.set(value, clone);
 
-      object.forEach((value: any, key: any) => {
+      value.forEach((value: any, key: any) => {
         clone.set(key, handleCopy(value, cache));
       });
 
@@ -119,11 +140,11 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     }
 
     // sets
-    if (realm.Set && object instanceof realm.Set) {
+    if (realm.Set && value instanceof realm.Set) {
       clone = new Constructor();
-      cache.set(object, clone);
+      cache.set(value, clone);
 
-      object.forEach((value: any) => {
+      value.forEach((value: any) => {
         clone.add(handleCopy(value, cache));
       });
 
@@ -131,18 +152,18 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     }
 
     // blobs
-    if (realm.Blob && object instanceof realm.Blob) {
-      return object.slice(0, object.size, object.type);
+    if (realm.Blob && value instanceof realm.Blob) {
+      return value.slice(0, value.size, value.type);
     }
 
     // buffers (node-only)
-    if (realm.Buffer && realm.Buffer.isBuffer(object)) {
+    if (realm.Buffer && realm.Buffer.isBuffer(value)) {
       clone = realm.Buffer.allocUnsafe
-        ? realm.Buffer.allocUnsafe(object.length)
-        : new Constructor(object.length);
+        ? realm.Buffer.allocUnsafe(value.length)
+        : new Constructor(value.length);
 
-      cache.set(object, clone);
-      object.copy(clone);
+      cache.set(value, clone);
+      value.copy(clone);
 
       return clone;
     }
@@ -150,43 +171,43 @@ function copy<T>(object: T, options?: FastCopy.Options): T {
     // arraybuffers / dataviews
     if (realm.ArrayBuffer) {
       // dataviews
-      if (realm.ArrayBuffer.isView(object)) {
-        clone = new Constructor(object.buffer.slice(0));
-        cache.set(object, clone);
+      if (realm.ArrayBuffer.isView(value)) {
+        clone = new Constructor(value.buffer.slice(0));
+        cache.set(value, clone);
         return clone;
       }
 
       // arraybuffers
-      if (object instanceof realm.ArrayBuffer) {
-        clone = object.slice(0);
-        cache.set(object, clone);
+      if (value instanceof realm.ArrayBuffer) {
+        clone = value.slice(0);
+        cache.set(value, clone);
         return clone;
       }
     }
 
-    // if the object cannot / should not be cloned, don't
+    // if the value cannot / should not be cloned, don't
     if (
       // promise-like
-      typeof object.then === 'function' ||
+      typeof value.then === 'function' ||
       // errors
-      object instanceof Error ||
+      value instanceof Error ||
       // weakmaps
-      (realm.WeakMap && object instanceof realm.WeakMap) ||
+      (realm.WeakMap && value instanceof realm.WeakMap) ||
       // weaksets
-      (realm.WeakSet && object instanceof realm.WeakSet)
+      (realm.WeakSet && value instanceof realm.WeakSet)
     ) {
-      return object;
+      return value;
     }
 
     // assume anything left is a custom constructor
-    return getObjectClone(object, realm, handleCopy, cache);
+    return getObjectClone(value, realm, handleCopy, cache);
   };
 
-  return handleCopy(object, createCache());
+  return handleCopy(value, createCache());
 }
 
 // Adding reference to allow usage in CommonJS libraries compiled using TSC, which
-// expects there to be a default property on the exported object. See
+// expects there to be a default property on the exported value. See
 // [#37](https://github.com/planttheidea/fast-copy/issues/37) for details.
 copy.default = copy;
 
@@ -194,15 +215,15 @@ copy.default = copy;
  * @function strictCopy
  *
  * @description
- * copy the object with `strict` option pre-applied
+ * copy the value with `strict` option pre-applied
  *
- * @param object the object to copy
+ * @param value the value to copy
  * @param [options] the options for copying with
- * @param [options.realm] the realm (this) object the object is copied from
- * @returns the copied object
+ * @param [options.realm] the realm (this) value the value is copied from
+ * @returns the copied value
  */
-copy.strict = function strictCopy(object: any, options?: FastCopy.Options) {
-  return copy(object, {
+copy.strict = function strictCopy(value: any, options?: FastCopy.Options) {
+  return copy(value, {
     isStrict: true,
     realm: options ? options.realm : void 0,
   });
