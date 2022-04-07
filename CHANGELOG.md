@@ -1,5 +1,11 @@
 # fast-copy CHANGELOG
 
+## 2.1.2
+
+- Support `constructor` property override on object [#60](https://github.com/planttheidea/fast-copy/pull/60)
+- Provide better support for `constructor` override on non-plain object types [#61](https://github.com/planttheidea/fast-copy/pull/61)
+- Remove `tslint` in favor of `@typescript-eslint` [#62](https://github.com/planttheidea/fast-copy/pull/62)
+
 ## 2.1.1
 
 - Fix ESM-to-CommonJS issue when using TSC to consume [#37](https://github.com/planttheidea/fast-copy/issues/37)
