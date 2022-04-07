@@ -11,12 +11,12 @@ declare namespace FastCopy {
 
   export type Copier = <Value = any>(value: Value, cache: Cache) => Value;
 
-  export type ObjectCloner = <Obj>(
-    object: Obj,
+  export type ObjectCloner = <Value>(
+    object: Value,
     realm: Realm,
     handleCopy: Copier,
     cache: Cache,
-  ) => Obj;
+  ) => Value;
 
   export type Options = {
     isStrict?: boolean;
