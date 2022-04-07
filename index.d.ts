@@ -1,16 +1,22 @@
 declare namespace FastCopy {
-  // @ts-ignore
-  export type Realm = Window | Global;
+  export type Realm = Record<string, any>;
 
   export interface Cache {
+    _keys?: any[];
     _values?: any[];
-    add: (value: any) => void;
     has: (value: any) => boolean;
+    set: (key: any, value: any) => void;
+    get: (key: any) => any;
   }
 
-  export type Copier = (object: any, cache: Cache) => any;
+  export type Copier = <Value = any>(value: Value, cache: Cache) => Value;
 
-  export type ObjectCloner = (object: any, realm: Realm, handleCopy: Copier, cache: Cache) => any;
+  export type ObjectCloner = <Value>(
+    object: Value,
+    realm: Realm,
+    handleCopy: Copier,
+    cache: Cache,
+  ) => Value;
 
   export type Options = {
     isStrict?: boolean;
@@ -18,16 +24,16 @@ declare namespace FastCopy {
   };
 }
 
-declare function copy<ObjectType extends any = any>(
-  object: ObjectType,
+declare function copy<Value = any>(
+  value: Value,
   options?: FastCopy.Options,
-): ObjectType;
+): Value;
 
 declare namespace copy {
-  function strictCopy<ObjectType extends any = any>(
-    object: ObjectType,
+  function strictCopy<Value = any>(
+    value: Value,
     options?: FastCopy.Options,
-  ): ObjectType;
+  ): Value;
 }
 
 export default copy;

@@ -255,7 +255,7 @@ describe('copy', () => {
       Blob: global.Blob,
       WeakMap: global.WeakMap,
       WeakSet: global.WeakSet,
-    };
+    } as typeof globalThis;
 
     const result = copy(cleanComplexTypes, { realm });
 
@@ -455,7 +455,7 @@ describe('copy.strict', () => {
       Set: global.Set,
       WeakMap: global.WeakMap,
       WeakSet: global.WeakSet,
-    };
+    } as typeof globalThis;
 
     const result = copy(cleanComplexTypes, { isStrict: true, realm });
     const result2 = copy.strict(cleanComplexTypes, { realm });

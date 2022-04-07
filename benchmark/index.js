@@ -1,7 +1,5 @@
-/* eslint-disable no-magic-numbers, no-param-reassign, import/no-commonjs */
-
 const { createSuite } = require('benchee');
-const Table = require('cli-table2');
+const Table = require('cli-table3');
 
 const React = require('react');
 
@@ -40,7 +38,10 @@ const complexObject = Object.assign({}, simpleObject, {
   set: new Set().add('foo').add({ bar: { baz: 'quz' } }),
   typedArray: new Uint8Array([12, 15]),
   undef: undefined,
-  weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
+  weakmap: new WeakMap([
+    [{}, 'foo'],
+    [{}, 'bar'],
+  ]),
   weakset: new WeakSet([{}, {}]),
   [Symbol('key')]: 'value',
 });
@@ -83,7 +84,7 @@ const specialObject = {
 
 /************* setup *************/
 
-const getResults = results => {
+const getResults = (results) => {
   const table = new Table({
     head: ['Name', 'Ops / sec'],
   });
