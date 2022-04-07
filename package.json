@@ -20,7 +20,7 @@
     "@typescript-eslint/eslint-plugin": "^5.18.0",
     "@typescript-eslint/parser": "^5.18.0",
     "benchee": "^1.0.3",
-    "cli-table2": "^0.2.0",
+    "cli-table3": "^0.6.1",
     "clone": "^2.1.2",
     "deepclone": "^1.0.2",
     "eslint": "^8.12.0",
