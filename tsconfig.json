@@ -9,6 +9,7 @@
     "noImplicitAny": true,
     "outDir": "./dist",
     "sourceMap": true,
+    "inlineSources": true,
     "target": "es5",
     "types": ["jest", "node", "react"]
   },
