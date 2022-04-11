@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 2.1.3
+
+- Fix source maps not referencing source code [#65](https://github.com/planttheidea/fast-copy/pull/65)
+
 ## 2.1.2
 
 - Support `constructor` property override on object [#60](https://github.com/planttheidea/fast-copy/pull/60)
