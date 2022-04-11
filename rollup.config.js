@@ -30,6 +30,7 @@ const UMD_CONFIG = {
     }),
     typescript({
       typescript: require('typescript'),
+      sourceRoot: '..',
     }),
   ],
 };
