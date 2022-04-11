@@ -10,6 +10,7 @@ benchmark
 coverage
 DEV_ONLY
 node_modules
+src
 test
 webpack
 jest.config.js
