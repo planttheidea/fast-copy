@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 2.1.4
+
+- Provide `"exports"` definition in `package.json` [#69](https://github.com/planttheidea/fast-copy/pull/69) (thanks [@liteoood](https://github.com/ilteoood))
+
 ## 2.1.3
 
 - Fix source maps not referencing source code [#65](https://github.com/planttheidea/fast-copy/pull/65)
