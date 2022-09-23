@@ -115,7 +115,7 @@ export function copy<Value>(value: Value, options?: Options): Value {
     if (value instanceof realm.RegExp) {
       clone = new Constructor(
         value.source,
-        value.flags || getRegExpFlags(value),
+        value.flags || getRegExpFlags(value)
       );
 
       clone.lastIndex = value.lastIndex;
@@ -208,5 +208,3 @@ export function copy<Value>(value: Value, options?: Options): Value {
 export function copyStrict(value: any, options?: StrictOptions) {
   return copy(value, assign({}, options, { isStrict: true }));
 }
-
-export default copy;
