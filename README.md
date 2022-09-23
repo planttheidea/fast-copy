@@ -59,7 +59,7 @@ This is significantly slower, so you should only use this if you believe it nece
 console.log(copy(object, { isStrict: true }));
 ```
 
-**NOTE**: This option is also aliased as `copStrict`.
+**NOTE**: This option is also aliased as `copyStrict`.
 
 ```javascript
 import { copyStrict } from 'fast-copy';
