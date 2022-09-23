@@ -26,12 +26,15 @@ A [blazing fast](#benchmarks) deep object copier
 ## Usage
 
 ```javascript
-import copy from "fast-copy";
-import { deepEqual } from "fast-equals";
+import { copy } from 'fast-copy';
+import { deepEqual } from 'fast-equals';
 
 const object = {
-  array: [123, { deep: "value" }],
-  map: new Map([["foo", {}], [{ bar: "baz" }, "quz"]])
+  array: [123, { deep: 'value' }],
+  map: new Map([
+    ['foo', {}],
+    [{ bar: 'baz' }, 'quz'],
+  ]),
 };
 
 const copiedObject = copy(object);
@@ -56,10 +59,12 @@ This is significantly slower, so you should only use this if you believe it nece
 console.log(copy(object, { isStrict: true }));
 ```
 
-**NOTE**: This option is also aliased as `copy.strict`.
+**NOTE**: This option is also aliased as `copStrict`.
 
 ```javascript
-console.log(copy.strict(object));
+import { copyStrict } from 'fast-copy';
+
+console.log(copyStrict(object));
 ```
 
 #### realm
@@ -71,7 +76,7 @@ Under the hood, `fast-copy` uses `instanceof` to determine object types, which c
 ```
 
 ```javascript
-const iframe = document.querySelector("iframe");
+const iframe = document.querySelector('iframe');
 const arr = iframe.contentWindow.arr;
 
 console.log(copy(arr, { realm: iframe.contentWindow })); // ['foo', 'bar']
@@ -203,7 +208,9 @@ _Custom constructors, React components, etc_
 Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencies. The following npm scripts are available:
 
 - benchmark => run benchmark tests against other equality libraries
-- build => build dist files with `rollup`
+- build => run `build:files` and `build:types`
+- build:files => build dist files with `rollup`
+- build:types => build TypeScript types for consumers
 - clean => run `rimraf` on the `dist` folder
 - dev => start webpack playground App
 - dist => run `build` and `build:minified` scripts
