@@ -1,11 +1,12 @@
-const ESLintWebpackPlugin = require('eslint-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const path = require('path');
-const webpack = require('webpack');
+import ESLintWebpackPlugin from 'eslint-webpack-plugin';
+import HtmlWebpackPlugin from 'html-webpack-plugin';
+import path from 'path';
+import webpack from 'webpack';
+import { fileURLToPath } from 'url';
 
-const ROOT = path.resolve(__dirname, '..');
+const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
-module.exports = {
+export default {
   devServer: {
     port: 3000,
   },
