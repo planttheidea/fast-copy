@@ -1,10 +1,14 @@
 # fast-copy CHANGELOG
 
-## 2.1.5
+## 2.1.6
+
+- Revert [#69](https://github.com/planttheidea/fast-copy/pull/69) and [#71](https://github.com/planttheidea/fast-copy/pull/71), as they broke the package for NodeJS consumption (will be reintroduced in v3, as breaking changes are required)
+
+## 2.1.5 - DO NOT USE
 
 - Ensure `"type": "module"` is set to allow ESM in NodeJS to work [#71](https://github.com/planttheidea/fast-copy/pull/71)
 
-## 2.1.4
+## 2.1.4 - DO NOT USE
 
 - Provide `"exports"` definition in `package.json` [#69](https://github.com/planttheidea/fast-copy/pull/69) (thanks [@liteoood](https://github.com/ilteoood))
 
