@@ -1,4 +1,3 @@
-// utils
 import {
   createCache,
   getObjectCloneLoose,
@@ -6,10 +5,23 @@ import {
   getRegExpFlags,
 } from './utils';
 
+import type { Cache, InternalCopier, Realm } from './utils';
+
+export interface Copy {
+  <Value = any>(value: Value, options?: Options): Value;
+
+  strict<Value = any>(value: Value, options?: Options): Value;
+}
+
+export interface Options {
+  isStrict?: boolean;
+  realm?: Realm;
+}
+
 const { isArray } = Array;
 const { getPrototypeOf } = Object;
 
-const GLOBAL_THIS: FastCopy.Realm = (function () {
+const GLOBAL_THIS: Realm = (function () {
   if (typeof globalThis !== 'undefined') {
     return globalThis;
   }
@@ -52,7 +64,7 @@ const GLOBAL_THIS: FastCopy.Realm = (function () {
  * @param [options.realm] the realm (this) value the value is copied from
  * @returns the copied value
  */
-function copy<Value>(value: Value, options?: FastCopy.Options): Value {
+function copy<Value>(value: Value, options?: Options): Value {
   // manually coalesced instead of default parameters for performance
   const isStrict = !!(options && options.isStrict);
   const realm = (options && options.realm) || GLOBAL_THIS;
@@ -67,10 +79,7 @@ function copy<Value>(value: Value, options?: FastCopy.Options): Value {
    * @param value the value to copy
    * @returns the copied value
    */
-  const handleCopy: FastCopy.Copier = (
-    value: any,
-    cache: FastCopy.Cache,
-  ): any => {
+  const handleCopy: InternalCopier = (value: any, cache: Cache): any => {
     if (!value || typeof value !== 'object') {
       return value;
     }
@@ -119,7 +128,7 @@ function copy<Value>(value: Value, options?: FastCopy.Options): Value {
     if (value instanceof realm.RegExp) {
       clone = new Constructor(
         value.source,
-        value.flags || getRegExpFlags(value),
+        value.flags || getRegExpFlags(value)
       );
 
       clone.lastIndex = value.lastIndex;
@@ -222,7 +231,7 @@ copy.default = copy;
  * @param [options.realm] the realm (this) value the value is copied from
  * @returns the copied value
  */
-copy.strict = function strictCopy(value: any, options?: FastCopy.Options) {
+copy.strict = function strictCopy(value: any, options?: Options) {
   return copy(value, {
     isStrict: true,
     realm: options ? options.realm : void 0,

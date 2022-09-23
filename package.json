@@ -3,7 +3,7 @@
   "contributors": [
     "Dariusz Rzepka <rzepkadarek@gmail.com>"
   ],
-  "browser": "dist/fast-copy.js",
+  "browser": "dist/umd/index.js",
   "bugs": {
     "url": "https://github.com/planttheidea/fast-copy/issues"
   },
@@ -44,6 +44,22 @@
     "webpack-cli": "^4.10.0",
     "webpack-dev-server": "^4.11.1"
   },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/esm/types/index.d.ts",
+        "default": "./dist/esm/index.mjs"
+      },
+      "require": {
+        "types": "./dist/cjs/types/index.d.ts",
+        "default": "./dist/cjs/index.cjs"
+      },
+      "default": {
+        "types": "./dist/umd/types/index.d.ts",
+        "default": "./dist/umd/index.js"
+      }
+    }
+  },
   "homepage": "https://github.com/planttheidea/fast-copy#readme",
   "keywords": [
     "clone",
@@ -52,16 +68,18 @@
     "fast"
   ],
   "license": "MIT",
-  "main": "dist/fast-copy.cjs.js",
-  "module": "dist/fast-copy.esm.js",
+  "main": "dist/cjs/index.cjs",
+  "module": "dist/esm/index.mjs",
   "name": "fast-copy",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/planttheidea/fast-copy.git"
   },
   "scripts": {
-    "benchmark": "npm run build && node benchmark/index.js",
-    "build": "NODE_ENV=production rollup -c",
+    "benchmark": "npm run build:files && node benchmark/index.js",
+    "build": "npm run build:files && npm run build:types",
+    "build:files": "NODE_ENV=production rollup -c",
+    "build:types": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",
     "clean": "rimraf dist",
     "dev": "NODE_ENV=development webpack-dev-server --config=webpack/webpack.config.js",
     "dist": "npm run clean && npm run build",
@@ -77,6 +95,7 @@
     "test:watch": "npm run test -- --watch",
     "typecheck": "tsc src/*.ts --noEmit"
   },
+  "type": "module",
   "types": "index.d.ts",
   "version": "2.1.7"
 }

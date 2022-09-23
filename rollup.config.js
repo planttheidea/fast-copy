@@ -54,8 +54,7 @@ const MINIFIED_CONFIG = {
   ...UMD_CONFIG,
   output: {
     ...UMD_CONFIG.output,
-    file: pkg.browser.replace('.js', '.min.js'),
-    sourcemap: false,
+    file: pkg.browser.replace('umd', 'minified').replace('.js', '.min.js'),
   },
   plugins: [...UMD_CONFIG.plugins, terser()],
 };

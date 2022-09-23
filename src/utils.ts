@@ -1,3 +1,22 @@
+export interface Cache {
+  _keys?: any[];
+  _values?: any[];
+  has: (value: any) => boolean;
+  set: (key: any, value: any) => void;
+  get: (key: any) => any;
+}
+
+export type InternalCopier = <Value = any>(value: Value, cache: Cache) => Value;
+
+export type ObjectCloner = <Value>(
+  object: Value,
+  realm: Realm,
+  handleCopy: InternalCopier,
+  cache: Cache
+) => Value;
+
+export type Realm = Record<string, any>;
+
 const { toString: toStringFunction } = Function.prototype;
 const {
   create,
@@ -20,9 +39,9 @@ const WEAK_MAP = typeof WeakMap === 'function';
  *
  * @returns the new cache object
  */
-export const createCache = (() => {
+export const createCache: () => Cache = (() => {
   if (WEAK_MAP) {
-    return (): FastCopy.Cache => new WeakMap();
+    return () => new WeakMap();
   }
 
   class Cache {
@@ -43,7 +62,7 @@ export const createCache = (() => {
     }
   }
 
-  return (): FastCopy.Cache => new Cache();
+  return (): Cache => new Cache();
 })();
 
 /**
@@ -56,7 +75,7 @@ export const createCache = (() => {
  * @param realm the realm the object resides in
  * @returns the empty cloned object
  */
-export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
+export const getCleanClone = (object: any, realm: Realm): any => {
   const prototype = object.__proto__ || getPrototypeOf(object);
 
   if (!prototype) {
@@ -90,11 +109,11 @@ export const getCleanClone = (object: any, realm: FastCopy.Realm): any => {
  * @param handleCopy the function that handles copying the object
  * @returns the copied object
  */
-export const getObjectCloneLoose: FastCopy.ObjectCloner = (
+export const getObjectCloneLoose: ObjectCloner = (
   object: any,
-  realm: FastCopy.Realm,
-  handleCopy: FastCopy.Copier,
-  cache: FastCopy.Cache,
+  realm: Realm,
+  handleCopy: InternalCopier,
+  cache: Cache
 ): any => {
   const clone: any = getCleanClone(object, realm);
 
@@ -138,11 +157,11 @@ export const getObjectCloneLoose: FastCopy.ObjectCloner = (
  * @param handleCopy the function that handles copying the object
  * @returns the copied object
  */
-export const getObjectCloneStrict: FastCopy.ObjectCloner = (
+export const getObjectCloneStrict: ObjectCloner = (
   object: any,
-  realm: FastCopy.Realm,
-  handleCopy: FastCopy.Copier,
-  cache: FastCopy.Cache,
+  realm: Realm,
+  handleCopy: InternalCopier,
+  cache: Cache
 ): any => {
   const clone: any = getCleanClone(object, realm);
 
@@ -151,7 +170,7 @@ export const getObjectCloneStrict: FastCopy.ObjectCloner = (
 
   const properties: (string | symbol)[] = SYMBOL_PROPERTIES
     ? getOwnPropertyNames(object).concat(
-        getOwnPropertySymbols(object) as unknown as string[],
+        getOwnPropertySymbols(object) as unknown as string[]
       )
     : getOwnPropertyNames(object);
 
