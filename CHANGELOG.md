@@ -4,7 +4,9 @@
 
 **Breaking changes**
 
-- Exports are now named (`copy` and `copyStrict`) instead of default
+- `copy` is now a named export instead of a default export
+- `copy.strict` is no longer available; it is now available as the explicit `copyStrict` named import
+- `FastCopy` TS namespace has been removed in favor of explicit type imports
 
 ## 2.1.7
 
