@@ -78,5 +78,5 @@
     "typecheck": "tsc src/*.ts --noEmit"
   },
   "types": "index.d.ts",
-  "version": "2.1.5"
+  "version": "2.1.6"
 }

@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 2.1.7
+
+- Republish of [`2.1.6`](#216), as the release process failed mid-publish
+
 ## 2.1.6
 
 - Revert [#69](https://github.com/planttheidea/fast-copy/pull/69) and [#71](https://github.com/planttheidea/fast-copy/pull/71), as they broke the package for NodeJS consumption (will be reintroduced in v3, as breaking changes are required)
