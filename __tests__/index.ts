@@ -1,8 +1,7 @@
-import { executionAsyncId } from 'async_hooks';
 import crypto from 'crypto';
 import React from 'react';
 
-import copy from '../src';
+import { copy, copyStrict } from '../src';
 
 type PlainObject = {
   [key: string]: any;
@@ -322,12 +321,12 @@ describe('copy', () => {
   });
 });
 
-describe('copy.strict', () => {
+describe('copyStrict', () => {
   it('will copy an empty object', () => {
     const object = {};
 
     const result = copy(object, { isStrict: true });
-    const result2 = copy.strict(object);
+    const result2 = copyStrict(object);
 
     expect(result).not.toBe(object);
     expect(result2).not.toBe(object);
@@ -338,7 +337,7 @@ describe('copy.strict', () => {
 
   it('will copy the simple types', () => {
     const result = copy(SIMPLE_TYPES, { isStrict: true });
-    const result2 = copy.strict(SIMPLE_TYPES);
+    const result2 = copyStrict(SIMPLE_TYPES);
 
     expect(result).not.toBe(SIMPLE_TYPES);
     expect(result2).not.toBe(SIMPLE_TYPES);
@@ -361,7 +360,7 @@ describe('copy.strict', () => {
 
   it('will copy the complex types', () => {
     const result = copy(COMPLEX_TYPES, { isStrict: true });
-    const result2 = copy.strict(COMPLEX_TYPES);
+    const result2 = copyStrict(COMPLEX_TYPES);
 
     expect(result).not.toBe(COMPLEX_TYPES);
     expect(result2).not.toBe(COMPLEX_TYPES);
@@ -408,7 +407,7 @@ describe('copy.strict', () => {
 
   it('will copy the circular object', () => {
     const result = copy(CIRCULAR, { isStrict: true });
-    const result2 = copy.strict(CIRCULAR);
+    const result2 = copyStrict(CIRCULAR);
 
     expect(result).not.toBe(CIRCULAR);
     expect(result2).not.toBe(CIRCULAR);
@@ -419,7 +418,7 @@ describe('copy.strict', () => {
 
   it('will copy the special types', () => {
     const result = copy(SPECIAL_TYPES, { isStrict: true });
-    const result2 = copy.strict(SPECIAL_TYPES);
+    const result2 = copyStrict(SPECIAL_TYPES);
 
     expect(result).not.toBe(SPECIAL_TYPES);
     expect(result2).not.toBe(SPECIAL_TYPES);
@@ -458,7 +457,7 @@ describe('copy.strict', () => {
     } as typeof globalThis;
 
     const result = copy(cleanComplexTypes, { isStrict: true, realm });
-    const result2 = copy.strict(cleanComplexTypes, { realm });
+    const result2 = copyStrict(cleanComplexTypes, { realm });
 
     expect(result).not.toBe(cleanComplexTypes);
     expect(result2).not.toBe(cleanComplexTypes);
@@ -490,9 +489,5 @@ describe('copy.strict', () => {
     expect(result.array[0]).toBe(cloneReusedObject);
     expect(result.array[1]).not.toBe(reusedObject);
     expect(result.array[1]).toBe(cloneReusedObject);
-  });
-
-  it('will have a version of itself as the `default` property to support ESM-to-CommonJS', () => {
-    expect(copy.default).toBe(copy);
   });
 });

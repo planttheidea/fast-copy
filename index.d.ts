@@ -6,12 +6,6 @@ export interface Cache {
   get: (key: any) => any;
 }
 
-export interface Copy {
-  <Value = any>(value: Value, options?: Options): Value;
-
-  strict<Value = any>(value: Value, options?: Options): Value;
-}
-
 export type InternalCopier = <Value = any>(value: Value, cache: Cache) => Value;
 
 export type ObjectCloner = <Value>(
@@ -26,8 +20,12 @@ export interface Options {
   realm?: Realm;
 }
 
+export interface StrictOptions extends Omit<Options, 'isStrict'> {}
+
 export type Realm = Record<string, any>;
 
-declare const copy: Copy;
-
-export default copy;
+export const copy: <Value = any>(value: Value, options?: Options) => Value;
+export const copyStrict: <Value = any>(
+  value: Value,
+  options?: StrictOptions
+) => Value;

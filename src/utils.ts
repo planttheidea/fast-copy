@@ -98,16 +98,8 @@ export const getCleanClone = (object: any, realm: Realm): any => {
 };
 
 /**
- * @function getObjectCloneLoose
- *
- * @description
- * get a copy of the object based on loose rules, meaning all enumerable keys
- * and symbols are copied, but property descriptors are not considered
- *
- * @param object the object to clone
- * @param realm the realm the object resides in
- * @param handleCopy the function that handles copying the object
- * @returns the copied object
+ * Get a copy of the object based on loose rules, meaning all enumerable keys
+ * and symbols are copied, but property descriptors are not considered.
  */
 export const getObjectCloneLoose: ObjectCloner = (
   object: any,
@@ -146,16 +138,8 @@ export const getObjectCloneLoose: ObjectCloner = (
 };
 
 /**
- * @function getObjectCloneStrict
- *
- * @description
- * get a copy of the object based on strict rules, meaning all keys and symbols
- * are copied based on the original property descriptors
- *
- * @param object the object to clone
- * @param realm the realm the object resides in
- * @param handleCopy the function that handles copying the object
- * @returns the copied object
+ * Get a copy of the object based on strict rules, meaning all keys and symbols
+ * are copied based on the original property descriptors.
  */
 export const getObjectCloneStrict: ObjectCloner = (
   object: any,
@@ -208,13 +192,7 @@ export const getObjectCloneStrict: ObjectCloner = (
 };
 
 /**
- * @function getRegExpFlags
- *
- * @description
- * get the flags to apply to the copied regexp
- *
- * @param regExp the regexp to get the flags of
- * @returns the flags for the regexp
+ * Get the flags to apply to the copied regexp.
  */
 export const getRegExpFlags = (regExp: RegExp): string => {
   let flags = '';

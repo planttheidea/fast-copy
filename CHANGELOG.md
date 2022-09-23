@@ -1,5 +1,11 @@
 # fast-copy CHANGELOG
 
+## 3.0.0
+
+**Breaking changes**
+
+- Exports are now named (`copy` and `copyStrict`) instead of default
+
 ## 2.1.7
 
 - Republish of [`2.1.6`](#216), as the release process failed mid-publish

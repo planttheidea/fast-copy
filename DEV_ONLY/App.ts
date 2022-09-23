@@ -23,7 +23,7 @@ const object: PlainObject = {
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
-  blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
+  blob: new Blob(['<a id="a">hey!</a>'], { type: 'text/html' }),
   boolean: true,
   customPrototype: Object.create({
     method() {
@@ -77,7 +77,10 @@ const object: PlainObject = {
   symbol: Symbol('foo'),
   typedArray: new Uint8Array([12, 15]),
   undef: undefined,
-  weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
+  weakmap: new WeakMap([
+    [{}, 'foo'],
+    [{}, 'bar'],
+  ]),
   weakset: new WeakSet([{}, {}]),
   [Symbol('key')]: 'value',
 };

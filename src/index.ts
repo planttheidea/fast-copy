@@ -7,19 +7,15 @@ import {
 
 import type { Cache, InternalCopier, Realm } from './utils';
 
-export interface Copy {
-  <Value = any>(value: Value, options?: Options): Value;
-
-  strict<Value = any>(value: Value, options?: Options): Value;
-}
-
 export interface Options {
   isStrict?: boolean;
   realm?: Realm;
 }
 
+export interface StrictOptions extends Omit<Options, 'isStrict'> {}
+
 const { isArray } = Array;
-const { getPrototypeOf } = Object;
+const { assign, getPrototypeOf } = Object;
 
 const GLOBAL_THIS: Realm = (function () {
   if (typeof globalThis !== 'undefined') {
@@ -46,10 +42,7 @@ const GLOBAL_THIS: Realm = (function () {
 })();
 
 /**
- * @function copy
- *
- * @description
- * copy an value deeply as much as possible
+ * Copy an value deeply as much as possible.
  *
  * If `strict` is applied, then all properties (including non-enumerable ones)
  * are copied with their original property descriptors on both objects and arrays.
@@ -57,14 +50,8 @@ const GLOBAL_THIS: Realm = (function () {
  * The value is compared to the global constructors in the `realm` provided,
  * and the native constructor is always used to ensure that extensions of native
  * objects (allows in ES2015+) are maintained.
- *
- * @param value the value to copy
- * @param [options] the options for copying with
- * @param [options.isStrict] should the copy be strict
- * @param [options.realm] the realm (this) value the value is copied from
- * @returns the copied value
  */
-function copy<Value>(value: Value, options?: Options): Value {
+export function copy<Value>(value: Value, options?: Options): Value {
   // manually coalesced instead of default parameters for performance
   const isStrict = !!(options && options.isStrict);
   const realm = (options && options.realm) || GLOBAL_THIS;
@@ -128,7 +115,7 @@ function copy<Value>(value: Value, options?: Options): Value {
     if (value instanceof realm.RegExp) {
       clone = new Constructor(
         value.source,
-        value.flags || getRegExpFlags(value)
+        value.flags || getRegExpFlags(value),
       );
 
       clone.lastIndex = value.lastIndex;
@@ -215,27 +202,11 @@ function copy<Value>(value: Value, options?: Options): Value {
   return handleCopy(value, createCache());
 }
 
-// Adding reference to allow usage in CommonJS libraries compiled using TSC, which
-// expects there to be a default property on the exported value. See
-// [#37](https://github.com/planttheidea/fast-copy/issues/37) for details.
-copy.default = copy;
-
 /**
- * @function strictCopy
- *
- * @description
- * copy the value with `strict` option pre-applied
- *
- * @param value the value to copy
- * @param [options] the options for copying with
- * @param [options.realm] the realm (this) value the value is copied from
- * @returns the copied value
+ * Copy the value with `strict` option pre-applied.
  */
-copy.strict = function strictCopy(value: any, options?: Options) {
-  return copy(value, {
-    isStrict: true,
-    realm: options ? options.realm : void 0,
-  });
-};
+export function copyStrict(value: any, options?: StrictOptions) {
+  return copy(value, assign({}, options, { isStrict: true }));
+}
 
 export default copy;
