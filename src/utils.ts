@@ -29,53 +29,43 @@ const {
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
 const SYMBOL_PROPERTIES = typeof getOwnPropertySymbols === 'function';
-const WEAK_MAP = typeof WeakMap === 'function';
 
-/**
- * @function createCache
- *
- * @description
- * get a new cache object to prevent circular references
- *
- * @returns the new cache object
- */
-export const createCache: () => Cache = (() => {
-  if (WEAK_MAP) {
-    return () => new WeakMap();
+class LegacyCache {
+  _keys: any[] = [];
+  _values: any[] = [];
+
+  has(key: any) {
+    return !!~this._keys.indexOf(key);
   }
 
-  class Cache {
-    _keys: any[] = [];
-    _values: any[] = [];
-
-    has(key: any) {
-      return !!~this._keys.indexOf(key);
-    }
-
-    get(key: any) {
-      return this._values[this._keys.indexOf(key)];
-    }
-
-    set(key: any, value: any) {
-      this._keys.push(key);
-      this._values.push(value);
-    }
+  get(key: any) {
+    return this._values[this._keys.indexOf(key)];
   }
 
-  return (): Cache => new Cache();
-})();
+  set(key: any, value: any) {
+    this._keys.push(key);
+    this._values.push(value);
+  }
+}
+
+function createCacheLegacy(): Cache {
+  return new LegacyCache();
+}
+
+function createCacheModern(): Cache {
+  return new WeakMap();
+}
 
 /**
- * @function getCleanClone
- *
- * @description
- * get an empty version of the object with the same prototype it has
- *
- * @param object the object to build a clean clone from
- * @param realm the realm the object resides in
- * @returns the empty cloned object
+ * Get a new cache object to prevent circular references.
  */
-export const getCleanClone = (object: any, realm: Realm): any => {
+export const createCache =
+  typeof WeakMap !== 'undefined' ? createCacheModern : createCacheLegacy;
+
+/**
+ * Get an empty version of the object with the same prototype it has.
+ */
+export function getCleanClone(object: any, realm: Realm): any {
   const prototype = object.__proto__ || getPrototypeOf(object);
 
   if (!prototype) {
@@ -95,18 +85,18 @@ export const getCleanClone = (object: any, realm: Realm): any => {
   }
 
   return create(prototype);
-};
+}
 
 /**
  * Get a copy of the object based on loose rules, meaning all enumerable keys
  * and symbols are copied, but property descriptors are not considered.
  */
-export const getObjectCloneLoose: ObjectCloner = (
+export function getObjectCloneLoose(
   object: any,
   realm: Realm,
   handleCopy: InternalCopier,
   cache: Cache
-): any => {
+): any {
   const clone: any = getCleanClone(object, realm);
 
   // set in the cache immediately to be able to reuse the object recursively
@@ -135,28 +125,34 @@ export const getObjectCloneLoose: ObjectCloner = (
   }
 
   return clone;
-};
+}
+
+function getStrictPropertiesModern(object: any): Array<string | symbol> {
+  return (getOwnPropertyNames(object) as Array<string | symbol>).concat(
+    getOwnPropertySymbols(object)
+  );
+}
+
+const getStrictProperties = SYMBOL_PROPERTIES
+  ? getStrictPropertiesModern
+  : getOwnPropertyNames;
 
 /**
  * Get a copy of the object based on strict rules, meaning all keys and symbols
  * are copied based on the original property descriptors.
  */
-export const getObjectCloneStrict: ObjectCloner = (
+export function getObjectCloneStrict(
   object: any,
   realm: Realm,
   handleCopy: InternalCopier,
   cache: Cache
-): any => {
+): any {
   const clone: any = getCleanClone(object, realm);
 
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
 
-  const properties: (string | symbol)[] = SYMBOL_PROPERTIES
-    ? getOwnPropertyNames(object).concat(
-        getOwnPropertySymbols(object) as unknown as string[]
-      )
-    : getOwnPropertyNames(object);
+  const properties = getStrictProperties(object);
 
   for (
     let index = 0, length = properties.length, property, descriptor;
@@ -189,12 +185,9 @@ export const getObjectCloneStrict: ObjectCloner = (
   }
 
   return clone;
-};
+}
 
-/**
- * Get the flags to apply to the copied regexp.
- */
-export const getRegExpFlags = (regExp: RegExp): string => {
+function getRegExpFlagsLegacy(regExp: RegExp): string {
   let flags = '';
 
   if (regExp.global) {
@@ -218,4 +211,14 @@ export const getRegExpFlags = (regExp: RegExp): string => {
   }
 
   return flags;
-};
+}
+
+function getRegExpFlagsModern(regExp: RegExp): string {
+  return regExp.flags;
+}
+
+/**
+ * Get the flags to apply to the copied regexp.
+ */
+export const getRegExpFlags =
+  /test/g.flags === 'g' ? getRegExpFlagsModern : getRegExpFlagsLegacy;
