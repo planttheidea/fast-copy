@@ -76,7 +76,7 @@
     "url": "git+https://github.com/planttheidea/fast-copy.git"
   },
   "scripts": {
-    "benchmark": "npm run build:files && node benchmark/index.js",
+    "benchmark": "npm run build:files && node benchmark/index.cjs",
     "build": "npm run build:files && npm run build:types",
     "build:files": "NODE_ENV=production rollup -c",
     "build:types": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json",

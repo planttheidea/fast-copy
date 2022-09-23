@@ -5,7 +5,7 @@ const React = require('react');
 
 /************* data *************/
 
-const BIG_DATA = require('./bigData');
+const BIG_DATA = require('./bigData.cjs');
 
 class Foo {
   constructor(value) {
@@ -100,8 +100,8 @@ const packages = {
   clone: require('clone'),
   deepclone: require('deepclone'),
   'fast-clone': require('fast-clone'),
-  'fast-copy': require('../dist/fast-copy.cjs'),
-  'fast-copy (strict)': require('../dist/fast-copy.cjs').strict,
+  'fast-copy': require('../dist/cjs/index.cjs'),
+  'fast-copy (strict)': require('../dist/cjs/index.cjs').strict,
   // deactivated while it cannot build on linux
   // 'fast-deepclone': require('fast-deepclone'),
   'lodash.cloneDeep': require('lodash').cloneDeep,
@@ -117,7 +117,7 @@ const suite = createSuite({
 
         return groupResults.map(({ name, stats }) => {
           const existingRowIndex = combined.findIndex(
-            ({ name: rowName }) => name === rowName,
+            ({ name: rowName }) => name === rowName
           );
 
           return ~existingRowIndex
@@ -178,7 +178,7 @@ const suite = createSuite({
   },
   onResult({ name, stats }) {
     console.log(
-      `Benchmark completed for ${name}: ${stats.ops.toLocaleString()} ops/sec`,
+      `Benchmark completed for ${name}: ${stats.ops.toLocaleString()} ops/sec`
     );
   },
 });
