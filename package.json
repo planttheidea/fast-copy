@@ -84,7 +84,6 @@
     "test:watch": "npm run test -- --watch",
     "typecheck": "tsc src/*.ts --noEmit"
   },
-  "type": "module",
   "types": "index.d.ts",
   "version": "2.1.5"
 }
