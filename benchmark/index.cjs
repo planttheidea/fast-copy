@@ -100,8 +100,8 @@ const packages = {
   clone: require('clone'),
   deepclone: require('deepclone'),
   'fast-clone': require('fast-clone'),
-  'fast-copy': require('../dist/cjs/index.cjs'),
-  'fast-copy (strict)': require('../dist/cjs/index.cjs').strict,
+  'fast-copy': require('../dist/cjs/index.cjs').copy,
+  'fast-copy (strict)': require('../dist/cjs/index.cjs').copyStrict,
   // deactivated while it cannot build on linux
   // 'fast-deepclone': require('fast-deepclone'),
   'lodash.cloneDeep': require('lodash').cloneDeep,
