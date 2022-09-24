@@ -1,7 +1,7 @@
 import React from 'react';
 import cloneDeep from 'lodash/cloneDeep';
 
-import src from '../src';
+import { copy } from '../src';
 
 // import '../benchmarks';
 
@@ -108,7 +108,7 @@ Object.defineProperty(object.object, 'readonly', {
 
 object.deeply.nested.reference = object;
 
-const cloned = src(object);
+const cloned = copy(object);
 
 console.log(cloned);
 console.log(cloneDeep(object));

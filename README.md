@@ -53,7 +53,7 @@ Starting in `2.0.0`, you can use the `isStrict` option to copy the object based 
 - Non-enumerable properties are copied
 - Non-standard properties (e.g., keys on an `Array` object) are copied
 
-This is significantly slower, so you should only use this if you believe it necessary.
+This is significantly slower, so you should only use this if your use-case requires it.
 
 ```javascript
 console.log(copy(object, { isStrict: true }));
