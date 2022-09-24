@@ -83,8 +83,6 @@ export function copy<Value>(value: Value, options?: Options): Value {
       return getObjectClone(value, realm, handleCopy, cache);
     }
 
-    let clone: any;
-
     // arrays
     if (isArray(value)) {
       // if strict, include non-standard properties
@@ -92,7 +90,8 @@ export function copy<Value>(value: Value, options?: Options): Value {
         return getObjectCloneStrict(value, realm, handleCopy, cache);
       }
 
-      clone = new Constructor();
+      const clone = new Constructor();
+
       cache.set(value, clone);
 
       for (
@@ -113,7 +112,7 @@ export function copy<Value>(value: Value, options?: Options): Value {
 
     // regexps
     if (value instanceof realm.RegExp) {
-      clone = new Constructor(
+      const clone = new Constructor(
         value.source,
         value.flags || getRegExpFlags(value)
       );
@@ -125,7 +124,8 @@ export function copy<Value>(value: Value, options?: Options): Value {
 
     // maps
     if (realm.Map && value instanceof realm.Map) {
-      clone = new Constructor();
+      const clone = new Constructor();
+
       cache.set(value, clone);
 
       value.forEach((value: any, key: any) => {
@@ -137,7 +137,8 @@ export function copy<Value>(value: Value, options?: Options): Value {
 
     // sets
     if (realm.Set && value instanceof realm.Set) {
-      clone = new Constructor();
+      const clone = new Constructor();
+
       cache.set(value, clone);
 
       value.forEach((value: any) => {
@@ -154,7 +155,7 @@ export function copy<Value>(value: Value, options?: Options): Value {
 
     // buffers (node-only)
     if (realm.Buffer && realm.Buffer.isBuffer(value)) {
-      clone = realm.Buffer.allocUnsafe
+      const clone = realm.Buffer.allocUnsafe
         ? realm.Buffer.allocUnsafe(value.length)
         : new Constructor(value.length);
 
@@ -168,15 +169,19 @@ export function copy<Value>(value: Value, options?: Options): Value {
     if (realm.ArrayBuffer) {
       // dataviews
       if (realm.ArrayBuffer.isView(value)) {
-        clone = new Constructor(value.buffer.slice(0));
+        const clone = new Constructor(value.buffer.slice(0));
+
         cache.set(value, clone);
+
         return clone;
       }
 
       // arraybuffers
       if (value instanceof realm.ArrayBuffer) {
-        clone = value.slice(0);
+        const clone = value.slice(0);
+
         cache.set(value, clone);
+
         return clone;
       }
     }
