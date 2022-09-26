@@ -10,7 +10,6 @@ export type InternalCopier = <Value = any>(value: Value, cache: Cache) => Value;
 
 export type ObjectCloner = <Value>(
   object: Value,
-  realm: Realm,
   handleCopy: InternalCopier,
   cache: Cache
 ) => Value;
@@ -65,7 +64,7 @@ export const createCache =
 /**
  * Get an empty version of the object with the same prototype it has.
  */
-export function getCleanClone(object: any, realm: Realm): any {
+export function getCleanClone(object: any): any {
   const prototype = object.__proto__ || getPrototypeOf(object);
 
   if (!prototype) {
@@ -74,8 +73,8 @@ export function getCleanClone(object: any, realm: Realm): any {
 
   const Constructor = prototype.constructor;
 
-  if (Constructor === realm.Object) {
-    return prototype === realm.Object.prototype ? {} : create(prototype);
+  if (Constructor === Object) {
+    return prototype === Object.prototype ? {} : create(prototype);
   }
 
   if (~toStringFunction.call(Constructor).indexOf('[native code]')) {
@@ -93,11 +92,10 @@ export function getCleanClone(object: any, realm: Realm): any {
  */
 export function getObjectCloneLoose(
   object: any,
-  realm: Realm,
   handleCopy: InternalCopier,
   cache: Cache
 ): any {
-  const clone: any = getCleanClone(object, realm);
+  const clone: any = getCleanClone(object);
 
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
@@ -143,11 +141,10 @@ const getStrictProperties = SYMBOL_PROPERTIES
  */
 export function getObjectCloneStrict(
   object: any,
-  realm: Realm,
   handleCopy: InternalCopier,
   cache: Cache
 ): any {
-  const clone: any = getCleanClone(object, realm);
+  const clone: any = getCleanClone(object);
 
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);

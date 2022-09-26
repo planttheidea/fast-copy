@@ -9,37 +9,13 @@ import type { Cache, InternalCopier, Realm } from './utils';
 
 export interface Options {
   isStrict?: boolean;
-  realm?: Realm;
 }
 
 export interface StrictOptions extends Omit<Options, 'isStrict'> {}
 
 const { isArray } = Array;
 const { assign, getPrototypeOf } = Object;
-
-const GLOBAL_THIS: Realm = (function () {
-  if (typeof globalThis !== 'undefined') {
-    return globalThis;
-  }
-
-  if (typeof self !== 'undefined') {
-    return self;
-  }
-
-  if (typeof window !== 'undefined') {
-    return window;
-  }
-
-  if (typeof global !== 'undefined') {
-    return global;
-  }
-
-  if (console && console.error) {
-    console.error('Unable to locate global object, returning "this".');
-  }
-
-  return this;
-})();
+const { toString } = Object.prototype;
 
 /**
  * Copy an value deeply as much as possible.
@@ -54,7 +30,6 @@ const GLOBAL_THIS: Realm = (function () {
 export function copy<Value>(value: Value, options?: Options): Value {
   // manually coalesced instead of default parameters for performance
   const isStrict = !!(options && options.isStrict);
-  const realm = (options && options.realm) || GLOBAL_THIS;
   const getObjectClone = isStrict ? getObjectCloneStrict : getObjectCloneLoose;
 
   /**
@@ -79,15 +54,15 @@ export function copy<Value>(value: Value, options?: Options): Value {
     const Constructor = prototype && prototype.constructor;
 
     // plain objects
-    if (!Constructor || Constructor === realm.Object) {
-      return getObjectClone(value, realm, handleCopy, cache);
+    if (!Constructor || Constructor === Object) {
+      return getObjectClone(value, handleCopy, cache);
     }
 
     // arrays
     if (isArray(value)) {
       // if strict, include non-standard properties
       if (isStrict) {
-        return getObjectCloneStrict(value, realm, handleCopy, cache);
+        return getObjectCloneStrict(value, handleCopy, cache);
       }
 
       const clone = new Constructor();
@@ -105,13 +80,15 @@ export function copy<Value>(value: Value, options?: Options): Value {
       return clone;
     }
 
+    const objectClass = toString.call(value);
+
     // dates
-    if (value instanceof realm.Date) {
+    if (objectClass === '[object Date]') {
       return new Constructor(value.getTime());
     }
 
     // regexps
-    if (value instanceof realm.RegExp) {
+    if (objectClass === '[object RegExp]') {
       const clone = new Constructor(
         value.source,
         value.flags || getRegExpFlags(value)
@@ -123,7 +100,7 @@ export function copy<Value>(value: Value, options?: Options): Value {
     }
 
     // maps
-    if (realm.Map && value instanceof realm.Map) {
+    if (objectClass === '[object Map]') {
       const clone = new Constructor();
 
       cache.set(value, clone);
@@ -136,7 +113,7 @@ export function copy<Value>(value: Value, options?: Options): Value {
     }
 
     // sets
-    if (realm.Set && value instanceof realm.Set) {
+    if (objectClass === '[object Set]') {
       const clone = new Constructor();
 
       cache.set(value, clone);
@@ -149,41 +126,38 @@ export function copy<Value>(value: Value, options?: Options): Value {
     }
 
     // blobs
-    if (realm.Blob && value instanceof realm.Blob) {
+    if (objectClass === '[object Blob]') {
       return value.slice(0, value.size, value.type);
     }
 
-    // buffers (node-only)
-    if (realm.Buffer && realm.Buffer.isBuffer(value)) {
-      const clone = realm.Buffer.allocUnsafe
-        ? realm.Buffer.allocUnsafe(value.length)
-        : new Constructor(value.length);
+    // dataviews
+    if (objectClass === '[object DataView]') {
+      const clone = new Constructor(value.buffer.slice(0));
 
       cache.set(value, clone);
-      value.copy(clone);
 
       return clone;
     }
 
-    // arraybuffers / dataviews
-    if (realm.ArrayBuffer) {
-      // dataviews
-      if (realm.ArrayBuffer.isView(value)) {
-        const clone = new Constructor(value.buffer.slice(0));
+    // array buffers
+    if (
+      objectClass === '[object Float32Array]' ||
+      objectClass === '[object Float64Array]' ||
+      objectClass === '[object Int8Array]' ||
+      objectClass === '[object Int16Array]' ||
+      objectClass === '[object Int32Array]' ||
+      objectClass === '[object Uint8Array]' ||
+      objectClass === '[object Uint8ClampedArray]' ||
+      objectClass === '[object Uint16Array]' ||
+      objectClass === '[object Uint32Array]' ||
+      objectClass === '[object Uint64Array]' ||
+      objectClass === '[object ArrayBuffer]'
+    ) {
+      const clone = value.slice(0);
 
-        cache.set(value, clone);
+      cache.set(value, clone);
 
-        return clone;
-      }
-
-      // arraybuffers
-      if (value instanceof realm.ArrayBuffer) {
-        const clone = value.slice(0);
-
-        cache.set(value, clone);
-
-        return clone;
-      }
+      return clone;
     }
 
     // if the value cannot / should not be cloned, don't
@@ -191,17 +165,17 @@ export function copy<Value>(value: Value, options?: Options): Value {
       // promise-like
       typeof value.then === 'function' ||
       // errors
-      value instanceof Error ||
+      objectClass === '[object Error]' ||
       // weakmaps
-      (realm.WeakMap && value instanceof realm.WeakMap) ||
+      objectClass === '[object WeakMap]' ||
       // weaksets
-      (realm.WeakSet && value instanceof realm.WeakSet)
+      objectClass === '[object WeakSet]'
     ) {
       return value;
     }
 
     // assume anything left is a custom constructor
-    return getObjectClone(value, realm, handleCopy, cache);
+    return getObjectClone(value, handleCopy, cache);
   };
 
   return handleCopy(value, createCache());

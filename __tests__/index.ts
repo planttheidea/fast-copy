@@ -14,7 +14,7 @@ hash.update('foo bar');
 
 const SIMPLE_TYPES: PlainObject = {
   boolean: true,
-  error: new Error('boom'),
+  error: new TypeError('boom'),
   fn() {
     return 'foo';
   },
@@ -53,7 +53,7 @@ const COMPLEX_TYPES: PlainObject = {
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
-  buffer: new Buffer('this is a test buffer'),
+  buffer: Buffer.from('this is a test buffer'),
   customPrototype: Object.create({
     method() {
       return 'foo';
@@ -62,22 +62,22 @@ const COMPLEX_TYPES: PlainObject = {
   }),
   dataView: new DataView(new ArrayBuffer(16)),
   date: new Date(),
-  float32Array: new Float32Array([12, 15]),
-  float64Array: new Float64Array([12, 15]),
+  float32Array: new Float32Array([1, 2]),
+  float64Array: new Float64Array([3, 4]),
   hash,
-  int8Array: new Int8Array([12, 15]),
-  int16Array: new Int16Array([12, 15]),
-  int32Array: new Int32Array([12, 15]),
+  int8Array: new Int8Array([5, 6]),
+  int16Array: new Int16Array([7, 8]),
+  int32Array: new Int32Array([9, 10]),
   map: new Map().set('foo', { bar: { baz: 'quz' } }),
   object: { foo: { bar: 'baz' } },
   regexp: /foo/,
   set: new Set().add('foo').add({ bar: { baz: 'quz' } }),
   // Disabling, as jest fails intermittently with blob construction.
   // blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
-  uint8Array: new Uint8Array([12, 15]),
-  uint8ClampedArray: new Uint8ClampedArray([12, 15]),
-  uint16Array: new Uint16Array([12, 15]),
-  uint32Array: new Uint32Array([12, 15]),
+  uint8Array: new Uint8Array([11, 12]),
+  uint8ClampedArray: new Uint8ClampedArray([13, 14]),
+  uint16Array: new Uint16Array([15, 16]),
+  uint32Array: new Uint32Array([17, 18]),
 };
 
 Object.defineProperties(COMPLEX_TYPES, {
@@ -168,8 +168,8 @@ describe('copy', () => {
     const properties = [].concat(
       Object.keys(SIMPLE_TYPES),
       Object.getOwnPropertySymbols(SIMPLE_TYPES).filter((symbol) =>
-        Object.prototype.propertyIsEnumerable.call(SIMPLE_TYPES, symbol),
-      ),
+        Object.prototype.propertyIsEnumerable.call(SIMPLE_TYPES, symbol)
+      )
     );
 
     properties.forEach((property: string | symbol) => {
@@ -192,7 +192,7 @@ describe('copy', () => {
     const properties = [
       ...Object.keys(COMPLEX_TYPES),
       ...Object.getOwnPropertySymbols(COMPLEX_TYPES).filter((symbol) =>
-        Object.prototype.propertyIsEnumerable.call(COMPLEX_TYPES, symbol),
+        Object.prototype.propertyIsEnumerable.call(COMPLEX_TYPES, symbol)
       ),
     ];
 
@@ -202,7 +202,7 @@ describe('copy', () => {
         expect({ ...result[property] }).toEqual({ ...COMPLEX_TYPES[property] });
       } else if (property === 'customPrototype') {
         expect(Object.getPrototypeOf(result[property])).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property]),
+          Object.getPrototypeOf(COMPLEX_TYPES[property])
         );
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
       } else {
@@ -224,42 +224,6 @@ describe('copy', () => {
 
     expect(result).not.toBe(SPECIAL_TYPES);
     expect(result).toEqual(SPECIAL_TYPES);
-  });
-
-  it('will handle when buffers are not supported', () => {
-    const cleanComplexTypes = Object.keys(COMPLEX_TYPES).reduce(
-      (types: PlainObject, key) => {
-        if (
-          key !== 'arguments' &&
-          key !== 'arrayBuffer' &&
-          key !== 'buffer' &&
-          key !== 'dataView' &&
-          !/float(.*)Array/.test(key) &&
-          !/int(.*)Array/.test(key)
-        ) {
-          types[key] = COMPLEX_TYPES[key];
-        }
-
-        return types;
-      },
-      {},
-    );
-
-    const realm = {
-      Date: global.Date,
-      Error: global.Error,
-      Map: global.Map,
-      RegExp: global.RegExp,
-      Set: global.Set,
-      Blob: global.Blob,
-      WeakMap: global.WeakMap,
-      WeakSet: global.WeakSet,
-    } as typeof globalThis;
-
-    const result = copy(cleanComplexTypes, { realm });
-
-    expect(result).not.toBe(cleanComplexTypes);
-    expect(result).toEqual(cleanComplexTypes);
   });
 
   it('will copy referenced objects', () => {
@@ -347,7 +311,7 @@ describe('copyStrict', () => {
 
     const properties = [].concat(
       Object.getOwnPropertyNames(SIMPLE_TYPES),
-      Object.getOwnPropertySymbols(SIMPLE_TYPES),
+      Object.getOwnPropertySymbols(SIMPLE_TYPES)
     );
 
     properties.forEach((property: string | symbol) => {
@@ -374,7 +338,7 @@ describe('copyStrict', () => {
 
     const properties = [].concat(
       Object.getOwnPropertyNames(complexTypes),
-      Object.getOwnPropertySymbols(complexTypes),
+      Object.getOwnPropertySymbols(complexTypes)
     );
 
     properties.forEach((property: string | symbol) => {
@@ -388,10 +352,10 @@ describe('copyStrict', () => {
         });
       } else if (property === 'customPrototype') {
         expect(Object.getPrototypeOf(result[property])).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property]),
+          Object.getPrototypeOf(COMPLEX_TYPES[property])
         );
         expect(Object.getPrototypeOf(result2[property])).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property]),
+          Object.getPrototypeOf(COMPLEX_TYPES[property])
         );
 
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
@@ -425,45 +389,6 @@ describe('copyStrict', () => {
 
     expect(result).toEqual(SPECIAL_TYPES);
     expect(result2).toEqual(SPECIAL_TYPES);
-  });
-
-  it('will handle when buffers are not supported', () => {
-    const cleanComplexTypes = Object.keys(COMPLEX_TYPES).reduce(
-      (types: PlainObject, key) => {
-        if (
-          key !== 'arguments' &&
-          key !== 'arrayBuffer' &&
-          key !== 'buffer' &&
-          key !== 'dataView' &&
-          !/float(.*)Array/.test(key) &&
-          !/int(.*)Array/.test(key)
-        ) {
-          types[key] = COMPLEX_TYPES[key];
-        }
-
-        return types;
-      },
-      {},
-    );
-
-    const realm = {
-      Date: global.Date,
-      Error: global.Error,
-      Map: global.Map,
-      RegExp: global.RegExp,
-      Set: global.Set,
-      WeakMap: global.WeakMap,
-      WeakSet: global.WeakSet,
-    } as typeof globalThis;
-
-    const result = copy(cleanComplexTypes, { isStrict: true, realm });
-    const result2 = copyStrict(cleanComplexTypes, { realm });
-
-    expect(result).not.toBe(cleanComplexTypes);
-    expect(result2).not.toBe(cleanComplexTypes);
-
-    expect(result).toEqual(cleanComplexTypes);
-    expect(result2).toEqual(cleanComplexTypes);
   });
 
   it('will copy referenced objects', () => {

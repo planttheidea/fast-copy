@@ -56,9 +56,8 @@ describe('createCache', () => {
 describe('getCleanClone', () => {
   it('will return a pure object when there is no constructor', () => {
     const object = Object.create(null);
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(object);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -71,9 +70,7 @@ describe('getCleanClone', () => {
 
     object.__proto__ = null;
 
-    const realm = global;
-
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(object);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -83,9 +80,8 @@ describe('getCleanClone', () => {
 
   it('will return an empty POJO when the object passed is a POJO', () => {
     const object = { foo: 'bar' };
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(object);
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -100,9 +96,7 @@ describe('getCleanClone', () => {
 
     object.foo = 'bar';
 
-    const realm = global;
-
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(object);
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -112,9 +106,8 @@ describe('getCleanClone', () => {
 
   it('will return an empty object with the given constructor when it is a global constructor', () => {
     const object = new Map();
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(object);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(new Map());
@@ -134,9 +127,8 @@ describe('getCleanClone', () => {
     }
 
     const object = new Foo('bar');
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(object);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(Object.create(Foo.prototype));
@@ -160,11 +152,10 @@ describe('getObjectCloneLoose', () => {
       foo: 'bar',
       [symbol]: 'blah',
     };
-    const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneLoose(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneLoose(object, handleCopy, cache);
 
     Object.getOwnPropertySymbols = original;
 
@@ -174,7 +165,7 @@ describe('getObjectCloneLoose', () => {
         clone[key] = object[key as keyof typeof object];
 
         return clone;
-      }, {}),
+      }, {})
     );
 
     expect(handleCopy).toHaveBeenCalledTimes(Object.keys(object).length);
@@ -185,17 +176,16 @@ describe('getObjectCloneLoose', () => {
       bar: { baz: 'quz' },
       [Symbol('quz')]: 'blah',
     };
-    const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneLoose(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneLoose(object, handleCopy, cache);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
 
     expect(handleCopy).toHaveBeenCalledTimes(
-      Object.keys(object).length + Object.getOwnPropertySymbols(object).length,
+      Object.keys(object).length + Object.getOwnPropertySymbols(object).length
     );
   });
 });
@@ -222,11 +212,10 @@ describe('getObjectCloneStrict', () => {
       value: 'blah',
     });
 
-    const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneStrict(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneStrict(object, handleCopy, cache);
 
     Object.getOwnPropertySymbols = original;
 
@@ -238,12 +227,12 @@ describe('getObjectCloneStrict', () => {
 
           return clone;
         },
-        {},
-      ),
+        {}
+      )
     );
 
     expect(handleCopy).toHaveBeenCalledTimes(
-      Object.getOwnPropertyNames(object).length,
+      Object.getOwnPropertyNames(object).length
     );
   });
 
@@ -261,18 +250,17 @@ describe('getObjectCloneStrict', () => {
       value: 'blah',
     });
 
-    const realm = global;
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneStrict(object, realm, handleCopy, cache);
+    const result = utils.getObjectCloneStrict(object, handleCopy, cache);
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
 
     expect(handleCopy).toHaveBeenCalledTimes(
       Object.getOwnPropertyNames(object).length +
-        Object.getOwnPropertySymbols(object).length,
+        Object.getOwnPropertySymbols(object).length
     );
   });
 });
