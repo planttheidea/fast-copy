@@ -8,18 +8,32 @@ import {
 
 import type { Cache } from './utils';
 
-export interface Options {
-  isStrict?: boolean;
-}
-
-export interface StrictOptions extends Omit<Options, 'isStrict'> {}
-
 type GetArrayClone = typeof getArrayCloneLoose | typeof getObjectCloneStrict;
 type GetObjectClone = typeof getObjectCloneLoose | typeof getObjectCloneStrict;
 
 const { isArray } = Array;
 const { getPrototypeOf } = Object;
 const { toString } = Object.prototype;
+
+const ARRAY_BUFFER_OBJECT_CLASSES: Record<string, boolean> = {
+  ['[object ArrayBuffer]']: true,
+  ['[object Float32Array]']: true,
+  ['[object Float64Array]']: true,
+  ['[object Int8Array]']: true,
+  ['[object Int16Array]']: true,
+  ['[object Int32Array]']: true,
+  ['[object Uint8Array]']: true,
+  ['[object Uint8ClampedArray]']: true,
+  ['[object Uint16Array]']: true,
+  ['[object Uint32Array]']: true,
+  ['[object Uint64Array]']: true,
+};
+const UNCOPIABLE_OBJECT_CLASSES: Record<string, boolean> = {
+  ['[object Error]']: true,
+  ['[object Promise]']: true,
+  ['[object WeakMap]']: true,
+  ['[object WeakSet]']: true,
+};
 
 function performCopy<Value>(
   value: Value,
@@ -108,19 +122,7 @@ function performCopy<Value>(
     }
 
     // array buffers
-    if (
-      objectClass === '[object Float32Array]' ||
-      objectClass === '[object Float64Array]' ||
-      objectClass === '[object Int8Array]' ||
-      objectClass === '[object Int16Array]' ||
-      objectClass === '[object Int32Array]' ||
-      objectClass === '[object Uint8Array]' ||
-      objectClass === '[object Uint8ClampedArray]' ||
-      objectClass === '[object Uint16Array]' ||
-      objectClass === '[object Uint32Array]' ||
-      objectClass === '[object Uint64Array]' ||
-      objectClass === '[object ArrayBuffer]'
-    ) {
+    if (ARRAY_BUFFER_OBJECT_CLASSES[objectClass]) {
       const clone = value.slice(0);
 
       cache.set(value, clone);
@@ -128,16 +130,12 @@ function performCopy<Value>(
       return clone;
     }
 
-    // if the value cannot / should not be cloned, don't
+    // if the value cannot / should not be copied deeply, return the reference
     if (
       // promise-like
       typeof value.then === 'function' ||
-      // errors
-      objectClass === '[object Error]' ||
-      // weakmaps
-      objectClass === '[object WeakMap]' ||
-      // weaksets
-      objectClass === '[object WeakSet]'
+      // object classes which cannot be introspected for copy
+      UNCOPIABLE_OBJECT_CLASSES[objectClass]
     ) {
       return value;
     }
@@ -161,6 +159,6 @@ export function copy<Value>(value: Value): Value {
  * are maintained. All properties (including non-enumerable ones) are copied with their
  * original property descriptors on both objects and arrays.
  */
-export function copyStrict(value: any) {
+export function copyStrict<Value>(value: Value): Value {
   return performCopy(value, getObjectCloneStrict, getObjectCloneStrict);
 }
