@@ -1,11 +1,12 @@
 import {
   createCache,
+  getArrayCloneLoose,
   getObjectCloneLoose,
   getObjectCloneStrict,
   getRegExpFlags,
 } from './utils';
 
-import type { Cache, InternalCopier, Realm } from './utils';
+import type { Cache, Realm } from './utils';
 
 export interface Options {
   isStrict?: boolean;
@@ -13,35 +14,19 @@ export interface Options {
 
 export interface StrictOptions extends Omit<Options, 'isStrict'> {}
 
+type GetArrayClone = typeof getArrayCloneLoose | typeof getObjectCloneStrict;
+type GetObjectClone = typeof getObjectCloneLoose | typeof getObjectCloneStrict;
+
 const { isArray } = Array;
-const { assign, getPrototypeOf } = Object;
+const { getPrototypeOf } = Object;
 const { toString } = Object.prototype;
 
-/**
- * Copy an value deeply as much as possible.
- *
- * If `strict` is applied, then all properties (including non-enumerable ones)
- * are copied with their original property descriptors on both objects and arrays.
- *
- * The value is compared to the global constructors in the `realm` provided,
- * and the native constructor is always used to ensure that extensions of native
- * objects (allows in ES2015+) are maintained.
- */
-export function copy<Value>(value: Value, options?: Options): Value {
-  // manually coalesced instead of default parameters for performance
-  const isStrict = !!(options && options.isStrict);
-  const getObjectClone = isStrict ? getObjectCloneStrict : getObjectCloneLoose;
-
-  /**
-   * @function handleCopy
-   *
-   * @description
-   * copy the value recursively based on its type
-   *
-   * @param value the value to copy
-   * @returns the copied value
-   */
-  const handleCopy: InternalCopier = (value: any, cache: Cache): any => {
+function performCopy<Value>(
+  value: Value,
+  getObjectClone: GetObjectClone,
+  getArrayClone: GetArrayClone
+) {
+  function handleCopy(value: any, cache: Cache): any {
     if (!value || typeof value !== 'object') {
       return value;
     }
@@ -60,24 +45,7 @@ export function copy<Value>(value: Value, options?: Options): Value {
 
     // arrays
     if (isArray(value)) {
-      // if strict, include non-standard properties
-      if (isStrict) {
-        return getObjectCloneStrict(value, handleCopy, cache);
-      }
-
-      const clone = new Constructor();
-
-      cache.set(value, clone);
-
-      for (
-        let index: number = 0, length = value.length;
-        index < length;
-        ++index
-      ) {
-        clone[index] = handleCopy(value[index], cache);
-      }
-
-      return clone;
+      return getArrayClone(value, handleCopy, cache);
     }
 
     const objectClass = toString.call(value);
@@ -176,14 +144,23 @@ export function copy<Value>(value: Value, options?: Options): Value {
 
     // assume anything left is a custom constructor
     return getObjectClone(value, handleCopy, cache);
-  };
+  }
 
   return handleCopy(value, createCache());
 }
 
 /**
- * Copy the value with `strict` option pre-applied.
+ * Copy an value deeply as much as possible.
  */
-export function copyStrict(value: any, options?: StrictOptions) {
-  return copy(value, assign({}, options, { isStrict: true }));
+export function copy<Value>(value: Value): Value {
+  return performCopy(value, getObjectCloneLoose, getArrayCloneLoose);
+}
+
+/**
+ * Copy an value deeply as much as possible, where strict recreation of object properties
+ * are maintained. All properties (including non-enumerable ones) are copied with their
+ * original property descriptors on both objects and arrays.
+ */
+export function copyStrict(value: any) {
+  return performCopy(value, getObjectCloneStrict, getObjectCloneStrict);
 }

@@ -1,3 +1,5 @@
+type InternalCopier = <Value = any>(value: Value, cache: Cache) => Value;
+
 export interface Cache {
   _keys?: any[];
   _values?: any[];
@@ -5,14 +7,6 @@ export interface Cache {
   set: (key: any, value: any) => void;
   get: (key: any) => any;
 }
-
-export type InternalCopier = <Value = any>(value: Value, cache: Cache) => Value;
-
-export type ObjectCloner = <Value>(
-  object: Value,
-  handleCopy: InternalCopier,
-  cache: Cache
-) => Value;
 
 export type Realm = Record<string, any>;
 
@@ -60,6 +54,22 @@ function createCacheModern(): Cache {
  */
 export const createCache =
   typeof WeakMap !== 'undefined' ? createCacheModern : createCacheLegacy;
+
+export function getArrayCloneLoose(
+  array: any[],
+  handleCopy: InternalCopier,
+  cache: Cache
+) {
+  const clone = new (array.constructor as any)();
+
+  cache.set(array, clone);
+
+  for (let index: number = 0, length = array.length; index < length; ++index) {
+    clone[index] = handleCopy(array[index], cache);
+  }
+
+  return clone;
+}
 
 /**
  * Get an empty version of the object with the same prototype it has.

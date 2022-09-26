@@ -277,7 +277,7 @@ describe('copy', () => {
     // @ts-expect-error - Reassigning `constructor` to test extreme edge case.
     data.constructor = 'I am unable to comply.';
 
-    const result = copy(data, { isStrict: true });
+    const result = copyStrict(data);
 
     expect(result).not.toBe(data);
     expect(result).toEqual(data);
@@ -289,25 +289,17 @@ describe('copyStrict', () => {
   it('will copy an empty object', () => {
     const object = {};
 
-    const result = copy(object, { isStrict: true });
-    const result2 = copyStrict(object);
+    const result = copyStrict(object);
 
     expect(result).not.toBe(object);
-    expect(result2).not.toBe(object);
-
     expect(result).toEqual(object);
-    expect(result2).toEqual(object);
   });
 
   it('will copy the simple types', () => {
-    const result = copy(SIMPLE_TYPES, { isStrict: true });
-    const result2 = copyStrict(SIMPLE_TYPES);
+    const result = copyStrict(SIMPLE_TYPES);
 
     expect(result).not.toBe(SIMPLE_TYPES);
-    expect(result2).not.toBe(SIMPLE_TYPES);
-
     expect(result).toEqual(SIMPLE_TYPES);
-    expect(result2).toEqual(SIMPLE_TYPES);
 
     const properties = [].concat(
       Object.getOwnPropertyNames(SIMPLE_TYPES),
@@ -317,24 +309,19 @@ describe('copyStrict', () => {
     properties.forEach((property: string | symbol) => {
       // @ts-ignore
       expect(result[property]).toEqual(SIMPLE_TYPES[property]);
-      // @ts-ignore
-      expect(result2[property]).toEqual(SIMPLE_TYPES[property]);
     });
   });
 
   it('will copy the complex types', () => {
-    const result = copy(COMPLEX_TYPES, { isStrict: true });
-    const result2 = copyStrict(COMPLEX_TYPES);
+    const result = copyStrict(COMPLEX_TYPES);
 
     expect(result).not.toBe(COMPLEX_TYPES);
-    expect(result2).not.toBe(COMPLEX_TYPES);
 
     const complexTypes = { ...COMPLEX_TYPES };
 
     complexTypes.arguments = { ...COMPLEX_TYPES.arguments };
 
     expect(result).toEqual(complexTypes);
-    expect(result2).toEqual(complexTypes);
 
     const properties = [].concat(
       Object.getOwnPropertyNames(complexTypes),
@@ -344,51 +331,33 @@ describe('copyStrict', () => {
     properties.forEach((property: string | symbol) => {
       if (property === 'arguments') {
         expect(result[property].constructor).toBe(Object);
-        expect(result2[property].constructor).toBe(Object);
 
         expect({ ...result[property] }).toEqual({ ...COMPLEX_TYPES[property] });
-        expect({ ...result2[property] }).toEqual({
-          ...COMPLEX_TYPES[property],
-        });
       } else if (property === 'customPrototype') {
         expect(Object.getPrototypeOf(result[property])).toBe(
           Object.getPrototypeOf(COMPLEX_TYPES[property])
         );
-        expect(Object.getPrototypeOf(result2[property])).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property])
-        );
 
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
-        expect(result2[property]).toEqual(COMPLEX_TYPES[property]);
       } else {
         // @ts-ignore
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
-        // @ts-ignore
-        expect(result2[property]).toEqual(COMPLEX_TYPES[property]);
       }
     });
   });
 
   it('will copy the circular object', () => {
-    const result = copy(CIRCULAR, { isStrict: true });
-    const result2 = copyStrict(CIRCULAR);
+    const result = copyStrict(CIRCULAR);
 
     expect(result).not.toBe(CIRCULAR);
-    expect(result2).not.toBe(CIRCULAR);
-
     expect(result).toEqual(CIRCULAR);
-    expect(result2).toEqual(CIRCULAR);
   });
 
   it('will copy the special types', () => {
-    const result = copy(SPECIAL_TYPES, { isStrict: true });
-    const result2 = copyStrict(SPECIAL_TYPES);
+    const result = copyStrict(SPECIAL_TYPES);
 
     expect(result).not.toBe(SPECIAL_TYPES);
-    expect(result2).not.toBe(SPECIAL_TYPES);
-
     expect(result).toEqual(SPECIAL_TYPES);
-    expect(result2).toEqual(SPECIAL_TYPES);
   });
 
   it('will copy referenced objects', () => {
@@ -402,7 +371,7 @@ describe('copyStrict', () => {
       array: [reusedObject, reusedObject],
     };
 
-    const result = copy(data, { isStrict: true });
+    const result = copyStrict(data);
 
     const cloneReusedObject = result.a;
 
