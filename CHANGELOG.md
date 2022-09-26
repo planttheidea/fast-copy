@@ -6,7 +6,9 @@
 
 - `copy` is now a named export instead of a default export
 - `copy.strict` is no longer available; it is now available as the explicit `copyStrict` named import
-- `FastCopy` TS namespace has been removed in favor of explicit type imports
+- Options have been removed
+  - `isStrict` has been replaced with importing `copyStrict`
+  - `realm` has been removed, as `instanceof` is no longer used internally
 
 ## 2.1.7
 

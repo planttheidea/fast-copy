@@ -11,10 +11,13 @@ A [blazing fast](#benchmarks) deep object copier
 - [fast-copy](#fast-copy)
   - [Table of contents](#table-of-contents)
   - [Usage](#usage)
-  - [Options](#options)
-      - [isStrict](#isstrict)
-      - [realm](#realm)
+  - [API](#api)
+    - [`copy`](#copy)
+    - [`copyStrict`](#copystrict)
   - [Types supported](#types-supported)
+  - [Aspects of copying](#aspects-of-copying)
+    - [Error references are copied over (instead of creating a new `*Error` object)](#error-references-are-copied-over-instead-of-creating-a-new-error-object)
+    - [The constructor of the original object is used, instead of using known globals.](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
   - [Benchmarks](#benchmarks)
       - [Simple objects](#simple-objects)
       - [Complex objects](#complex-objects)
@@ -43,44 +46,39 @@ console.log(copiedObject === object); // false
 console.log(deepEqual(copiedObject, object)); // true
 ```
 
-## Options
+## API
 
-#### isStrict
+### `copy`
 
-Starting in `2.0.0`, you can use the `isStrict` option to copy the object based on strict standards, meaning:
+Deeply copy the object passed.
+
+```ts
+import { copy } from 'fast-copy';
+
+const copied = copy({ foo: 'bar' });
+```
+
+### `copyStrict`
+
+Deeply copy the object passed, but with additional strictness when replicating the original object:
 
 - Properties retain their original property descriptor
-- Non-enumerable properties are copied
+- Non-enumerable keys are copied
 - Non-standard properties (e.g., keys on an `Array` object) are copied
 
-This is significantly slower, so you should only use this if your use-case requires it.
-
-```javascript
-console.log(copy(object, { isStrict: true }));
-```
-
-**NOTE**: This option is also aliased as `copyStrict`.
-
-```javascript
+```ts
 import { copyStrict } from 'fast-copy';
 
-console.log(copyStrict(object));
+const object = { foo: 'bar' };
+object.nonEnumerable = Object.defineProperty(object, 'bar', {
+  enumerable: false,
+  value: 'baz',
+});
+
+const copied = copy(object);
 ```
 
-#### realm
-
-Under the hood, `fast-copy` uses `instanceof` to determine object types, which can cause false negatives when used in combination with `iframe`-based objects. To handle this edge case, you can pass the `realm` in options, which identifies which realm the object comes from and will use that realm to drive both comparisons and constructors for the copies.
-
-```html
-<iframe srcdoc="<script>var arr = ['foo', 'bar'];</script>"></iframe>
-```
-
-```javascript
-const iframe = document.querySelector('iframe');
-const arr = iframe.contentWindow.arr;
-
-console.log(copy(arr, { realm: iframe.contentWindow })); // ['foo', 'bar']
-```
+**NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have specific use-cases that require it.
 
 ## Types supported
 
@@ -124,7 +122,19 @@ The following object types are copied directly, as they are either primitives, c
 - `WeakMap`
 - `WeakSet`
 
-Circular objects are supported out of the box as well. By default a cache based on `WeakSet` is used, but if `WeakSet` is not available then a standard `Object` fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
+Circular objects are supported out of the box. By default, a cache based on `WeakSet` is used, but if `WeakSet` is not available then a fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
+
+## Aspects of copying
+
+Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made.
+
+### Error references are copied over (instead of creating a new `*Error` object)
+
+While it would be relatively trivial to copy over the message and stack to a new object of the same `Error` subclass, it is a common practice to "override" the message or stack, and copies would not retain this mutation. As such, the original reference is copied.
+
+### The constructor of the original object is used, instead of using known globals.
+
+Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the constructor of the original object. However, the expectation is that these subclasses would have the same constructur signature as their native base class. This is a common community practice, however because there is the possibility of inaccuracy if the contract differs, it should be noted.
 
 ## Benchmarks
 

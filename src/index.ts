@@ -83,26 +83,18 @@ function performCopy<Value>(
 
     // maps
     if (objectClass === '[object Map]') {
-      const clone = new Constructor();
+      const clone = new Constructor(value.entries());
 
       cache.set(value, clone);
-
-      value.forEach((value: any, key: any) => {
-        clone.set(key, handleCopy(value, cache));
-      });
 
       return clone;
     }
 
     // sets
     if (objectClass === '[object Set]') {
-      const clone = new Constructor();
+      const clone = new Constructor(value.values());
 
       cache.set(value, clone);
-
-      value.forEach((value: any) => {
-        clone.add(handleCopy(value, cache));
-      });
 
       return clone;
     }
