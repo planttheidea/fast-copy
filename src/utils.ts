@@ -8,8 +8,6 @@ export interface Cache {
   get: (key: any) => any;
 }
 
-export type Realm = Record<string, any>;
-
 const { toString: toStringFunction } = Function.prototype;
 const {
   create,

@@ -6,7 +6,7 @@ import {
   getRegExpFlags,
 } from './utils';
 
-import type { Cache, Realm } from './utils';
+import type { Cache } from './utils';
 
 export interface Options {
   isStrict?: boolean;
