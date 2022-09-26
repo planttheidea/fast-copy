@@ -55,10 +55,11 @@ export const createCache =
 
 export function getArrayCloneLoose(
   array: any[],
+  prototype: any,
   handleCopy: InternalCopier,
   cache: Cache
 ) {
-  const clone = new (array.constructor as any)();
+  const clone = new prototype.constructor();
 
   cache.set(array, clone);
 
@@ -72,9 +73,7 @@ export function getArrayCloneLoose(
 /**
  * Get an empty version of the object with the same prototype it has.
  */
-export function getCleanClone(object: any): any {
-  const prototype = object.__proto__ || getPrototypeOf(object);
-
+export function getCleanClone(object: any, prototype: any): any {
   if (!prototype) {
     return create(null);
   }
@@ -100,10 +99,11 @@ export function getCleanClone(object: any): any {
  */
 export function getObjectCloneLoose(
   object: any,
+  prototype: any,
   handleCopy: InternalCopier,
   cache: Cache
 ): any {
-  const clone: any = getCleanClone(object);
+  const clone: any = getCleanClone(object, prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
@@ -149,10 +149,11 @@ const getStrictProperties = SYMBOL_PROPERTIES
  */
 export function getObjectCloneStrict(
   object: any,
+  prototype: any,
   handleCopy: InternalCopier,
   cache: Cache
 ): any {
-  const clone: any = getCleanClone(object);
+  const clone: any = getCleanClone(object, prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);

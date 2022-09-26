@@ -57,7 +57,7 @@ describe('getCleanClone', () => {
   it('will return a pure object when there is no constructor', () => {
     const object = Object.create(null);
 
-    const result = utils.getCleanClone(object);
+    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -70,7 +70,7 @@ describe('getCleanClone', () => {
 
     object.__proto__ = null;
 
-    const result = utils.getCleanClone(object);
+    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -81,7 +81,7 @@ describe('getCleanClone', () => {
   it('will return an empty POJO when the object passed is a POJO', () => {
     const object = { foo: 'bar' };
 
-    const result = utils.getCleanClone(object);
+    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -89,14 +89,14 @@ describe('getCleanClone', () => {
     expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
   });
 
-  it('will return an empty object with custom protype when the object created through Object.create()', () => {
+  it('will return an empty object with custom prototype when the object created through Object.create()', () => {
     const object = Object.create({
       method() {},
     });
 
     object.foo = 'bar';
 
-    const result = utils.getCleanClone(object);
+    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -107,7 +107,7 @@ describe('getCleanClone', () => {
   it('will return an empty object with the given constructor when it is a global constructor', () => {
     const object = new Map();
 
-    const result = utils.getCleanClone(object);
+    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(new Map());
@@ -128,7 +128,7 @@ describe('getCleanClone', () => {
 
     const object = new Foo('bar');
 
-    const result = utils.getCleanClone(object);
+    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(Object.create(Foo.prototype));
@@ -155,7 +155,12 @@ describe('getObjectCloneLoose', () => {
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneLoose(object, handleCopy, cache);
+    const result = utils.getObjectCloneLoose(
+      object,
+      Object.getPrototypeOf(object),
+      handleCopy,
+      cache
+    );
 
     Object.getOwnPropertySymbols = original;
 
@@ -179,7 +184,12 @@ describe('getObjectCloneLoose', () => {
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneLoose(object, handleCopy, cache);
+    const result = utils.getObjectCloneLoose(
+      object,
+      Object.getPrototypeOf(object),
+      handleCopy,
+      cache
+    );
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -215,7 +225,12 @@ describe('getObjectCloneStrict', () => {
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneStrict(object, handleCopy, cache);
+    const result = utils.getObjectCloneStrict(
+      object,
+      Object.getPrototypeOf(object),
+      handleCopy,
+      cache
+    );
 
     Object.getOwnPropertySymbols = original;
 
@@ -253,7 +268,12 @@ describe('getObjectCloneStrict', () => {
     const handleCopy = jest.fn().mockImplementation((arg) => arg);
     const cache = utils.createCache();
 
-    const result = utils.getObjectCloneStrict(object, handleCopy, cache);
+    const result = utils.getObjectCloneStrict(
+      object,
+      Object.getPrototypeOf(object),
+      handleCopy,
+      cache
+    );
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);

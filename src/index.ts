@@ -54,12 +54,12 @@ function performCopy<Value>(
 
     // plain objects
     if (!Constructor || Constructor === Object) {
-      return getObjectClone(value, handleCopy, cache);
+      return getObjectClone(value, prototype, handleCopy, cache);
     }
 
     // arrays
     if (isArray(value)) {
-      return getArrayClone(value, handleCopy, cache);
+      return getArrayClone(value, prototype, handleCopy, cache);
     }
 
     const objectClass = toString.call(value);
@@ -133,7 +133,7 @@ function performCopy<Value>(
     }
 
     // assume anything left is a custom constructor
-    return getObjectClone(value, handleCopy, cache);
+    return getObjectClone(value, prototype, handleCopy, cache);
   }
 
   return handleCopy(value, createCache());
