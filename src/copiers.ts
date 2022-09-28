@@ -80,10 +80,6 @@ function copyObjectLooseModern<Value extends {}>(
 
   const symbols: symbol[] = getOwnPropertySymbols(object);
 
-  if (!symbols.length) {
-    return clone;
-  }
-
   for (
     let index = 0, length = symbols.length, symbol;
     index < length;
@@ -131,26 +127,29 @@ export function copyObjectStrict<Value extends {}>(
   ) {
     property = properties[index];
 
-    if (property !== 'callee' && property !== 'caller') {
-      descriptor = getOwnPropertyDescriptor(object, property);
+    if (property === 'callee' || property === 'caller') {
+      continue;
+    }
 
-      if (descriptor) {
-        // Only clone the value if actually a value, not a getter / setter.
-        if (!descriptor.get && !descriptor.set) {
-          descriptor.value = handleCopy((object as any)[property], cache);
-        }
+    descriptor = getOwnPropertyDescriptor(object, property);
 
-        try {
-          defineProperty(clone, property, descriptor);
-        } catch (error) {
-          // Tee above can fail on node in edge cases, so fall back to the loose assignment.
-          clone[property] = descriptor.value;
-        }
-      } else {
-        // In extra edge cases where the property descriptor cannot be retrived, fall back to
-        // the loose assignment.
-        clone[property] = handleCopy((object as any)[property], cache);
-      }
+    if (!descriptor) {
+      // In extra edge cases where the property descriptor cannot be retrived, fall back to
+      // the loose assignment.
+      clone[property] = handleCopy((object as any)[property], cache);
+      continue;
+    }
+
+    // Only clone the value if actually a value, not a getter / setter.
+    if (!descriptor.get && !descriptor.set) {
+      descriptor.value = handleCopy(descriptor.value, cache);
+    }
+
+    try {
+      defineProperty(clone, property, descriptor);
+    } catch (error) {
+      // Tee above can fail on node in edge cases, so fall back to the loose assignment.
+      clone[property] = descriptor.value;
     }
   }
 
@@ -164,6 +163,8 @@ export function copyMap<Value extends Map<any, any>>(
   cache: Cache
 ): Value {
   const clone = new Constructor() as Value;
+
+  cache.set(value, clone);
 
   value.forEach((v, k) => {
     clone.set(k, handleCopy(v, cache));
@@ -190,6 +191,8 @@ export function copySet<Value extends Set<any>>(
   cache: Cache
 ): Value {
   const clone = new Constructor() as Value;
+
+  cache.set(value, clone);
 
   value.forEach((v) => {
     clone.add(handleCopy(v, cache));

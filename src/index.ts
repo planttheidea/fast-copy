@@ -74,20 +74,12 @@ function createCopier(copyArray: CopyArray, copyObject: CopyObject) {
 
     // maps
     if (objectClass === '[object Map]') {
-      const clone = copyMap(value, Constructor, handleCopy, cache);
-
-      cache.set(value, clone);
-
-      return clone;
+      return copyMap(value, Constructor, handleCopy, cache);
     }
 
     // sets
     if (objectClass === '[object Set]') {
-      const clone = copySet(value, Constructor, handleCopy, cache);
-
-      cache.set(value, clone);
-
-      return clone;
+      return copySet(value, Constructor, handleCopy, cache);
     }
 
     // blobs
