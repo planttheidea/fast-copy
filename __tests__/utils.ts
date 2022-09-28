@@ -57,7 +57,7 @@ describe('getCleanClone', () => {
   it('will return a pure object when there is no constructor', () => {
     const object = Object.create(null);
 
-    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -70,7 +70,7 @@ describe('getCleanClone', () => {
 
     object.__proto__ = null;
 
-    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -81,7 +81,7 @@ describe('getCleanClone', () => {
   it('will return an empty POJO when the object passed is a POJO', () => {
     const object = { foo: 'bar' };
 
-    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -96,7 +96,7 @@ describe('getCleanClone', () => {
 
     object.foo = 'bar';
 
-    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -107,7 +107,7 @@ describe('getCleanClone', () => {
   it('will return an empty object with the given constructor when it is a global constructor', () => {
     const object = new Map();
 
-    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(new Map());
@@ -128,7 +128,7 @@ describe('getCleanClone', () => {
 
     const object = new Foo('bar');
 
-    const result = utils.getCleanClone(object, Object.getPrototypeOf(object));
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(Object.create(Foo.prototype));

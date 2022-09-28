@@ -15,11 +15,10 @@ const {
   getOwnPropertyDescriptor,
   getOwnPropertyNames,
   getOwnPropertySymbols,
-  getPrototypeOf,
 } = Object;
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
-const SYMBOL_PROPERTIES = typeof getOwnPropertySymbols === 'function';
+const SYMBOL_SUPPORT = typeof getOwnPropertySymbols === 'function';
 
 class LegacyCache {
   _keys: any[] = [];
@@ -53,6 +52,16 @@ function createCacheModern(): Cache {
 export const createCache =
   typeof WeakMap !== 'undefined' ? createCacheModern : createCacheLegacy;
 
+function getStrictPropertiesModern(object: any): Array<string | symbol> {
+  return (getOwnPropertyNames(object) as Array<string | symbol>).concat(
+    getOwnPropertySymbols(object)
+  );
+}
+
+const getStrictProperties = SYMBOL_SUPPORT
+  ? getStrictPropertiesModern
+  : getOwnPropertyNames;
+
 export function getArrayCloneLoose(
   array: any[],
   prototype: any,
@@ -73,7 +82,7 @@ export function getArrayCloneLoose(
 /**
  * Get an empty version of the object with the same prototype it has.
  */
-export function getCleanClone(object: any, prototype: any): any {
+export function getCleanClone(prototype: any): any {
   if (!prototype) {
     return create(null);
   }
@@ -93,17 +102,13 @@ export function getCleanClone(object: any, prototype: any): any {
   return create(prototype);
 }
 
-/**
- * Get a copy of the object based on loose rules, meaning all enumerable keys
- * and symbols are copied, but property descriptors are not considered.
- */
-export function getObjectCloneLoose(
-  object: any,
+function getObjectCloneLooseLegacy<Value extends {}>(
+  object: Value,
   prototype: any,
   handleCopy: InternalCopier,
   cache: Cache
-): any {
-  const clone: any = getCleanClone(object, prototype);
+): Value {
+  const clone: any = getCleanClone(prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
@@ -114,46 +119,66 @@ export function getObjectCloneLoose(
     }
   }
 
-  if (SYMBOL_PROPERTIES) {
-    const symbols: symbol[] = getOwnPropertySymbols(object);
+  return clone;
+}
 
-    for (
-      let index = 0, length = symbols.length, symbol;
-      index < length;
-      ++index
-    ) {
-      symbol = symbols[index];
+function getObjectCloneLooseModern<Value extends {}>(
+  object: Value,
+  prototype: any,
+  handleCopy: InternalCopier,
+  cache: Cache
+): Value {
+  const clone: any = getCleanClone(prototype);
 
-      if (propertyIsEnumerable.call(object, symbol)) {
-        clone[symbol] = handleCopy(object[symbol], cache);
-      }
+  // set in the cache immediately to be able to reuse the object recursively
+  cache.set(object, clone);
+
+  for (const key in object) {
+    if (hasOwnProperty.call(object, key)) {
+      clone[key] = handleCopy(object[key], cache);
+    }
+  }
+
+  const symbols: symbol[] = getOwnPropertySymbols(object);
+
+  if (!symbols.length) {
+    return clone;
+  }
+
+  for (
+    let index = 0, length = symbols.length, symbol;
+    index < length;
+    ++index
+  ) {
+    symbol = symbols[index];
+
+    if (propertyIsEnumerable.call(object, symbol)) {
+      clone[symbol] = handleCopy((object as any)[symbol], cache);
     }
   }
 
   return clone;
 }
 
-function getStrictPropertiesModern(object: any): Array<string | symbol> {
-  return (getOwnPropertyNames(object) as Array<string | symbol>).concat(
-    getOwnPropertySymbols(object)
-  );
-}
-
-const getStrictProperties = SYMBOL_PROPERTIES
-  ? getStrictPropertiesModern
-  : getOwnPropertyNames;
+/**
+ * Get a copy of the object based on loose rules, meaning all enumerable keys
+ * and symbols are copied, but property descriptors are not considered.
+ */
+export const getObjectCloneLoose = SYMBOL_SUPPORT
+  ? getObjectCloneLooseModern
+  : getObjectCloneLooseLegacy;
 
 /**
  * Get a copy of the object based on strict rules, meaning all keys and symbols
  * are copied based on the original property descriptors.
  */
-export function getObjectCloneStrict(
-  object: any,
+export function getObjectCloneStrict<Value extends {}>(
+  object: Value,
   prototype: any,
   handleCopy: InternalCopier,
   cache: Cache
-): any {
-  const clone: any = getCleanClone(object, prototype);
+): Value {
+  const clone = getCleanClone(prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
   cache.set(object, clone);
@@ -173,7 +198,7 @@ export function getObjectCloneStrict(
       if (descriptor) {
         // Only clone the value if actually a value, not a getter / setter.
         if (!descriptor.get && !descriptor.set) {
-          descriptor.value = handleCopy(object[property], cache);
+          descriptor.value = handleCopy((object as any)[property], cache);
         }
 
         try {
@@ -185,7 +210,7 @@ export function getObjectCloneStrict(
       } else {
         // In extra edge cases where the property descriptor cannot be retrived, fall back to
         // the loose assignment.
-        clone[property] = handleCopy(object[property], cache);
+        clone[property] = handleCopy((object as any)[property], cache);
       }
     }
   }
