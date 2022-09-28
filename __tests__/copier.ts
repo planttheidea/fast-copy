@@ -5,11 +5,11 @@ type PlainObject = {
 
 import { createCache } from '../src/utils';
 
-let copiers: typeof import('../src/copiers');
+let copier: typeof import('../src/copier');
 
 beforeEach(() => {
   jest.isolateModules(() => {
-    copiers = require('../src/copiers');
+    copier = require('../src/copier');
   });
 });
 
@@ -19,7 +19,7 @@ describe('copyObjectLoose', () => {
 
     jest.isolateModules(() => {
       Object.getOwnPropertySymbols = undefined;
-      copiers = require('../src/copiers');
+      copier = require('../src/copier');
     });
 
     const symbol = Symbol('quz');
@@ -28,13 +28,13 @@ describe('copyObjectLoose', () => {
       foo: 'bar',
       [symbol]: 'blah',
     };
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
 
-    const result = copiers.copyObjectLoose(
+    const result = copier.copyObjectLoose(
       object,
       Object.getPrototypeOf(object),
-      handleCopy,
+      mockCopier,
       cache
     );
 
@@ -49,7 +49,7 @@ describe('copyObjectLoose', () => {
       }, {})
     );
 
-    expect(handleCopy).toHaveBeenCalledTimes(Object.keys(object).length);
+    expect(mockCopier).toHaveBeenCalledTimes(Object.keys(object).length);
   });
 
   it('will create an object clone when property symbols are supported', () => {
@@ -57,20 +57,20 @@ describe('copyObjectLoose', () => {
       bar: { baz: 'quz' },
       [Symbol('quz')]: 'blah',
     };
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
 
-    const result = copiers.copyObjectLoose(
+    const result = copier.copyObjectLoose(
       object,
       Object.getPrototypeOf(object),
-      handleCopy,
+      mockCopier,
       cache
     );
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
 
-    expect(handleCopy).toHaveBeenCalledTimes(
+    expect(mockCopier).toHaveBeenCalledTimes(
       Object.keys(object).length + Object.getOwnPropertySymbols(object).length
     );
   });
@@ -82,7 +82,7 @@ describe('copyObjectStrict', () => {
 
     jest.isolateModules(() => {
       Object.getOwnPropertySymbols = undefined;
-      copiers = require('../src/copiers');
+      copier = require('../src/copier');
     });
 
     const object: PlainObject = {
@@ -98,13 +98,13 @@ describe('copyObjectStrict', () => {
       value: 'blah',
     });
 
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
 
-    const result = copiers.copyObjectStrict(
+    const result = copier.copyObjectStrict(
       object,
       Object.getPrototypeOf(object),
-      handleCopy,
+      mockCopier,
       cache
     );
 
@@ -122,7 +122,7 @@ describe('copyObjectStrict', () => {
       )
     );
 
-    expect(handleCopy).toHaveBeenCalledTimes(
+    expect(mockCopier).toHaveBeenCalledTimes(
       Object.getOwnPropertyNames(object).length
     );
   });
@@ -141,20 +141,20 @@ describe('copyObjectStrict', () => {
       value: 'blah',
     });
 
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
 
-    const result = copiers.copyObjectStrict(
+    const result = copier.copyObjectStrict(
       object,
       Object.getPrototypeOf(object),
-      handleCopy,
+      mockCopier,
       cache
     );
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
 
-    expect(handleCopy).toHaveBeenCalledTimes(
+    expect(mockCopier).toHaveBeenCalledTimes(
       Object.getOwnPropertyNames(object).length +
         Object.getOwnPropertySymbols(object).length
     );
