@@ -1,7 +1,7 @@
 import crypto from 'crypto';
 import React from 'react';
 
-import { copy, copyStrict } from '../src';
+import copy, { copyStrict } from '../src';
 
 type PlainObject = {
   [key: string]: any;

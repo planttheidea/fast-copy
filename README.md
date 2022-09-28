@@ -53,7 +53,7 @@ console.log(deepEqual(copiedObject, object)); // true
 Deeply copy the object passed.
 
 ```ts
-import { copy } from 'fast-copy';
+import copy from 'fast-copy';
 
 const copied = copy({ foo: 'bar' });
 ```

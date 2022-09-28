@@ -7,7 +7,7 @@ const copierLoose = createCopier(false);
 /**
  * Copy an value deeply as much as possible.
  */
-export function copy<Value>(value: Value): Value {
+export default function copy<Value>(value: Value): Value {
   return copierLoose(value, createCache());
 }
 

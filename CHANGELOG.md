@@ -4,11 +4,11 @@
 
 **Breaking changes**
 
-- `copy` is now a named export instead of a default export
+- Exports are now always named, so if using CJS the `.default` suffix is required, e.g. `require('fast-copy').default`
 - `copy.strict` is no longer available; it is now available as the explicit `copyStrict` named import
 - Options have been removed
-  - `isStrict` has been replaced with importing `copyStrict`
-  - `realm` has been removed, as `instanceof` is no longer used internally
+  - `isStrict` option has been replaced with importing the separate `copyStrict` method
+  - `realm` has been removed entirely, as `instanceof` is no longer used internally
 
 ## 2.1.7
 
