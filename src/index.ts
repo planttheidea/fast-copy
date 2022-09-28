@@ -1,15 +1,17 @@
 import {
-  createCache,
-  getArrayCloneLoose,
-  getObjectCloneLoose,
-  getObjectCloneStrict,
-  getRegExpFlags,
-} from './utils';
+  copyArrayLoose,
+  copyObjectLoose,
+  copyObjectStrict,
+  copyMap,
+  copyRegExp,
+  copySet,
+} from './copiers';
+import { createCache } from './utils';
 
 import type { Cache } from './utils';
 
-type GetArrayClone = typeof getArrayCloneLoose | typeof getObjectCloneStrict;
-type GetObjectClone = typeof getObjectCloneLoose | typeof getObjectCloneStrict;
+type CopyArray = typeof copyArrayLoose | typeof copyObjectStrict;
+type CopyObject = typeof copyObjectLoose | typeof copyObjectStrict;
 
 const { isArray } = Array;
 const { getPrototypeOf } = Object;
@@ -35,11 +37,7 @@ const UNCOPIABLE_OBJECT_CLASSES: Record<string, boolean> = {
   ['[object WeakSet]']: true,
 };
 
-function performCopy<Value>(
-  value: Value,
-  getObjectClone: GetObjectClone,
-  getArrayClone: GetArrayClone
-) {
+function createCopier(copyArray: CopyArray, copyObject: CopyObject) {
   function handleCopy(value: any, cache: Cache): any {
     if (!value || typeof value !== 'object') {
       return value;
@@ -54,12 +52,12 @@ function performCopy<Value>(
 
     // plain objects
     if (!Constructor || Constructor === Object) {
-      return getObjectClone(value, prototype, handleCopy, cache);
+      return copyObject(value, prototype, handleCopy, cache);
     }
 
     // arrays
     if (isArray(value)) {
-      return getArrayClone(value, prototype, handleCopy, cache);
+      return copyArray(value, prototype, handleCopy, cache);
     }
 
     const objectClass = toString.call(value);
@@ -71,19 +69,12 @@ function performCopy<Value>(
 
     // regexps
     if (objectClass === '[object RegExp]') {
-      const clone = new Constructor(
-        value.source,
-        value.flags || getRegExpFlags(value)
-      );
-
-      clone.lastIndex = value.lastIndex;
-
-      return clone;
+      return copyRegExp(value, Constructor);
     }
 
     // maps
     if (objectClass === '[object Map]') {
-      const clone = new Constructor(value.entries());
+      const clone = copyMap(value, Constructor, handleCopy, cache);
 
       cache.set(value, clone);
 
@@ -92,7 +83,7 @@ function performCopy<Value>(
 
     // sets
     if (objectClass === '[object Set]') {
-      const clone = new Constructor(value.values());
+      const clone = copySet(value, Constructor, handleCopy, cache);
 
       cache.set(value, clone);
 
@@ -133,24 +124,20 @@ function performCopy<Value>(
     }
 
     // assume anything left is a custom constructor
-    return getObjectClone(value, prototype, handleCopy, cache);
+    return copyObject(value, prototype, handleCopy, cache);
   }
 
-  return handleCopy(value, createCache());
+  return <Value>(value: Value): Value => handleCopy(value, createCache());
 }
 
 /**
  * Copy an value deeply as much as possible.
  */
-export function copy<Value>(value: Value): Value {
-  return performCopy(value, getObjectCloneLoose, getArrayCloneLoose);
-}
+export const copy = createCopier(copyArrayLoose, copyObjectLoose);
 
 /**
  * Copy an value deeply as much as possible, where strict recreation of object properties
  * are maintained. All properties (including non-enumerable ones) are copied with their
  * original property descriptors on both objects and arrays.
  */
-export function copyStrict<Value>(value: Value): Value {
-  return performCopy(value, getObjectCloneStrict, getObjectCloneStrict);
-}
+export const copyStrict = createCopier(copyObjectStrict, copyObjectStrict);
