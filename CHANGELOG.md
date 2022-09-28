@@ -10,6 +10,10 @@
   - `isStrict` option has been replaced with importing the separate `copyStrict` method
   - `realm` has been removed entirely, as `instanceof` is no longer used internally
 
+**Enhancements**
+
+- Can now create a custom copier, allowing maximum performance for specific use-cases
+
 ## 2.1.7
 
 - Republish of [`2.1.6`](#216), as the release process failed mid-publish

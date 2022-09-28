@@ -14,6 +14,7 @@ A [blazing fast](#benchmarks) deep object copier
   - [API](#api)
     - [`copy`](#copy)
     - [`copyStrict`](#copystrict)
+    - [`createCopier`](#createcopier)
   - [Types supported](#types-supported)
   - [Aspects of copying](#aspects-of-copying)
     - [Error references are copied over (instead of creating a new `*Error` object)](#error-references-are-copied-over-instead-of-creating-a-new-error-object)
@@ -79,6 +80,26 @@ const copied = copy(object);
 ```
 
 **NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have specific use-cases that require it.
+
+### `createCopier`
+
+Create a custom copier based on the object-specific methods passed. This is useful if you want to squeeze out maximum performance.
+
+```ts
+import { createCopier } from 'fast-copy';
+
+const shallowCloneArray = (array) => [...array];
+const shallowCloneMap = (map) => new Map(map.entries());
+const shallowCloneObject = (object) => { ...object };
+const shallowCloneSet = (set) => new Set(set.values());
+
+const copyShallow = createCopier({
+  array: shallowCloneArray,
+  map: shallowCloneMap,
+  object: shallowCloneObject,
+  set: shallowCloneSet,
+});
+```
 
 ## Types supported
 

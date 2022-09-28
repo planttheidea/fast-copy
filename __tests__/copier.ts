@@ -30,13 +30,14 @@ describe('copyObjectLoose', () => {
     };
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
+    const prototype = Object.getPrototypeOf(object);
 
-    const result = copier.copyObjectLoose(
-      object,
-      Object.getPrototypeOf(object),
-      mockCopier,
-      cache
-    );
+    const result = copier.copyObjectLoose(object, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: mockCopier,
+      prototype,
+    });
 
     Object.getOwnPropertySymbols = original;
 
@@ -59,13 +60,14 @@ describe('copyObjectLoose', () => {
     };
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
+    const prototype = Object.getPrototypeOf(object);
 
-    const result = copier.copyObjectLoose(
-      object,
-      Object.getPrototypeOf(object),
-      mockCopier,
-      cache
-    );
+    const result = copier.copyObjectLoose(object, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: mockCopier,
+      prototype,
+    });
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -100,13 +102,14 @@ describe('copyObjectStrict', () => {
 
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
+    const prototype = Object.getPrototypeOf(object);
 
-    const result = copier.copyObjectStrict(
-      object,
-      Object.getPrototypeOf(object),
-      mockCopier,
-      cache
-    );
+    const result = copier.copyObjectStrict(object, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: mockCopier,
+      prototype,
+    });
 
     Object.getOwnPropertySymbols = original;
 
@@ -143,13 +146,14 @@ describe('copyObjectStrict', () => {
 
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
     const cache = createCache();
+    const prototype = Object.getPrototypeOf(object);
 
-    const result = copier.copyObjectStrict(
-      object,
-      Object.getPrototypeOf(object),
-      mockCopier,
-      cache
-    );
+    const result = copier.copyObjectStrict(object, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: mockCopier,
+      prototype,
+    });
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
