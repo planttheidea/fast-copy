@@ -89,20 +89,12 @@ function createCopier(copyArray: CopyArray, copyObject: CopyObject) {
 
     // dataviews
     if (objectClass === '[object DataView]') {
-      const clone = new Constructor(value.buffer.slice(0));
-
-      cache.set(value, clone);
-
-      return clone;
+      return new Constructor(value.buffer.slice(0));
     }
 
     // array buffers
     if (ARRAY_BUFFER_OBJECT_CLASSES[objectClass]) {
-      const clone = value.slice(0);
-
-      cache.set(value, clone);
-
-      return clone;
+      return value.slice(0);
     }
 
     // if the value cannot / should not be copied deeply, return the reference
