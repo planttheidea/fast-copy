@@ -10,11 +10,7 @@ import {
   copyRegExp,
   copySet,
 } from './copier';
-import {
-  ARRAY_BUFFER_OBJECT_CLASSES,
-  UNCOPIABLE_OBJECT_CLASSES,
-  createCache,
-} from './utils';
+import { createCache, identity } from './utils';
 
 import type { InternalCopier, State } from './copier';
 
@@ -51,6 +47,31 @@ export function createCopier(options: CreateCopierOptions) {
     set = copySet,
   } = options;
 
+  const typeSpecificCopiers: Record<string, InternalCopier> = {
+    '[object ArrayBuffer]': arrayBuffer,
+    '[object Blob]': blob,
+    '[object DataView]': dataView,
+    '[object Date]': date,
+    '[object Error]': identity,
+    '[object Float32Array]': arrayBuffer,
+    '[object Float64Array]': arrayBuffer,
+    '[object Int8Array]': arrayBuffer,
+    '[object Int16Array]': arrayBuffer,
+    '[object Int32Array]': arrayBuffer,
+    '[object Map]': map,
+    '[object Object]': object,
+    '[object Promise]': identity,
+    '[object RegExp]': regExp,
+    '[object Set]': set,
+    '[object WeakMap]': identity,
+    '[object WeakSet]': identity,
+    '[object Uint8Array]': arrayBuffer,
+    '[object Uint8ClampedArray]': arrayBuffer,
+    '[object Uint16Array]': arrayBuffer,
+    '[object Uint32Array]': arrayBuffer,
+    '[object Uint64Array]': arrayBuffer,
+  };
+
   function copier(value: any, state: State): any {
     state.prototype = state.Constructor = undefined;
 
@@ -79,55 +100,14 @@ export function createCopier(options: CreateCopierOptions) {
       return array(value, state);
     }
 
-    const objectClass = toString.call(value);
+    const objectType = toString.call(value);
+    const typeSpecificCopier = typeSpecificCopiers[objectType];
 
-    // dates
-    if (objectClass === '[object Date]') {
-      return date(value, state);
+    if (typeSpecificCopier) {
+      return typeSpecificCopier(value, state);
     }
 
-    // regexps
-    if (objectClass === '[object RegExp]') {
-      return regExp(value, state);
-    }
-
-    // maps
-    if (objectClass === '[object Map]') {
-      return map(value, state);
-    }
-
-    // sets
-    if (objectClass === '[object Set]') {
-      return set(value, state);
-    }
-
-    // blobs
-    if (objectClass === '[object Blob]') {
-      return blob(value, state);
-    }
-
-    // dataviews
-    if (objectClass === '[object DataView]') {
-      return dataView(value, state);
-    }
-
-    // array buffers
-    if (ARRAY_BUFFER_OBJECT_CLASSES[objectClass]) {
-      return arrayBuffer(value, state);
-    }
-
-    // if the value cannot / should not be copied deeply, return the reference
-    if (
-      // promise-like
-      typeof value.then === 'function' ||
-      // object classes which cannot be introspected for copy
-      UNCOPIABLE_OBJECT_CLASSES[objectClass]
-    ) {
-      return value;
-    }
-
-    // assume anything left is a custom constructor
-    return object(value, state);
+    return typeof value.then === 'function' ? value : object(value, state);
   }
 
   return function copy<Value>(value: Value): Value {

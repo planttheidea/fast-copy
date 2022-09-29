@@ -9,26 +9,6 @@ export interface Cache {
 const { toString: toStringFunction } = Function.prototype;
 const { create } = Object;
 
-export const ARRAY_BUFFER_OBJECT_CLASSES: Record<string, boolean> = {
-  ['[object ArrayBuffer]']: true,
-  ['[object Float32Array]']: true,
-  ['[object Float64Array]']: true,
-  ['[object Int8Array]']: true,
-  ['[object Int16Array]']: true,
-  ['[object Int32Array]']: true,
-  ['[object Uint8Array]']: true,
-  ['[object Uint8ClampedArray]']: true,
-  ['[object Uint16Array]']: true,
-  ['[object Uint32Array]']: true,
-  ['[object Uint64Array]']: true,
-};
-export const UNCOPIABLE_OBJECT_CLASSES: Record<string, boolean> = {
-  ['[object Error]']: true,
-  ['[object Promise]']: true,
-  ['[object WeakMap]']: true,
-  ['[object WeakSet]']: true,
-};
-
 class LegacyCache {
   _keys: any[] = [];
   _values: any[] = [];
@@ -119,3 +99,7 @@ function getRegExpFlagsModern(regExp: RegExp): string {
  */
 export const getRegExpFlags =
   /test/g.flags === 'g' ? getRegExpFlagsModern : getRegExpFlagsLegacy;
+
+export function identity<Value>(value: Value): Value {
+  return value;
+}
