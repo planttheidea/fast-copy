@@ -79,19 +79,15 @@ export function createCopier(options: CreateCopierOptions) {
       return value;
     }
 
-    const cache = state.cache;
-
-    if (cache.has(value)) {
-      return cache.get(value);
+    if (state.cache.has(value)) {
+      return state.cache.get(value);
     }
 
-    const prototype = (state.prototype =
-      value.__proto__ || getPrototypeOf(value));
-    const Constructor = (state.Constructor =
-      prototype && prototype.constructor);
+    state.prototype = value.__proto__ || getPrototypeOf(value);
+    state.Constructor = state.prototype && state.prototype.constructor;
 
     // plain objects
-    if (!Constructor || Constructor === Object) {
+    if (!state.Constructor || state.Constructor === Object) {
       return object(value, state);
     }
 
