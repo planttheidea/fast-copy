@@ -23,6 +23,7 @@ export default {
         include: [path.resolve(ROOT, 'src'), /DEV_ONLY/],
         loader: 'ts-loader',
         options: {
+          configFile: path.resolve(ROOT, 'tsconfig', 'base.json'),
           reportFiles: ['src/*.{ts|tsx}'],
         },
         test: /\.tsx?$/,

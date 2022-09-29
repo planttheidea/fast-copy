@@ -76,10 +76,12 @@
     "url": "git+https://github.com/planttheidea/fast-copy.git"
   },
   "scripts": {
-    "benchmark": "npm run build:files && node benchmark/index.cjs",
-    "build": "npm run build:files && npm run build:types",
-    "build:files": "NODE_ENV=production rollup -c",
-    "build:types": "tsc -p ./tsconfig.cjs.json && tsc -p ./tsconfig.esm.json && tsc -p ./tsconfig.umd.json && tsc -p ./tsconfig.minified.json",
+    "benchmark": "npm run clean && npm run build:cjs && node benchmark/index.cjs",
+    "build": "npm run build:esm && npm run build:cjs && npm run build:umd && npm run build:min",
+    "build:cjs": "NODE_ENV=production rollup -c rollup/config.cjs.js && tsc -p ./tsconfig/cjs.json",
+    "build:esm": "NODE_ENV=production rollup -c rollup/config.esm.js && tsc -p ./tsconfig/esm.json",
+    "build:min": "NODE_ENV=production rollup -c rollup/config.min.js && tsc -p ./tsconfig/min.json",
+    "build:umd": "NODE_ENV=production rollup -c rollup/config.umd.js && tsc -p ./tsconfig/umd.json",
     "clean": "rimraf dist",
     "dev": "NODE_ENV=development webpack-dev-server --config=webpack/webpack.config.js",
     "dist": "npm run clean && npm run build",

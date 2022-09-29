@@ -8,11 +8,12 @@
     "moduleResolution": "Node",
     "noImplicitAny": true,
     "outDir": "./dist",
+    "skipLibCheck": true,
     "sourceMap": true,
     "inlineSources": true,
     "target": "es5",
     "types": ["jest", "node", "react"]
   },
   "exclude": ["node_modules"],
-  "include": ["src/*", "__tests__/*"]
+  "include": ["../src/*", "../__tests__/*"]
 }

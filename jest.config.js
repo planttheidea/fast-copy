@@ -3,7 +3,7 @@ export default {
   roots: ['<rootDir>'],
   testRegex: '/__tests__/.*\\.(ts|tsx)$',
   transform: {
-    '\\.(ts|tsx)$': 'ts-jest',
+    '\\.(ts|tsx)$': ['ts-jest', { tsconfig: 'tsconfig/base.json' }],
   },
   verbose: true,
 };

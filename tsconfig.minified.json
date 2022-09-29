@@ -1,8 +1,0 @@
-{
-  "extends": "./tsconfig.declarations.json",
-  "compilerOptions": {
-    "declarationDir": "./dist/minified/types",
-    "module": "UMD",
-    "outDir": "./dist/minified"
-  }
-}

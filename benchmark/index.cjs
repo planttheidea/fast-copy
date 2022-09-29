@@ -23,7 +23,7 @@ const simpleObject = {
 const complexObject = Object.assign({}, simpleObject, {
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
-  buffer: new Buffer('this is a test buffer'),
+  buffer: Buffer.from('this is a test buffer'),
   dataView: new DataView(new ArrayBuffer(16)),
   date: new Date(),
   error: new Error('boom'),
