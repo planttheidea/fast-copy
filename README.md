@@ -15,6 +15,7 @@ A [blazing fast](#benchmarks) deep object copier
     - [`copy`](#copy)
     - [`copyStrict`](#copystrict)
     - [`createCopier`](#createcopier)
+    - [`createStrictCopier`](#createstrictcopier)
       - [Copier methods](#copier-methods)
   - [Types supported](#types-supported)
   - [Aspects of copying](#aspects-of-copying)
@@ -84,23 +85,49 @@ const copied = copy(object);
 
 ### `createCopier`
 
-Create a custom copier based on the object-specific methods passed. This is useful if you want to squeeze out maximum performance.
+Create a custom copier based on the type-specific methods passed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
 
 ```ts
 import { createCopier } from 'fast-copy';
 
-const shallowCloneArray = (array) => [...array];
-const shallowCloneMap = (map) => new Map(map.entries());
-const shallowCloneObject = (object) => { ...object };
-const shallowCloneSet = (set) => new Set(set.values());
-
 const copyShallow = createCopier({
-  array: shallowCloneArray,
-  map: shallowCloneMap,
-  object: shallowCloneObject,
-  set: shallowCloneSet,
+  array: (array) => [...array],
+  map: (map) => new Map(map.entries()),
+  object: (object) => ({ ...object }),
+  set: (set) => new Set(set.values()),
 });
 ```
+
+### `createStrictCopier`
+
+Create a custom copier based on the type-specific methods passed, but defaulting to the same functions normally used for `copyStrict`. This is useful if you want to squeeze out better performance while maintaining strict requirements, or perform something other than a strict deep copy.
+
+```ts
+const createStrictClone = (value, clone) =>
+  Object.getOwnPropertyNames(value).reduce(
+    (clone, property) =>
+      Object.defineProperty(
+        clone,
+        property,
+        Object.getOwnPropertyDescriptor(value, property) || {
+          configurable: true,
+          enumerable: true,
+          value: clone[property],
+          writable: true,
+        }
+      ),
+    clone
+  );
+
+const copyStrictShallow = createStrictCopier({
+  array: (array) => createStrictClone(array, []),
+  map: (map) => createStrictClone(map, new Map(map.entries())),
+  object: (object) => createStrictClone(object, {}),
+  set: (set) => createStrictClone(set, new Set(set.values())),
+});
+```
+
+**NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have specific use-cases that require it.
 
 #### Copier methods
 

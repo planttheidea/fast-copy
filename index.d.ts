@@ -45,3 +45,11 @@ export function copyStrict<Value>(value: Value): Value;
 export function createCopier(
   options: CreateCopierOptions
 ): <Value>(value: Value) => Value;
+
+/**
+ * Create a custom copier based on the object-specific copy methods passed, defaulting to the
+ * same internals as `copyStrict`.
+ */
+export function createStrictCopier(
+  options: CreateCopierOptions
+): <Value>(value: Value) => Value;

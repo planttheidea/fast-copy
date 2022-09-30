@@ -13,6 +13,28 @@ beforeEach(() => {
   });
 });
 
+describe('copyArrayStrict', () => {
+  it('will copy both indices and explicit properties', () => {
+    const object: any = ['foo', 'bar'];
+    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const cache = createCache();
+    const prototype = Object.getPrototypeOf(object);
+
+    object.baz = 'baz';
+
+    const result = copier.copyArrayStrict(object, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: mockCopier,
+      prototype,
+    });
+
+    expect(result).not.toBe(object);
+    expect(result).toEqual(object);
+    expect(result.baz).toBe(object.baz);
+  });
+});
+
 describe('copyObjectLoose', () => {
   it('will create an object clone when property symbols are not supported', () => {
     const original = Object.getOwnPropertySymbols;
@@ -162,5 +184,52 @@ describe('copyObjectStrict', () => {
       Object.getOwnPropertyNames(object).length +
         Object.getOwnPropertySymbols(object).length
     );
+  });
+});
+
+describe('copyMapStrict', () => {
+  it('will copy both entries and explicit properties', () => {
+    const object: any = new Map([
+      ['foo', 'foo'],
+      ['bar', 'bar'],
+    ]);
+    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const cache = createCache();
+    const prototype = Object.getPrototypeOf(object);
+
+    object.baz = 'baz';
+
+    const result = copier.copyMapStrict(object, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: mockCopier,
+      prototype,
+    });
+
+    expect(result).not.toBe(object);
+    expect(result).toEqual(object);
+    expect(result.baz).toBe(object.baz);
+  });
+});
+
+describe('copySetStrict', () => {
+  it('will copy both values and explicit properties', () => {
+    const object: any = new Set(['foo', 'bar']);
+    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const cache = createCache();
+    const prototype = Object.getPrototypeOf(object);
+
+    object.baz = 'baz';
+
+    const result = copier.copySetStrict(object, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: mockCopier,
+      prototype,
+    });
+
+    expect(result).not.toBe(object);
+    expect(result).toEqual(object);
+    expect(result.baz).toBe(object.baz);
   });
 });

@@ -1,7 +1,7 @@
 import React from 'react';
 import cloneDeep from 'lodash/cloneDeep';
 
-import copy, { copyStrict } from '../src';
+import copy, { copyStrict, createCopier, createStrictCopier } from '../src';
 
 // import '../benchmarks';
 
@@ -43,7 +43,14 @@ const object: PlainObject = {
     return 'foo';
   },
   foo: new Foo('value'),
-  map: new Map().set('foo', { bar: 'baz' }),
+  map: (() => {
+    const map = new Map().set('foo', { bar: 'baz' });
+
+    // @ts-ignore
+    map.foo = 'bar';
+
+    return map;
+  })(),
   nan: NaN,
   nil: null,
   number: 123,
@@ -108,10 +115,42 @@ Object.defineProperty(object.object, 'readonly', {
 
 object.deeply.nested.reference = object;
 
+const copyShallow = createCopier({
+  array: (array) => [...array],
+  map: (map) => new Map(map.entries()),
+  object: (object) => ({ ...object }),
+  set: (set) => new Set(set.values()),
+});
+
+const copyOwnProperties = (value, clone) =>
+  Object.getOwnPropertyNames(value).reduce(
+    (clone, property) =>
+      Object.defineProperty(
+        clone,
+        property,
+        Object.getOwnPropertyDescriptor(value, property) || {
+          configurable: true,
+          enumerable: true,
+          value: clone[property],
+          writable: true,
+        }
+      ),
+    clone
+  );
+
+const copyStrictShallow = createStrictCopier({
+  array: (array) => copyOwnProperties(array, []),
+  map: (map) => copyOwnProperties(map, new Map(map.entries())),
+  object: (object) => copyOwnProperties(object, {}),
+  set: (set) => copyOwnProperties(set, new Set(set.values())),
+});
+
 console.group('fast-copy');
 console.log('original', object);
 console.log('copy', copy(object));
 console.log('copyStrict', copyStrict(object));
+console.log('copyShallow', copyShallow(object));
+console.log('copyStrictShallow', copyStrictShallow(object));
 console.groupEnd();
 
 console.group('lodash.cloneDeep');

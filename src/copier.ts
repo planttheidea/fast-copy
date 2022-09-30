@@ -31,6 +31,50 @@ const getStrictProperties = SUPPORTS_SYMBOL
   ? getStrictPropertiesModern
   : getOwnPropertyNames;
 
+function copyOwnPropertiesStrict<Value extends any>(
+  value: Value,
+  clone: Value,
+  state: State
+): Value {
+  const properties = getStrictProperties(value);
+  const { copier } = state;
+
+  for (
+    let index = 0, length = properties.length, property, descriptor;
+    index < length;
+    ++index
+  ) {
+    property = properties[index];
+
+    if (property === 'callee' || property === 'caller') {
+      continue;
+    }
+
+    descriptor = getOwnPropertyDescriptor(value, property);
+
+    if (!descriptor) {
+      // In extra edge cases where the property descriptor cannot be retrived, fall back to
+      // the loose assignment.
+      (clone as any)[property] = copier((value as any)[property], state);
+      continue;
+    }
+
+    // Only clone the value if actually a value, not a getter / setter.
+    if (!descriptor.get && !descriptor.set) {
+      descriptor.value = copier(descriptor.value, state);
+    }
+
+    try {
+      defineProperty(clone, property, descriptor);
+    } catch (error) {
+      // Tee above can fail on node in edge cases, so fall back to the loose assignment.
+      (clone as any)[property] = descriptor.value;
+    }
+  }
+
+  return clone;
+}
+
 export function copyArrayLoose(array: any[], state: State) {
   const clone = new state.Constructor();
   const { cache, copier } = state;
@@ -42,6 +86,17 @@ export function copyArrayLoose(array: any[], state: State) {
   }
 
   return clone;
+}
+
+export function copyArrayStrict<Value extends any[]>(
+  array: Value,
+  state: State
+) {
+  const clone = new state.Constructor() as Value;
+
+  state.cache.set(array, clone);
+
+  return copyOwnPropertiesStrict(array, clone, state);
 }
 
 export function copyArrayBuffer<Value extends ArrayBuffer>(
@@ -69,7 +124,7 @@ export function copyDate<Value extends Date>(date: Value, state: State): Value {
   return new state.Constructor(date.getTime());
 }
 
-export function copyMap<Value extends Map<any, any>>(
+export function copyMapLoose<Value extends Map<any, any>>(
   map: Value,
   state: State
 ): Value {
@@ -82,7 +137,14 @@ export function copyMap<Value extends Map<any, any>>(
     clone.set(key, copier(value, state));
   });
 
-  return map;
+  return clone;
+}
+
+export function copyMapStrict<Value extends Map<any, any>>(
+  map: Value,
+  state: State
+) {
+  return copyOwnPropertiesStrict(map, copyMapLoose(map, state), state);
 }
 
 function copyObjectLooseLegacy<Value extends {}>(
@@ -154,47 +216,11 @@ export function copyObjectStrict<Value extends {}>(
   state: State
 ): Value {
   const clone = getCleanClone(state.prototype);
-  const { cache, copier } = state;
 
   // set in the cache immediately to be able to reuse the object recursively
-  cache.set(object, clone);
+  state.cache.set(object, clone);
 
-  const properties = getStrictProperties(object);
-
-  for (
-    let index = 0, length = properties.length, property, descriptor;
-    index < length;
-    ++index
-  ) {
-    property = properties[index];
-
-    if (property === 'callee' || property === 'caller') {
-      continue;
-    }
-
-    descriptor = getOwnPropertyDescriptor(object, property);
-
-    if (!descriptor) {
-      // In extra edge cases where the property descriptor cannot be retrived, fall back to
-      // the loose assignment.
-      clone[property] = copier((object as any)[property], state);
-      continue;
-    }
-
-    // Only clone the value if actually a value, not a getter / setter.
-    if (!descriptor.get && !descriptor.set) {
-      descriptor.value = copier(descriptor.value, state);
-    }
-
-    try {
-      defineProperty(clone, property, descriptor);
-    } catch (error) {
-      // Tee above can fail on node in edge cases, so fall back to the loose assignment.
-      clone[property] = descriptor.value;
-    }
-  }
-
-  return clone;
+  return copyOwnPropertiesStrict(object, clone, state);
 }
 
 export function copyRegExp<Value extends RegExp>(
@@ -215,7 +241,7 @@ export function copySelf<Value>(value: Value, _state: State): Value {
   return value;
 }
 
-export function copySet<Value extends Set<any>>(
+export function copySetLoose<Value extends Set<any>>(
   set: Value,
   state: State
 ): Value {
@@ -228,5 +254,12 @@ export function copySet<Value extends Set<any>>(
     clone.add(copier(value, state));
   });
 
-  return set;
+  return clone;
+}
+
+export function copySetStrict<Value extends Set<any>>(
+  set: Value,
+  state: State
+): Value {
+  return copyOwnPropertiesStrict(set, copySetLoose(set, state), state);
 }

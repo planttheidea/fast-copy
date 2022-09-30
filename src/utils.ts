@@ -1,3 +1,5 @@
+import type { CreateCopierOptions } from './index';
+
 export interface Cache {
   _keys?: any[];
   _values?: any[];
