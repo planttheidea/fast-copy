@@ -206,13 +206,13 @@ _Small number of properties, all values are primitives_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **5,743,509**       |
-| lodash.cloneDeep   | 2,614,035           |
-| clone              | 2,173,098           |
-| fast-clone         | 1,341,313           |
-| deepclone          | 1,238,167           |
-| ramda              | 1,115,519           |
-| fast-copy (strict) | 845,093             |
+| **fast-copy**      | **5,880,312**       |
+| lodash.cloneDeep   | 2,706,261           |
+| clone              | 2,207,231           |
+| deepclone          | 1,274,810           |
+| fast-clone         | 1,239,952           |
+| ramda              | 1,146,152           |
+| fast-copy (strict) | 852,382             |
 
 #### Complex objects
 
@@ -220,13 +220,13 @@ _Large number of properties, values are a combination of primitives and complex 
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **160,060**         |
-| ramda              | 134,873             |
-| deepclone          | 131,345             |
-| fast-clone         | 49,911              |
-| clone              | 75,780              |
-| fast-copy (strict) | 61,556              |
-| lodash.cloneDeep   | 59,493              |
+| **fast-copy**      | **162,858**         |
+| ramda              | 142,104             |
+| deepclone          | 133,607             |
+| fast-clone         | 101,143             |
+| clone              | 70,872              |
+| fast-copy (strict) | 62,961              |
+| lodash.cloneDeep   | 62,060              |
 
 #### Big data
 
@@ -234,12 +234,12 @@ _Very large number of properties with high amount of nesting, mainly objects and
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | 304                 |
-| fast-clone         | 236                 |
+| **fast-copy**      | 303                 |
+| fast-clone         | 245                 |
+| deepclone          | 151                 |
 | lodash.cloneDeep   | 150                 |
-| deepclone          | 148                 |
-| clone              | 90                  |
-| fast-copy (strict) | 89                  |
+| clone              | 93                  |
+| fast-copy (strict) | 90                  |
 | ramda              | 42                  |
 
 #### Circular objects
@@ -248,12 +248,12 @@ _Objects that deeply reference themselves_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **2,273,405**       |
-| deepclone          | 1,299,928           |
-| ramda              | 951,721             |
-| clone              | 945,585             |
-| lodash.cloneDeep   | 887,775             |
-| fast-copy (strict) | 630,221             |
+| **fast-copy**      | **2,420,466**       |
+| deepclone          | 1,386,896           |
+| ramda              | 1,024,108           |
+| lodash.cloneDeep   | 989,796             |
+| clone              | 987,721             |
+| fast-copy (strict) | 617,602             |
 | fast-clone         | 0 (not supported)   |
 
 #### Special objects
@@ -262,25 +262,27 @@ _Custom constructors, React components, etc_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **144,616**         |
-| clone              | 68,880              |
-| fast-clone         | 66,233              |
-| lodash.cloneDeep   | 63,376              |
-| ramda              | 52,216              |
-| deepclone          | 28,394              |
-| fast-copy (strict) | 21,033              |
+| **fast-copy**      | **152,792**         |
+| clone              | 74,347              |
+| fast-clone         | 66,576              |
+| lodash.cloneDeep   | 64,760              |
+| ramda              | 53,542              |
+| deepclone          | 28,823              |
+| fast-copy (strict) | 21,362              |
 
 ## Development
 
 Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencies. The following npm scripts are available:
 
 - benchmark => run benchmark tests against other equality libraries
-- build => run `build:files` and `build:types`
-- build:files => build dist files with `rollup`
-- build:types => build TypeScript types for consumers
+- build => run `build:esm`, `build:cjs`, `build:umd`, and `build:min` scripts
+- build:cjs => build CJS files and types
+- build:esm => build ESM files and types
+- build:min => build minified files and types
+- build:umd => build UMD files and types
 - clean => run `rimraf` on the `dist` folder
 - dev => start webpack playground App
-- dist => run `build` and `build:minified` scripts
+- dist => run `clean` and `build` scripts
 - lint => run ESLint on all files in `src` folder (also runs on `dev` script)
 - lint:fix => run `lint` script, but with auto-fixer
 - prepublishOnly => run `lint`, `test:coverage`, and `dist` scripts
@@ -291,3 +293,4 @@ Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencie
 - test => run AVA with NODE_ENV=test on all files in `test` folder
 - test:coverage => run same script as `test` with code coverage calculation via `nyc`
 - test:watch => run same script as `test` but keep persistent watcher
+- typecheck => run `tsc` on the codebase

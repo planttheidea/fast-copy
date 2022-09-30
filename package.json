@@ -95,7 +95,7 @@
     "test": "NODE_PATH=. jest",
     "test:coverage": "npm run test -- --coverage",
     "test:watch": "npm run test -- --watch",
-    "typecheck": "tsc src/*.ts --noEmit"
+    "typecheck": "tsc --noEmit"
   },
   "type": "module",
   "types": "index.d.ts",
