@@ -11,7 +11,7 @@ import {
   copySelf,
   copySet,
 } from './copier';
-import { createCache } from './utils';
+import { createCache, getTag } from './utils';
 
 import type { InternalCopier, State } from './copier';
 
@@ -19,7 +19,6 @@ export type { State } from './copier';
 
 const { isArray } = Array;
 const { getPrototypeOf } = Object;
-const { toString } = Object.prototype;
 
 export interface CreateCopierOptions {
   array?: InternalCopier<any[]>;
@@ -51,29 +50,29 @@ export function createCopier(options: CreateCopierOptions) {
     set = copySet,
   } = options;
 
-  const typeSpecificCopiers: Record<string, InternalCopier> = {
-    '[object ArrayBuffer]': arrayBuffer,
-    '[object Blob]': blob,
-    '[object DataView]': dataView,
-    '[object Date]': date,
-    '[object Error]': error,
-    '[object Float32Array]': arrayBuffer,
-    '[object Float64Array]': arrayBuffer,
-    '[object Int8Array]': arrayBuffer,
-    '[object Int16Array]': arrayBuffer,
-    '[object Int32Array]': arrayBuffer,
-    '[object Map]': map,
-    '[object Object]': object,
-    '[object Promise]': copySelf,
-    '[object RegExp]': regExp,
-    '[object Set]': set,
-    '[object WeakMap]': copySelf,
-    '[object WeakSet]': copySelf,
-    '[object Uint8Array]': arrayBuffer,
-    '[object Uint8ClampedArray]': arrayBuffer,
-    '[object Uint16Array]': arrayBuffer,
-    '[object Uint32Array]': arrayBuffer,
-    '[object Uint64Array]': arrayBuffer,
+  const tagSpecificCopiers: Record<string, InternalCopier> = {
+    ArrayBuffer: arrayBuffer,
+    Blob: blob,
+    DataView: dataView,
+    Date: date,
+    Error: error,
+    Float32Array: arrayBuffer,
+    Float64Array: arrayBuffer,
+    Int8Array: arrayBuffer,
+    Int16Array: arrayBuffer,
+    Int32Array: arrayBuffer,
+    Map: map,
+    Object: object,
+    Promise: copySelf,
+    RegExp: regExp,
+    Set: set,
+    WeakMap: copySelf,
+    WeakSet: copySelf,
+    Uint8Array: arrayBuffer,
+    Uint8ClampedArray: arrayBuffer,
+    Uint16Array: arrayBuffer,
+    Uint32Array: arrayBuffer,
+    Uint64Array: arrayBuffer,
   };
 
   function copier(value: any, state: State): any {
@@ -100,11 +99,10 @@ export function createCopier(options: CreateCopierOptions) {
       return array(value, state);
     }
 
-    const objectType = toString.call(value);
-    const typeSpecificCopier = typeSpecificCopiers[objectType];
+    const tagSpecificCopier = tagSpecificCopiers[getTag(value)];
 
-    if (typeSpecificCopier) {
-      return typeSpecificCopier(value, state);
+    if (tagSpecificCopier) {
+      return tagSpecificCopier(value, state);
     }
 
     return typeof value.then === 'function' ? value : object(value, state);

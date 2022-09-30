@@ -8,6 +8,7 @@ export interface Cache {
 
 const { toString: toStringFunction } = Function.prototype;
 const { create } = Object;
+const { toString: toStringObject } = Object.prototype;
 
 class LegacyCache {
   _keys: any[] = [];
@@ -99,3 +100,19 @@ function getRegExpFlagsModern(regExp: RegExp): string {
  */
 export const getRegExpFlags =
   /test/g.flags === 'g' ? getRegExpFlagsModern : getRegExpFlagsLegacy;
+
+function getTagLegacy(value: any): string {
+  const type = toStringObject.call(value);
+
+  return type.substring(8, type.length - 1);
+}
+
+function getTagModern(value: any): string {
+  return value[Symbol.toStringTag] || getTagLegacy(value);
+}
+
+/**
+ * Get the tag of the value passed, so that the correct copier can be used.
+ */
+export const getTag =
+  typeof Symbol !== 'undefined' ? getTagModern : getTagLegacy;
