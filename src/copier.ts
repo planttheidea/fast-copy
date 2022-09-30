@@ -62,7 +62,7 @@ export function copyDataView<Value extends DataView>(
   dataView: Value,
   state: State
 ): Value {
-  return new state.Constructor(dataView.buffer.slice(0));
+  return new state.Constructor(copyArrayBuffer(dataView.buffer, state));
 }
 
 export function copyDate<Value extends Date>(date: Value, state: State): Value {

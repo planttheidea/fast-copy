@@ -1,7 +1,7 @@
 import React from 'react';
 import cloneDeep from 'lodash/cloneDeep';
 
-import copy from '../src';
+import copy, { copyStrict } from '../src';
 
 // import '../benchmarks';
 
@@ -108,7 +108,13 @@ Object.defineProperty(object.object, 'readonly', {
 
 object.deeply.nested.reference = object;
 
-const cloned = copy(object);
+console.group('fast-copy');
+console.log('original', object);
+console.log('copy', copy(object));
+console.log('copyStrict', copyStrict(object));
+console.groupEnd();
 
-console.log(cloned);
-console.log(cloneDeep(object));
+console.group('lodash.cloneDeep');
+console.log('original', object);
+console.log('copy', cloneDeep(object));
+console.groupEnd();
