@@ -37,7 +37,6 @@ function copyOwnPropertiesStrict<Value extends any>(
   state: State
 ): Value {
   const properties = getStrictProperties(value);
-  const { copier } = state;
 
   for (
     let index = 0, length = properties.length, property, descriptor;
@@ -55,13 +54,13 @@ function copyOwnPropertiesStrict<Value extends any>(
     if (!descriptor) {
       // In extra edge cases where the property descriptor cannot be retrived, fall back to
       // the loose assignment.
-      (clone as any)[property] = copier((value as any)[property], state);
+      (clone as any)[property] = state.copier((value as any)[property], state);
       continue;
     }
 
     // Only clone the value if actually a value, not a getter / setter.
     if (!descriptor.get && !descriptor.set) {
-      descriptor.value = copier(descriptor.value, state);
+      descriptor.value = state.copier(descriptor.value, state);
     }
 
     try {
@@ -77,12 +76,12 @@ function copyOwnPropertiesStrict<Value extends any>(
 
 export function copyArrayLoose(array: any[], state: State) {
   const clone = new state.Constructor();
-  const { cache, copier } = state;
 
-  cache.set(array, clone);
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(array, clone);
 
   for (let index: number = 0, length = array.length; index < length; ++index) {
-    clone[index] = copier(array[index], state);
+    clone[index] = state.copier(array[index], state);
   }
 
   return clone;
@@ -94,6 +93,7 @@ export function copyArrayStrict<Value extends any[]>(
 ) {
   const clone = new state.Constructor() as Value;
 
+  // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(array, clone);
 
   return copyOwnPropertiesStrict(array, clone, state);
@@ -129,12 +129,12 @@ export function copyMapLoose<Value extends Map<any, any>>(
   state: State
 ): Value {
   const clone = new state.Constructor() as Value;
-  const { cache, copier } = state;
 
-  cache.set(map, clone);
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(map, clone);
 
   map.forEach((value, key) => {
-    clone.set(key, copier(value, state));
+    clone.set(key, state.copier(value, state));
   });
 
   return clone;
@@ -152,14 +152,13 @@ function copyObjectLooseLegacy<Value extends {}>(
   state: State
 ): Value {
   const clone: any = getCleanClone(state.prototype);
-  const { cache, copier } = state;
 
   // set in the cache immediately to be able to reuse the object recursively
-  cache.set(object, clone);
+  state.cache.set(object, clone);
 
   for (const key in object) {
     if (hasOwnProperty.call(object, key)) {
-      clone[key] = copier(object[key], state);
+      clone[key] = state.copier(object[key], state);
     }
   }
 
@@ -171,14 +170,13 @@ function copyObjectLooseModern<Value extends {}>(
   state: State
 ): Value {
   const clone: any = getCleanClone(state.prototype);
-  const { cache, copier } = state;
 
   // set in the cache immediately to be able to reuse the object recursively
-  cache.set(object, clone);
+  state.cache.set(object, clone);
 
   for (const key in object) {
     if (hasOwnProperty.call(object, key)) {
-      clone[key] = copier(object[key], state);
+      clone[key] = state.copier(object[key], state);
     }
   }
 
@@ -192,7 +190,7 @@ function copyObjectLooseModern<Value extends {}>(
     symbol = symbols[index];
 
     if (propertyIsEnumerable.call(object, symbol)) {
-      clone[symbol] = copier((object as any)[symbol], state);
+      clone[symbol] = state.copier((object as any)[symbol], state);
     }
   }
 
@@ -246,12 +244,12 @@ export function copySetLoose<Value extends Set<any>>(
   state: State
 ): Value {
   const clone = new state.Constructor() as Value;
-  const { cache, copier } = state;
 
-  cache.set(set, clone);
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(set, clone);
 
   set.forEach((value) => {
-    clone.add(copier(value, state));
+    clone.add(state.copier(value, state));
   });
 
   return clone;
