@@ -211,6 +211,10 @@ export function copyRegExp<Value extends RegExp>(
   return clone;
 }
 
+export function copySelf<Value>(value: Value, _state: State): Value {
+  return value;
+}
+
 export function copySet<Value extends Set<any>>(
   set: Value,
   state: State

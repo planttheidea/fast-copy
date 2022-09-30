@@ -15,6 +15,7 @@ A [blazing fast](#benchmarks) deep object copier
     - [`copy`](#copy)
     - [`copyStrict`](#copystrict)
     - [`createCopier`](#createcopier)
+      - [Copier methods](#copier-methods)
   - [Types supported](#types-supported)
   - [Aspects of copying](#aspects-of-copying)
     - [Error references are copied over (instead of creating a new `*Error` object)](#error-references-are-copied-over-instead-of-creating-a-new-error-object)
@@ -100,6 +101,19 @@ const copyShallow = createCopier({
   set: shallowCloneSet,
 });
 ```
+
+#### Copier methods
+
+- `array` => Array
+- `arrayBuffer`=> ArrayBuffer, Float32Array, Float64Array, Int8Array, Int16Array, Int32Array, Uint8Array, Uint8ClampedArray, Uint16Array, Uint32Array, Uint64Array
+- `blob` => Blob
+- `dataView` => DataView
+- `date` => Date
+- `error` => Error, AggregateError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
+- `map` => Map
+- `object` => Object, or any custom constructor
+- `regExp` => RegExp
+- `set` => Set
 
 ## Types supported
 

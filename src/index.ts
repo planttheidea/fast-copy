@@ -8,9 +8,10 @@ import {
   copyObjectLoose,
   copyObjectStrict,
   copyRegExp,
+  copySelf,
   copySet,
 } from './copier';
-import { createCache, identity } from './utils';
+import { createCache } from './utils';
 
 import type { InternalCopier, State } from './copier';
 
@@ -25,6 +26,7 @@ export interface CreateCopierOptions {
   blob?: InternalCopier<Blob>;
   dataView?: InternalCopier<DataView>;
   date?: InternalCopier<Date>;
+  error?: InternalCopier<any>;
   map?: InternalCopier<Map<any, any>>;
   object?: InternalCopier<Record<string, any>>;
   regExp?: InternalCopier<RegExp>;
@@ -41,6 +43,7 @@ export function createCopier(options: CreateCopierOptions) {
     blob = copyBlob,
     dataView = copyDataView,
     date = copyDate,
+    error = copySelf,
     map = copyMap,
     object = copyObjectLoose,
     regExp = copyRegExp,
@@ -52,7 +55,7 @@ export function createCopier(options: CreateCopierOptions) {
     '[object Blob]': blob,
     '[object DataView]': dataView,
     '[object Date]': date,
-    '[object Error]': identity,
+    '[object Error]': error,
     '[object Float32Array]': arrayBuffer,
     '[object Float64Array]': arrayBuffer,
     '[object Int8Array]': arrayBuffer,
@@ -60,11 +63,11 @@ export function createCopier(options: CreateCopierOptions) {
     '[object Int32Array]': arrayBuffer,
     '[object Map]': map,
     '[object Object]': object,
-    '[object Promise]': identity,
+    '[object Promise]': copySelf,
     '[object RegExp]': regExp,
     '[object Set]': set,
-    '[object WeakMap]': identity,
-    '[object WeakSet]': identity,
+    '[object WeakMap]': copySelf,
+    '[object WeakSet]': copySelf,
     '[object Uint8Array]': arrayBuffer,
     '[object Uint8ClampedArray]': arrayBuffer,
     '[object Uint16Array]': arrayBuffer,

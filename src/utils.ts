@@ -99,7 +99,3 @@ function getRegExpFlagsModern(regExp: RegExp): string {
  */
 export const getRegExpFlags =
   /test/g.flags === 'g' ? getRegExpFlagsModern : getRegExpFlagsLegacy;
-
-export function identity<Value>(value: Value): Value {
-  return value;
-}
