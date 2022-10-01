@@ -49,6 +49,8 @@ Object.defineProperties(SIMPLE_TYPES, {
 
 const COMPLEX_TYPES: PlainObject = {
   arguments: (function (foo, bar, baz) {
+    // Specifically testing arguments object
+    // eslint-disable-next-line prefer-rest-params
     return arguments;
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
@@ -173,7 +175,7 @@ describe('copy', () => {
     );
 
     properties.forEach((property: string | symbol) => {
-      // @ts-ignore
+      // @ts-expect-error - Symbol not supported property type
       expect(result[property]).toEqual(SIMPLE_TYPES[property]);
     });
   });
@@ -206,7 +208,7 @@ describe('copy', () => {
         );
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
       } else {
-        // @ts-ignore
+        // @ts-expect-error - Symbol not supported property type
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
       }
     });
@@ -307,7 +309,7 @@ describe('copyStrict', () => {
     );
 
     properties.forEach((property: string | symbol) => {
-      // @ts-ignore
+      // @ts-expect-error - Symbol not supported property type
       expect(result[property]).toEqual(SIMPLE_TYPES[property]);
     });
   });
@@ -340,7 +342,7 @@ describe('copyStrict', () => {
 
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
       } else {
-        // @ts-ignore
+        // @ts-expect-error - Symbol not supported property type
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
       }
     });

@@ -19,6 +19,8 @@ class Foo {
 
 const object: PlainObject = {
   arguments: (function (foo, bar, baz) {
+    // Specifically testing arguments object
+    // eslint-disable-next-line prefer-rest-params
     return arguments;
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
@@ -46,7 +48,7 @@ const object: PlainObject = {
   map: (() => {
     const map = new Map().set('foo', { bar: 'baz' });
 
-    // @ts-ignore
+    // @ts-expect-error - Testing non-standard property on map.
     map.foo = 'bar';
 
     return map;

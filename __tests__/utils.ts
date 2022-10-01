@@ -93,6 +93,8 @@ describe('getCleanClone', () => {
 
   it('will return an empty object with custom prototype when the object created through Object.create()', () => {
     const object = Object.create({
+      // No need for body in test
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       method() {},
     });
 
@@ -125,6 +127,8 @@ describe('getCleanClone', () => {
         this.value = value;
       }
 
+      // No need for body in test
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       method() {}
     }
 

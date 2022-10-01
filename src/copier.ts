@@ -37,7 +37,7 @@ const getStrictProperties = SUPPORTS_SYMBOL
 /**
  * Striclty copy all properties contained on the object.
  */
-function copyOwnPropertiesStrict<Value extends any>(
+function copyOwnPropertiesStrict<Value>(
   value: Value,
   clone: Value,
   state: State
@@ -89,7 +89,7 @@ export function copyArrayLoose(array: any[], state: State) {
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(array, clone);
 
-  for (let index: number = 0, length = array.length; index < length; ++index) {
+  for (let index = 0, length = array.length; index < length; ++index) {
     clone[index] = state.copier(array[index], state);
   }
 
@@ -177,7 +177,7 @@ export function copyMapStrict<Value extends Map<any, any>>(
   return copyOwnPropertiesStrict(map, copyMapLoose(map, state), state);
 }
 
-function copyObjectLooseLegacy<Value extends {}>(
+function copyObjectLooseLegacy<Value extends Record<string, any>>(
   object: Value,
   state: State
 ): Value {
@@ -195,7 +195,7 @@ function copyObjectLooseLegacy<Value extends {}>(
   return clone;
 }
 
-function copyObjectLooseModern<Value extends {}>(
+function copyObjectLooseModern<Value extends Record<string, any>>(
   object: Value,
   state: State
 ): Value {
@@ -238,7 +238,7 @@ export const copyObjectLoose = SUPPORTS_SYMBOL
  * Deeply copy the properties (keys and symbols) and values of the original, as well
  * as any hidden or non-enumerable properties.
  */
-export function copyObjectStrict<Value extends {}>(
+export function copyObjectStrict<Value extends Record<string, any>>(
   object: Value,
   state: State
 ): Value {

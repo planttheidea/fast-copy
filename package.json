@@ -85,7 +85,7 @@
     "clean": "rimraf dist",
     "dev": "NODE_ENV=development webpack-dev-server --config=webpack/webpack.config.js",
     "dist": "npm run clean && npm run build",
-    "lint": "eslint 'src/*.ts'",
+    "lint": "eslint 'src/*.ts' '__tests__/*.ts' 'DEV_ONLY/*.ts'",
     "lint:fix": "npm run lint -- --fix",
     "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run dist",
     "release": "release-it",
