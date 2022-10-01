@@ -59,6 +59,9 @@ const DEFAULT_STRICT_OPTIONS: Required<CreateCopierOptions> = assign(
   }
 );
 
+/**
+ * Get the copiers used for each specific object tag.
+ */
 function getTagSpecificCopiers(
   options: Required<CreateCopierOptions>
 ): Record<string, InternalCopier<any>> {

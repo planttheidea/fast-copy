@@ -27,10 +27,16 @@ function getStrictPropertiesModern(object: any): Array<string | symbol> {
   );
 }
 
+/**
+ * Get the properites used when copying objects strictly. This includes both keys and symbols.
+ */
 const getStrictProperties = SUPPORTS_SYMBOL
   ? getStrictPropertiesModern
   : getOwnPropertyNames;
 
+/**
+ * Striclty copy all properties contained on the object.
+ */
 function copyOwnPropertiesStrict<Value extends any>(
   value: Value,
   clone: Value,
@@ -74,6 +80,9 @@ function copyOwnPropertiesStrict<Value extends any>(
   return clone;
 }
 
+/**
+ * Deeply copy the indexed values in the array.
+ */
 export function copyArrayLoose(array: any[], state: State) {
   const clone = new state.Constructor();
 
@@ -87,6 +96,9 @@ export function copyArrayLoose(array: any[], state: State) {
   return clone;
 }
 
+/**
+ * Deeply copy the indexed values in the array, as well as any custom properties.
+ */
 export function copyArrayStrict<Value extends any[]>(
   array: Value,
   state: State
@@ -99,6 +111,9 @@ export function copyArrayStrict<Value extends any[]>(
   return copyOwnPropertiesStrict(array, clone, state);
 }
 
+/**
+ * Copy the contents of the ArrayBuffer.
+ */
 export function copyArrayBuffer<Value extends ArrayBuffer>(
   arrayBuffer: Value,
   _state: State
@@ -106,6 +121,9 @@ export function copyArrayBuffer<Value extends ArrayBuffer>(
   return arrayBuffer.slice(0) as Value;
 }
 
+/**
+ * Create a new Blob with the contents of the original.
+ */
 export function copyBlob<Value extends Blob>(
   blob: Value,
   _state: State
@@ -113,6 +131,9 @@ export function copyBlob<Value extends Blob>(
   return blob.slice(0, blob.size, blob.type) as Value;
 }
 
+/**
+ * Create a new DataView with the contents of the original.
+ */
 export function copyDataView<Value extends DataView>(
   dataView: Value,
   state: State
@@ -120,10 +141,16 @@ export function copyDataView<Value extends DataView>(
   return new state.Constructor(copyArrayBuffer(dataView.buffer, state));
 }
 
+/**
+ * Create a new Date based on the time of the original.
+ */
 export function copyDate<Value extends Date>(date: Value, state: State): Value {
   return new state.Constructor(date.getTime());
 }
 
+/**
+ * Deeply copy the keys and values of the original.
+ */
 export function copyMapLoose<Value extends Map<any, any>>(
   map: Value,
   state: State
@@ -140,6 +167,9 @@ export function copyMapLoose<Value extends Map<any, any>>(
   return clone;
 }
 
+/**
+ * Deeply copy the keys and values of the original, as well as any custom properties.
+ */
 export function copyMapStrict<Value extends Map<any, any>>(
   map: Value,
   state: State
@@ -198,16 +228,15 @@ function copyObjectLooseModern<Value extends {}>(
 }
 
 /**
- * Get a copy of the object based on loose rules, meaning all enumerable keys
- * and symbols are copied, but property descriptors are not considered.
+ * Deeply copy the properties (keys and symbols) and values of the original.
  */
 export const copyObjectLoose = SUPPORTS_SYMBOL
   ? copyObjectLooseModern
   : copyObjectLooseLegacy;
 
 /**
- * Get a copy of the object based on strict rules, meaning all keys and symbols
- * are copied based on the original property descriptors.
+ * Deeply copy the properties (keys and symbols) and values of the original, as well
+ * as any hidden or non-enumerable properties.
  */
 export function copyObjectStrict<Value extends {}>(
   object: Value,
@@ -221,6 +250,9 @@ export function copyObjectStrict<Value extends {}>(
   return copyOwnPropertiesStrict(object, clone, state);
 }
 
+/**
+ * Create a new RegExp based on the value and flags of the original.
+ */
 export function copyRegExp<Value extends RegExp>(
   regExp: Value,
   state: State
@@ -235,10 +267,19 @@ export function copyRegExp<Value extends RegExp>(
   return clone;
 }
 
+/**
+ * Return the original value (an identity function).
+ *
+ * @note
+ * THis is used for objects that cannot be copied, such as WeakMap.
+ */
 export function copySelf<Value>(value: Value, _state: State): Value {
   return value;
 }
 
+/**
+ * Deeply copy the values of the original.
+ */
 export function copySetLoose<Value extends Set<any>>(
   set: Value,
   state: State
@@ -255,6 +296,9 @@ export function copySetLoose<Value extends Set<any>>(
   return clone;
 }
 
+/**
+ * Deeply copy the values of the original, as well as any custom properties.
+ */
 export function copySetStrict<Value extends Set<any>>(
   set: Value,
   state: State

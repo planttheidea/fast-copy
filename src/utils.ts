@@ -8,6 +8,9 @@ const { toString: toStringFunction } = Function.prototype;
 const { create } = Object;
 const { toString: toStringObject } = Object.prototype;
 
+/**
+ * @classdesc Fallback cache for when WeakMap is not natively supported
+ */
 class LegacyCache {
   private _keys: any[] = [];
   private _values: any[] = [];
