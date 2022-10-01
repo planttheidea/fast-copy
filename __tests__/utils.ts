@@ -41,7 +41,9 @@ describe('createCache', () => {
 
     result.set(key, value);
 
+    // @ts-expect-error - accessing internal property
     expect(result._keys).toEqual([key]);
+    // @ts-expect-error - accessing internal property
     expect(result._values).toEqual([value]);
     expect(result.has(key)).toBe(true);
     expect(result.get(key)).toBe(value);

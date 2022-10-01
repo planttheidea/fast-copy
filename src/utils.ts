@@ -1,8 +1,4 @@
-import type { CreateCopierOptions } from './index';
-
 export interface Cache {
-  _keys?: any[];
-  _values?: any[];
   has: (value: any) => boolean;
   set: (key: any, value: any) => void;
   get: (key: any) => any;
@@ -13,8 +9,8 @@ const { create } = Object;
 const { toString: toStringObject } = Object.prototype;
 
 class LegacyCache {
-  _keys: any[] = [];
-  _values: any[] = [];
+  private _keys: any[] = [];
+  private _values: any[] = [];
 
   has(key: any) {
     return !!~this._keys.indexOf(key);
