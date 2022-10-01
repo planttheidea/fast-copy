@@ -21,7 +21,7 @@ import type { InternalCopier, State } from './copier';
 export type { State } from './copier';
 
 const { isArray } = Array;
-const { getPrototypeOf } = Object;
+const { assign, getPrototypeOf } = Object;
 
 export interface CreateCopierOptions {
   array?: InternalCopier<any[]>;
@@ -36,48 +36,66 @@ export interface CreateCopierOptions {
   set?: InternalCopier<Set<any>>;
 }
 
+const DEFAULT_LOOSE_OPTIONS: Required<CreateCopierOptions> = {
+  array: copyArrayLoose,
+  arrayBuffer: copyArrayBuffer,
+  blob: copyBlob,
+  dataView: copyDataView,
+  date: copyDate,
+  error: copySelf,
+  map: copyMapLoose,
+  object: copyObjectLoose,
+  regExp: copyRegExp,
+  set: copySetLoose,
+};
+const DEFAULT_STRICT_OPTIONS: Required<CreateCopierOptions> = assign(
+  {},
+  DEFAULT_LOOSE_OPTIONS,
+  {
+    array: copyArrayStrict,
+    map: copyMapStrict,
+    object: copyObjectStrict,
+    set: copySetStrict,
+  }
+);
+
+function getTagSpecificCopiers(
+  options: Required<CreateCopierOptions>
+): Record<string, InternalCopier> {
+  return {
+    Array: options.array,
+    ArrayBuffer: options.arrayBuffer,
+    Blob: options.blob,
+    DataView: options.dataView,
+    Date: options.date,
+    Error: options.error,
+    Float32Array: options.arrayBuffer,
+    Float64Array: options.arrayBuffer,
+    Int8Array: options.arrayBuffer,
+    Int16Array: options.arrayBuffer,
+    Int32Array: options.arrayBuffer,
+    Map: options.map,
+    Object: options.object,
+    Promise: copySelf,
+    RegExp: options.regExp,
+    Set: options.set,
+    WeakMap: copySelf,
+    WeakSet: copySelf,
+    Uint8Array: options.arrayBuffer,
+    Uint8ClampedArray: options.arrayBuffer,
+    Uint16Array: options.arrayBuffer,
+    Uint32Array: options.arrayBuffer,
+    Uint64Array: options.arrayBuffer,
+  };
+}
+
 /**
  * Create a custom copier based on the object-specific copy methods passed.
  */
 export function createCopier(options: CreateCopierOptions) {
-  const {
-    array = copyArrayLoose,
-    arrayBuffer = copyArrayBuffer,
-    blob = copyBlob,
-    dataView = copyDataView,
-    date = copyDate,
-    error = copySelf,
-    map = copyMapLoose,
-    object = copyObjectLoose,
-    regExp = copyRegExp,
-    set = copySetLoose,
-  } = options;
-
-  const tagSpecificCopiers: Record<string, InternalCopier> = {
-    Array: array,
-    ArrayBuffer: arrayBuffer,
-    Blob: blob,
-    DataView: dataView,
-    Date: date,
-    Error: error,
-    Float32Array: arrayBuffer,
-    Float64Array: arrayBuffer,
-    Int8Array: arrayBuffer,
-    Int16Array: arrayBuffer,
-    Int32Array: arrayBuffer,
-    Map: map,
-    Object: object,
-    Promise: copySelf,
-    RegExp: regExp,
-    Set: set,
-    WeakMap: copySelf,
-    WeakSet: copySelf,
-    Uint8Array: arrayBuffer,
-    Uint8ClampedArray: arrayBuffer,
-    Uint16Array: arrayBuffer,
-    Uint32Array: arrayBuffer,
-    Uint64Array: arrayBuffer,
-  };
+  const normalizedOptions = assign({}, DEFAULT_LOOSE_OPTIONS, options);
+  const tagSpecificCopiers = getTagSpecificCopiers(normalizedOptions);
+  const { Array: array, Object: object } = tagSpecificCopiers;
 
   function copier(value: any, state: State): any {
     state.prototype = state.Constructor = undefined;
@@ -127,17 +145,7 @@ export function createCopier(options: CreateCopierOptions) {
  * same internals as `copyStrict`.
  */
 export function createStrictCopier(options: CreateCopierOptions) {
-  return createCopier(
-    Object.assign(
-      {
-        array: copyArrayStrict,
-        map: copyMapStrict,
-        object: copyObjectStrict,
-        set: copySetStrict,
-      },
-      options
-    )
-  );
+  return createCopier(assign({}, DEFAULT_STRICT_OPTIONS, options));
 }
 
 /**
