@@ -2,12 +2,12 @@ import { getCleanClone, getRegExpFlags } from './utils';
 
 import type { Cache } from './utils';
 
-export type InternalCopier<Value = any> = (value: Value, state: State) => Value;
+export type InternalCopier<Value> = (value: Value, state: State) => Value;
 
 export interface State {
   Constructor: any;
   cache: Cache;
-  copier: InternalCopier;
+  copier: InternalCopier<any>;
   prototype: any;
 }
 

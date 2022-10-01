@@ -18,12 +18,12 @@ export interface CreateCopierOptions {
   set?: InternalCopier<Set<any>>;
 }
 
-type InternalCopier<Value = any> = (value: Value, state: State) => Value;
+type InternalCopier<Value> = (value: Value, state: State) => Value;
 
 export interface State {
   Constructor: any;
   cache: Cache;
-  copier: InternalCopier;
+  copier: InternalCopier<any>;
   prototype: any;
 }
 

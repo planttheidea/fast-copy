@@ -61,7 +61,7 @@ const DEFAULT_STRICT_OPTIONS: Required<CreateCopierOptions> = assign(
 
 function getTagSpecificCopiers(
   options: Required<CreateCopierOptions>
-): Record<string, InternalCopier> {
+): Record<string, InternalCopier<any>> {
   return {
     Array: options.array,
     ArrayBuffer: options.arrayBuffer,

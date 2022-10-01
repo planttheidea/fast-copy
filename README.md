@@ -15,6 +15,10 @@ A [blazing fast](#benchmarks) deep object copier
     - [`copy`](#copy)
     - [`copyStrict`](#copystrict)
     - [`createCopier`](#createcopier)
+      - [Copier state](#copier-state)
+        - [`cache`](#cache)
+        - [`copier`](#copier)
+        - [`Constructor` / `prototype`](#constructor--prototype)
     - [`createStrictCopier`](#createstrictcopier)
       - [Copier methods](#copier-methods)
   - [Types supported](#types-supported)
@@ -96,6 +100,93 @@ const copyShallow = createCopier({
   object: (object) => ({ ...object }),
   set: (set) => new Set(set.values()),
 });
+```
+
+Each internal copier method has the following contract:
+
+```ts
+type InternalCopier<Value> = (value: Value, state: State) => Value;
+
+interface State {
+  Constructor: any;
+  cache: WeakMap;
+  copier: InternalCopier<any>;
+  prototype: any;
+}
+```
+
+Any method overriding the defaults must maintain this contract.
+
+#### Copier state
+
+##### `cache`
+
+If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future lookups:
+
+```ts
+function shallowlyCloneArray<Value extends any[]>(
+  value: Value,
+  state: State
+): Value {
+  const clone = [...value];
+
+  state.cache.set(value, clone);
+
+  return clone;
+}
+```
+
+##### `copier`
+
+`copier` is provided for recursive calls with deeply-nested objects.
+
+```ts
+function deeplyCloneArray<Value extends any[]>(
+  value: Value,
+  state: State
+): Value {
+  const clone = [];
+
+  state.cache.set(value, clone);
+
+  value.forEach((item) => state.copier(item, state));
+
+  return clone;
+}
+```
+
+Note above I am using `forEach` instead of a simple `map`. This is because it is highly recommended to store the clone in [`cache`](#cache) eagerly when deeply copying, so that nested circular references are handled correctly.
+
+##### `Constructor` / `prototype`
+
+Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
+
+```ts
+function deeplyCloneSubclassArray<Value extends CustomArray>(
+  value: Value,
+  state: State
+): Value {
+  const clone = new state.Constructor();
+
+  state.cache.set(value, clone);
+
+  value.forEach((item) => clone.push(item));
+
+  return clone;
+}
+
+function deeplyCloneCustomObject<Value extends CustomObject>(
+  value: Value,
+  state: State
+): Value {
+  const clone = Object.create(state.prototype);
+
+  state.cache.set(value, clone);
+
+  Object.entries(value).forEach(([k, v]) => (clone[k] = v));
+
+  return clone;
+}
 ```
 
 ### `createStrictCopier`
