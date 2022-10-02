@@ -22,9 +22,10 @@ A [blazing fast](#benchmarks) deep object copier
     - [`createStrictCopier`](#createstrictcopier)
       - [Copier methods](#copier-methods)
   - [Types supported](#types-supported)
-  - [Aspects of copying](#aspects-of-copying)
-    - [Error references are copied over (instead of creating a new `*Error` object)](#error-references-are-copied-over-instead-of-creating-a-new-error-object)
-    - [The constructor of the original object is used, instead of using known globals.](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
+  - [Aspects of default copiers](#aspects-of-default-copiers)
+    - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
+    - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
+    - [Generator objects are copied, but still reference the original generator's state](#generator-objects-are-copied-but-still-reference-the-original-generators-state)
   - [Benchmarks](#benchmarks)
       - [Simple objects](#simple-objects)
       - [Complex objects](#complex-objects)
@@ -239,6 +240,7 @@ The following object types are deeply cloned when they are either properties on 
 
 - `Array`
 - `ArrayBuffer`
+- `Boolean` primitive wrappers (e.g., `new Boolean(true)`)
 - `Blob`
 - `Buffer`
 - `DataView`
@@ -249,9 +251,11 @@ The following object types are deeply cloned when they are either properties on 
 - `Int16Array`
 - `Int32Array`
 - `Map`
+- `Number` primitive wrappers (e.g., `new Number(123)`)
 - `Object`
 - `RegExp`
 - `Set`
+- `String` primitive wrappers (e.g., `new String('foo')`)
 - `Uint8Array`
 - `Uint8ClampedArray`
 - `Uint16Array`
@@ -262,14 +266,14 @@ The following object types are deeply cloned when they are either properties on 
 The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use-case implementation does not expect cloning:
 
 - `AsyncFunction`
-- `Boolean`
+- `Boolean` primitives
 - `Error`
 - `Function`
 - `GeneratorFunction`
-- `Number`
+- `Number` primitives
 - `Null`
 - `Promise`
-- `String`
+- `String` primitives
 - `Symbol`
 - `Undefined`
 - `WeakMap`
@@ -277,17 +281,21 @@ The following object types are copied directly, as they are either primitives, c
 
 Circular objects are supported out of the box. By default, a cache based on `WeakSet` is used, but if `WeakSet` is not available then a fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
 
-## Aspects of copying
+## Aspects of default copiers
 
-Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made.
+Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are detailed below. If your use-cases require different handling, you can always create your own custom copier with [`createCopier`](#createcopier) or [`createStrictCopier`](#createstrictcopier).
 
-### Error references are copied over (instead of creating a new `*Error` object)
+### Error references are copied directly, instead of creating a new `*Error` object
 
 While it would be relatively trivial to copy over the message and stack to a new object of the same `Error` subclass, it is a common practice to "override" the message or stack, and copies would not retain this mutation. As such, the original reference is copied.
 
-### The constructor of the original object is used, instead of using known globals.
+### The constructor of the original object is used, instead of using known globals
 
-Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the constructor of the original object. However, the expectation is that these subclasses would have the same constructur signature as their native base class. This is a common community practice, however because there is the possibility of inaccuracy if the contract differs, it should be noted.
+Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the constructor of the original object. However, the expectation is that these subclasses would have the same constructur signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if the contract differs.
+
+### Generator objects are copied, but still reference the original generator's state
+
+[Generator objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are specific types of iterators, but appear like standard objects that just have a few methods (`next`, `throw`, `return`). These methods are bound to the internal state of the generator, which cannot be copied effectively. Normally this would be treated like other "uncopiable" objects and simply pass the reference through, however the "validation" of whether it is a generator object or a standard object is not guaranteed (duck-typing) and there is a runtime cost associated with. Therefore, the simplest path of treating it like a standard object (copying methods to a new object) was taken.
 
 ## Benchmarks
 
