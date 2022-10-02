@@ -199,7 +199,7 @@ function copyObjectLooseModern<Value extends Record<string, any>>(
   object: Value,
   state: State
 ): Value {
-  const clone: any = getCleanClone(state.prototype);
+  const clone = getCleanClone(state.prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(object, clone);
@@ -210,7 +210,7 @@ function copyObjectLooseModern<Value extends Record<string, any>>(
     }
   }
 
-  const symbols: symbol[] = getOwnPropertySymbols(object);
+  const symbols = getOwnPropertySymbols(object);
 
   for (
     let index = 0, length = symbols.length, symbol;
