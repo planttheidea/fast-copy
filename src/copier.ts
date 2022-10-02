@@ -251,6 +251,17 @@ export function copyObjectStrict<Value extends Record<string, any>>(
 }
 
 /**
+ * Create a new primitive wrapper from the value of the original.
+ */
+export function copyPrimitiveWrapper<
+  // Specifically use the object constructor types
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  Value extends Boolean | Number | String
+>(primitiveObject: Value, state: State): Value {
+  return new state.Constructor(primitiveObject.valueOf());
+}
+
+/**
  * Create a new RegExp based on the value and flags of the original.
  */
 export function copyRegExp<Value extends RegExp>(

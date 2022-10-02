@@ -13,6 +13,7 @@
 **Enhancements**
 
 - Can now create a custom copier, allowing maximum performance for specific use-cases
+- Correctly handle primitive wrappers, e.g. `new String('foo')`
 
 ## 2.1.7
 

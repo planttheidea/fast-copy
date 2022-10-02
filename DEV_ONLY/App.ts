@@ -27,6 +27,7 @@ const object: PlainObject = {
   arrayBuffer: new ArrayBuffer(8),
   blob: new Blob(['<a id="a">hey!</a>'], { type: 'text/html' }),
   boolean: true,
+  booleanConstructor: new Boolean(true),
   customPrototype: Object.create({
     method() {
       return 'foo';
@@ -56,6 +57,7 @@ const object: PlainObject = {
   nan: NaN,
   nil: null,
   number: 123,
+  numberConstructor: new Number('123'),
   object: { foo: { bar: 'baz' } },
   promise: Promise.resolve('foo'),
   react: React.createElement('main', {
@@ -83,6 +85,7 @@ const object: PlainObject = {
   regexp: /foo/gi,
   set: new Set().add('foo').add({ bar: 'baz' }),
   string: 'foo',
+  stringConstructor: new String('foo'),
   symbol: Symbol('foo'),
   typedArray: new Uint8Array([12, 15]),
   undef: undefined,

@@ -212,6 +212,30 @@ describe('copyMapStrict', () => {
   });
 });
 
+describe('copyPrimitiveWrapper', () => {
+  it('will create a copy of the value of the primitive in a new wrapper', () => {
+    const boolean = new Boolean(true);
+    const number = new Number('123');
+    const string = new String('foo');
+
+    [boolean, number, string].forEach((primitiveWrapper) => {
+      const mockCopier = jest.fn().mockImplementation((arg) => arg);
+      const cache = createCache();
+      const prototype = Object.getPrototypeOf(primitiveWrapper);
+
+      const result = copier.copyPrimitiveWrapper(primitiveWrapper, {
+        Constructor: prototype.constructor,
+        cache,
+        copier: mockCopier,
+        prototype,
+      });
+
+      expect(result).not.toBe(primitiveWrapper);
+      expect(result).toEqual(primitiveWrapper);
+    });
+  });
+});
+
 describe('copySetStrict', () => {
   it('will copy both values and explicit properties', () => {
     const object: any = new Set(['foo', 'bar']);

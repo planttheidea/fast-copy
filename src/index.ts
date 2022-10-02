@@ -9,6 +9,7 @@ import {
   copyMapStrict,
   copyObjectLoose,
   copyObjectStrict,
+  copyPrimitiveWrapper,
   copyRegExp,
   copySelf,
   copySetLoose,
@@ -66,9 +67,11 @@ function getTagSpecificCopiers(
   options: Required<CreateCopierOptions>
 ): Record<string, InternalCopier<any>> {
   return {
+    Arguments: options.object,
     Array: options.array,
     ArrayBuffer: options.arrayBuffer,
     Blob: options.blob,
+    Boolean: copyPrimitiveWrapper,
     DataView: options.dataView,
     Date: options.date,
     Error: options.error,
@@ -78,10 +81,12 @@ function getTagSpecificCopiers(
     Int16Array: options.arrayBuffer,
     Int32Array: options.arrayBuffer,
     Map: options.map,
+    Number: copyPrimitiveWrapper,
     Object: options.object,
     Promise: copySelf,
     RegExp: options.regExp,
     Set: options.set,
+    String: copyPrimitiveWrapper,
     WeakMap: copySelf,
     WeakSet: copySelf,
     Uint8Array: options.arrayBuffer,
