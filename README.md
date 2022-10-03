@@ -36,8 +36,8 @@ A [blazing fast](#benchmarks) deep object copier
 
 ## Usage
 
-```javascript
-import { copy } from 'fast-copy';
+```js
+import copy from 'fast-copy';
 import { deepEqual } from 'fast-equals';
 
 const object = {
@@ -60,7 +60,7 @@ console.log(deepEqual(copiedObject, object)); // true
 
 Deeply copy the object passed.
 
-```ts
+```js
 import copy from 'fast-copy';
 
 const copied = copy({ foo: 'bar' });
@@ -72,9 +72,9 @@ Deeply copy the object passed, but with additional strictness when replicating t
 
 - Properties retain their original property descriptor
 - Non-enumerable keys are copied
-- Non-standard properties (e.g., keys on an `Array` object) are copied
+- Non-standard properties (e.g., keys on arrays / maps / sets) are copied
 
-```ts
+```js
 import { copyStrict } from 'fast-copy';
 
 const object = { foo: 'bar' };
@@ -92,7 +92,7 @@ const copied = copy(object);
 
 Create a custom copier based on the type-specific methods passed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
 
-```ts
+```js
 import { createCopier } from 'fast-copy';
 
 const copyShallow = createCopier({
@@ -105,7 +105,7 @@ const copyShallow = createCopier({
 
 Each internal copier method has the following contract:
 
-```ts
+```js
 type InternalCopier<Value> = (value: Value, state: State) => Value;
 
 interface State {
@@ -124,7 +124,7 @@ Any method overriding the defaults must maintain this contract.
 
 If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future lookups:
 
-```ts
+```js
 function shallowlyCloneArray<Value extends any[]>(
   value: Value,
   state: State
@@ -141,7 +141,7 @@ function shallowlyCloneArray<Value extends any[]>(
 
 `copier` is provided for recursive calls with deeply-nested objects.
 
-```ts
+```js
 function deeplyCloneArray<Value extends any[]>(
   value: Value,
   state: State
@@ -162,7 +162,7 @@ Note above I am using `forEach` instead of a simple `map`. This is because it is
 
 Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
 
-```ts
+```js
 function deeplyCloneSubclassArray<Value extends CustomArray>(
   value: Value,
   state: State
@@ -194,7 +194,7 @@ function deeplyCloneCustomObject<Value extends CustomObject>(
 
 Create a custom copier based on the type-specific methods passed, but defaulting to the same functions normally used for `copyStrict`. This is useful if you want to squeeze out better performance while maintaining strict requirements, or perform something other than a strict deep copy.
 
-```ts
+```js
 const createStrictClone = (value, clone) =>
   Object.getOwnPropertyNames(value).reduce(
     (clone, property) =>
@@ -223,16 +223,16 @@ const copyStrictShallow = createStrictCopier({
 
 #### Copier methods
 
-- `array` => Array
-- `arrayBuffer`=> ArrayBuffer, Float32Array, Float64Array, Int8Array, Int16Array, Int32Array, Uint8Array, Uint8ClampedArray, Uint16Array, Uint32Array, Uint64Array
-- `blob` => Blob
-- `dataView` => DataView
-- `date` => Date
-- `error` => Error, AggregateError, EvalError, RangeError, ReferenceError, SyntaxError, TypeError, URIError
-- `map` => Map
-- `object` => Object, or any custom constructor
-- `regExp` => RegExp
-- `set` => Set
+- `array` => `Array`
+- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
+- `blob` => `Blob`
+- `dataView` => `DataView`
+- `date` => `Date`
+- `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`, `URIError`
+- `map` => `Map`
+- `object` => `Object`, or any custom constructor
+- `regExp` => `RegExp`
+- `set` => `Set`
 
 ## Types supported
 
