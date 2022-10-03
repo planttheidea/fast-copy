@@ -9,6 +9,7 @@
 - Options have been removed
   - `isStrict` option has been replaced with importing the separate `copyStrict` method
   - `realm` has been removed entirely, as `instanceof` is no longer used internally
+- The `FastCopy` namespace in typings has been removed in favor of explicit import of available types
 
 **Enhancements**
 
