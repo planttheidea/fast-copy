@@ -13,7 +13,12 @@
 
 **Enhancements**
 
-- Can now create a custom copier, allowing maximum performance for specific use-cases
+- Support `exports` option, to have bettern handling for different environments (ESM vs CJS vs UMD) and improve tree-shaking when supported
+- Can now create a custom copier (either standard or strict), allowing maximum performance for specific use-cases
+- Small speed improvements when handling certain object types
+
+**Bug fixes**
+
 - Correctly handle primitive wrappers, e.g. `new String('foo')`
 
 ## 2.1.7
