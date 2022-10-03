@@ -1,39 +1,55 @@
-declare namespace FastCopy {
-  export type Realm = Record<string, any>;
-
-  export interface Cache {
-    _keys?: any[];
-    _values?: any[];
-    has: (value: any) => boolean;
-    set: (key: any, value: any) => void;
-    get: (key: any) => any;
-  }
-
-  export type Copier = <Value = any>(value: Value, cache: Cache) => Value;
-
-  export type ObjectCloner = <Value>(
-    object: Value,
-    realm: Realm,
-    handleCopy: Copier,
-    cache: Cache,
-  ) => Value;
-
-  export type Options = {
-    isStrict?: boolean;
-    realm?: Realm;
-  };
+interface Cache {
+  _keys?: any[];
+  _values?: any[];
+  has: (value: any) => boolean;
+  set: (key: any, value: any) => void;
+  get: (key: any) => any;
 }
 
-declare function copy<Value = any>(
-  value: Value,
-  options?: FastCopy.Options,
-): Value;
-
-declare namespace copy {
-  function strictCopy<Value = any>(
-    value: Value,
-    options?: FastCopy.Options,
-  ): Value;
+export interface CreateCopierOptions {
+  array?: InternalCopier<any[]>;
+  arrayBuffer?: InternalCopier<ArrayBuffer>;
+  blob?: InternalCopier<Blob>;
+  dataView?: InternalCopier<DataView>;
+  date?: InternalCopier<Date>;
+  map?: InternalCopier<Map<any, any>>;
+  object?: InternalCopier<Record<string, any>>;
+  regExp?: InternalCopier<RegExp>;
+  set?: InternalCopier<Set<any>>;
 }
 
-export default copy;
+type InternalCopier<Value> = (value: Value, state: State) => Value;
+
+export interface State {
+  Constructor: any;
+  cache: Cache;
+  copier: InternalCopier<any>;
+  prototype: any;
+}
+
+/**
+ * Copy an value deeply as much as possible.
+ */
+export default function copy<Value>(value: Value): Value;
+
+/**
+ * Copy an value deeply as much as possible, where strict recreation of object properties
+ * are maintained. All properties (including non-enumerable ones) are copied with their
+ * original property descriptors on both objects and arrays.
+ */
+export function copyStrict<Value>(value: Value): Value;
+
+/**
+ * Create a custom copier based on the object-specific copy methods passed.
+ */
+export function createCopier(
+  options: CreateCopierOptions
+): <Value>(value: Value) => Value;
+
+/**
+ * Create a custom copier based on the object-specific copy methods passed, defaulting to the
+ * same internals as `copyStrict`.
+ */
+export function createStrictCopier(
+  options: CreateCopierOptions
+): <Value>(value: Value) => Value;

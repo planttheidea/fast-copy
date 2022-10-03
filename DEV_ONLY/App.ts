@@ -1,7 +1,7 @@
 import React from 'react';
 import cloneDeep from 'lodash/cloneDeep';
 
-import src from '../src';
+import copy, { copyStrict, createCopier, createStrictCopier } from '../src';
 
 // import '../benchmarks';
 
@@ -19,12 +19,15 @@ class Foo {
 
 const object: PlainObject = {
   arguments: (function (foo, bar, baz) {
+    // Specifically testing arguments object
+    // eslint-disable-next-line prefer-rest-params
     return arguments;
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
-  blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
+  blob: new Blob(['<a id="a">hey!</a>'], { type: 'text/html' }),
   boolean: true,
+  booleanConstructor: new Boolean(true),
   customPrototype: Object.create({
     method() {
       return 'foo';
@@ -43,10 +46,18 @@ const object: PlainObject = {
     return 'foo';
   },
   foo: new Foo('value'),
-  map: new Map().set('foo', { bar: 'baz' }),
+  map: (() => {
+    const map = new Map().set('foo', { bar: 'baz' });
+
+    // @ts-expect-error - Testing non-standard property on map.
+    map.foo = 'bar';
+
+    return map;
+  })(),
   nan: NaN,
   nil: null,
   number: 123,
+  numberConstructor: new Number('123'),
   object: { foo: { bar: 'baz' } },
   promise: Promise.resolve('foo'),
   react: React.createElement('main', {
@@ -74,10 +85,14 @@ const object: PlainObject = {
   regexp: /foo/gi,
   set: new Set().add('foo').add({ bar: 'baz' }),
   string: 'foo',
+  stringConstructor: new String('foo'),
   symbol: Symbol('foo'),
   typedArray: new Uint8Array([12, 15]),
   undef: undefined,
-  weakmap: new WeakMap([[{}, 'foo'], [{}, 'bar']]),
+  weakmap: new WeakMap([
+    [{}, 'foo'],
+    [{}, 'bar'],
+  ]),
   weakset: new WeakSet([{}, {}]),
   [Symbol('key')]: 'value',
 };
@@ -105,7 +120,45 @@ Object.defineProperty(object.object, 'readonly', {
 
 object.deeply.nested.reference = object;
 
-const cloned = src(object);
+const copyShallow = createCopier({
+  array: (array) => [...array],
+  map: (map) => new Map(map.entries()),
+  object: (object) => ({ ...object }),
+  set: (set) => new Set(set.values()),
+});
 
-console.log(cloned);
-console.log(cloneDeep(object));
+const copyOwnProperties = (value, clone) =>
+  Object.getOwnPropertyNames(value).reduce(
+    (clone, property) =>
+      Object.defineProperty(
+        clone,
+        property,
+        Object.getOwnPropertyDescriptor(value, property) || {
+          configurable: true,
+          enumerable: true,
+          value: clone[property],
+          writable: true,
+        }
+      ),
+    clone
+  );
+
+const copyStrictShallow = createStrictCopier({
+  array: (array) => copyOwnProperties(array, []),
+  map: (map) => copyOwnProperties(map, new Map(map.entries())),
+  object: (object) => copyOwnProperties(object, {}),
+  set: (set) => copyOwnProperties(set, new Set(set.values())),
+});
+
+console.group('fast-copy');
+console.log('original', object);
+console.log('copy', copy(object));
+console.log('copyStrict', copyStrict(object));
+console.log('copyShallow', copyShallow(object));
+console.log('copyStrictShallow', copyStrictShallow(object));
+console.groupEnd();
+
+console.group('lodash.cloneDeep');
+console.log('original', object);
+console.log('copy', cloneDeep(object));
+console.groupEnd();

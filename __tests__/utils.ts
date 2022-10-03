@@ -41,7 +41,9 @@ describe('createCache', () => {
 
     result.set(key, value);
 
+    // @ts-expect-error - accessing internal property
     expect(result._keys).toEqual([key]);
+    // @ts-expect-error - accessing internal property
     expect(result._values).toEqual([value]);
     expect(result.has(key)).toBe(true);
     expect(result.get(key)).toBe(value);
@@ -56,9 +58,8 @@ describe('createCache', () => {
 describe('getCleanClone', () => {
   it('will return a pure object when there is no constructor', () => {
     const object = Object.create(null);
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -71,9 +72,7 @@ describe('getCleanClone', () => {
 
     object.__proto__ = null;
 
-    const realm = global;
-
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
@@ -83,9 +82,8 @@ describe('getCleanClone', () => {
 
   it('will return an empty POJO when the object passed is a POJO', () => {
     const object = { foo: 'bar' };
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -93,16 +91,16 @@ describe('getCleanClone', () => {
     expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
   });
 
-  it('will return an empty object with custom protype when the object created through Object.create()', () => {
+  it('will return an empty object with custom prototype when the object created through Object.create()', () => {
     const object = Object.create({
+      // No need for body in test
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       method() {},
     });
 
     object.foo = 'bar';
 
-    const realm = global;
-
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual({});
@@ -112,9 +110,8 @@ describe('getCleanClone', () => {
 
   it('will return an empty object with the given constructor when it is a global constructor', () => {
     const object = new Map();
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(new Map());
@@ -130,150 +127,19 @@ describe('getCleanClone', () => {
         this.value = value;
       }
 
+      // No need for body in test
+      // eslint-disable-next-line @typescript-eslint/no-empty-function
       method() {}
     }
 
     const object = new Foo('bar');
-    const realm = global;
 
-    const result = utils.getCleanClone(object, realm);
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
 
     expect(result).not.toBe(object);
     expect(result).toEqual(Object.create(Foo.prototype));
 
     expect(Object.getPrototypeOf(result)).toBe(Foo.prototype);
-  });
-});
-
-describe('getObjectCloneLoose', () => {
-  it('will create an object clone when property symbols are not supported', () => {
-    const original = Object.getOwnPropertySymbols;
-
-    jest.isolateModules(() => {
-      Object.getOwnPropertySymbols = undefined;
-      utils = require('../src/utils');
-    });
-
-    const symbol = Symbol('quz');
-    const object = {
-      bar: { baz: 'quz' },
-      foo: 'bar',
-      [symbol]: 'blah',
-    };
-    const realm = global;
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = utils.createCache();
-
-    const result = utils.getObjectCloneLoose(object, realm, handleCopy, cache);
-
-    Object.getOwnPropertySymbols = original;
-
-    expect(result).not.toBe(object);
-    expect(result).toEqual(
-      Object.keys(object).reduce((clone: PlainObject, key): PlainObject => {
-        clone[key] = object[key as keyof typeof object];
-
-        return clone;
-      }, {}),
-    );
-
-    expect(handleCopy).toHaveBeenCalledTimes(Object.keys(object).length);
-  });
-
-  it('will create an object clone when property symbols are supported', () => {
-    const object = {
-      bar: { baz: 'quz' },
-      [Symbol('quz')]: 'blah',
-    };
-    const realm = global;
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = utils.createCache();
-
-    const result = utils.getObjectCloneLoose(object, realm, handleCopy, cache);
-
-    expect(result).not.toBe(object);
-    expect(result).toEqual(object);
-
-    expect(handleCopy).toHaveBeenCalledTimes(
-      Object.keys(object).length + Object.getOwnPropertySymbols(object).length,
-    );
-  });
-});
-
-describe('getObjectCloneStrict', () => {
-  it('will create an object clone when property symbols are not supported', () => {
-    const original = Object.getOwnPropertySymbols;
-
-    jest.isolateModules(() => {
-      Object.getOwnPropertySymbols = undefined;
-      utils = require('../src/utils');
-    });
-
-    const object: PlainObject = {
-      bar: { baz: 'quz' },
-    };
-
-    Object.defineProperty(object, 'foo', {
-      value: 'bar',
-    });
-
-    Object.defineProperty(object, Symbol('quz'), {
-      enumerable: true,
-      value: 'blah',
-    });
-
-    const realm = global;
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = utils.createCache();
-
-    const result = utils.getObjectCloneStrict(object, realm, handleCopy, cache);
-
-    Object.getOwnPropertySymbols = original;
-
-    expect(result).not.toBe(object);
-    expect(result).toEqual(
-      Object.keys(object).reduce(
-        (clone: PlainObject, key: string): PlainObject => {
-          clone[key] = object[key];
-
-          return clone;
-        },
-        {},
-      ),
-    );
-
-    expect(handleCopy).toHaveBeenCalledTimes(
-      Object.getOwnPropertyNames(object).length,
-    );
-  });
-
-  it('will create an object clone when property symbols are not supported', () => {
-    const object: PlainObject = {
-      bar: { baz: 'quz' },
-    };
-
-    Object.defineProperty(object, 'foo', {
-      value: 'bar',
-    });
-
-    Object.defineProperty(object, Symbol('quz'), {
-      enumerable: true,
-      value: 'blah',
-    });
-
-    const realm = global;
-    const handleCopy = jest.fn().mockImplementation((arg) => arg);
-    const cache = utils.createCache();
-
-    const result = utils.getObjectCloneStrict(object, realm, handleCopy, cache);
-
-    expect(result).not.toBe(object);
-    expect(result).toEqual(object);
-
-    expect(handleCopy).toHaveBeenCalledTimes(
-      Object.getOwnPropertyNames(object).length +
-        Object.getOwnPropertySymbols(object).length,
-    );
   });
 });
 

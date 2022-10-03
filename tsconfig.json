@@ -1,18 +1,3 @@
 {
-  "compilerOptions": {
-    "baseUrl": "src",
-    "esModuleInterop": true,
-    "jsx": "react",
-    "lib": ["dom", "es2015"],
-    "module": "es2015",
-    "moduleResolution": "node",
-    "noImplicitAny": true,
-    "outDir": "./dist",
-    "sourceMap": true,
-    "inlineSources": true,
-    "target": "es5",
-    "types": ["jest", "node", "react"]
-  },
-  "exclude": ["node_modules"],
-  "include": ["src/*", "__tests__/*"]
+  "extends": "./tsconfig/base.json"
 }
