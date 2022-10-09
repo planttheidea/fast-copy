@@ -4,7 +4,7 @@
 
 **Breaking changes**
 
-- Exports are now always named, so the `.default` suffix is required when accessing, e.g. `require('fast-copy').default`
+- Exports are now always named, so the `.default` suffix is required when accessing
   - CommonJS in Node => `const copy = require('fast-copy').default;`
   - UMD global via CDN => `const copy = globalThis['fast-copy'].default;`
 - `copy.strict` is no longer available; it is now available as the explicit `copyStrict` named import
