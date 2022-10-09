@@ -219,7 +219,7 @@ const copyStrictShallow = createStrictCopier({
 });
 ```
 
-**NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have specific use-cases that require it.
+**NOTE**: This method creates a copier that is significantly slower than [`copy`](#copy), as well as likely a copier created by [`createCopier`](#createcopier), so it is recommended to only use this when you have specific use-cases that require it.
 
 #### Copier methods
 
@@ -333,7 +333,7 @@ _Very large number of properties with high amount of nesting, mainly objects and
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | 303                 |
+| **fast-copy**      | **303**             |
 | fast-clone         | 245                 |
 | deepclone          | 151                 |
 | lodash.cloneDeep   | 150                 |
