@@ -15,12 +15,12 @@ A [blazing fast](#benchmarks) deep object copier
     - [`copy`](#copy)
     - [`copyStrict`](#copystrict)
     - [`createCopier`](#createcopier)
+      - [Copier methods](#copier-methods)
       - [Copier state](#copier-state)
         - [`cache`](#cache)
         - [`copier`](#copier)
         - [`Constructor` / `prototype`](#constructor--prototype)
     - [`createStrictCopier`](#createstrictcopier)
-      - [Copier methods](#copier-methods)
   - [Types supported](#types-supported)
   - [Aspects of default copiers](#aspects-of-default-copiers)
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
@@ -117,6 +117,19 @@ interface State {
 ```
 
 Any method overriding the defaults must maintain this contract.
+
+#### Copier methods
+
+- `array` => `Array`
+- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
+- `blob` => `Blob`
+- `dataView` => `DataView`
+- `date` => `Date`
+- `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`, `URIError`
+- `map` => `Map`
+- `object` => `Object`, or any custom constructor
+- `regExp` => `RegExp`
+- `set` => `Set`
 
 #### Copier state
 
@@ -220,19 +233,6 @@ const copyStrictShallow = createStrictCopier({
 ```
 
 **NOTE**: This method creates a copier that is significantly slower than [`copy`](#copy), as well as likely a copier created by [`createCopier`](#createcopier), so it is recommended to only use this when you have specific use-cases that require it.
-
-#### Copier methods
-
-- `array` => `Array`
-- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
-- `blob` => `Blob`
-- `dataView` => `DataView`
-- `date` => `Date`
-- `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`, `URIError`
-- `map` => `Map`
-- `object` => `Object`, or any custom constructor
-- `regExp` => `RegExp`
-- `set` => `Set`
 
 ## Types supported
 
