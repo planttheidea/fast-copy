@@ -116,7 +116,7 @@ export function createCopier(options: CreateCopierOptions) {
       return state.cache.get(value);
     }
 
-    state.prototype = value.__proto__ || getPrototypeOf(value);
+    state.prototype = !!getPrototypeOf ? getPrototypeOf(value) : value.__proto__;
     state.Constructor = state.prototype && state.prototype.constructor;
 
     // plain objects
