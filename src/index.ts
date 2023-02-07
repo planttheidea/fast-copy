@@ -22,9 +22,8 @@ import type { InternalCopier, State } from './copier';
 export type { State } from './copier';
 
 const { isArray } = Array;
-const { assign, getPrototypeOf } = Object;
-
-const _getPrototypeOf = getPrototypeOf || (obj) => obj.__proto__
+const { assign } = Object;
+const getPrototypeOf = Object.getPrototypeOf || (obj) => obj.__proto__
 
 export interface CreateCopierOptions {
   array?: InternalCopier<any[]>;
@@ -118,7 +117,7 @@ export function createCopier(options: CreateCopierOptions) {
       return state.cache.get(value);
     }
 
-    state.prototype = _getPrototypeOf(value);
+    state.prototype = getPrototypeOf(value);
     state.Constructor = state.prototype && state.prototype.constructor;
 
     // plain objects
