@@ -23,7 +23,7 @@ export type { State } from './copier';
 
 const { isArray } = Array;
 const { assign } = Object;
-const getPrototypeOf = Object.getPrototypeOf || (obj) => obj.__proto__
+const getPrototypeOf = Object.getPrototypeOf || ((obj) => obj.__proto__)
 
 export interface CreateCopierOptions {
   array?: InternalCopier<any[]>;
