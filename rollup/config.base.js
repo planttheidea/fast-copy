@@ -3,7 +3,7 @@ import typescript from '@rollup/plugin-typescript';
 import path from 'path';
 import tsc from 'typescript';
 import { fileURLToPath } from 'url';
-import pkg from '../package.json';
+import pkg from './packageJson.js';
 
 const ROOT = fileURLToPath(new URL('..', import.meta.url));
 
