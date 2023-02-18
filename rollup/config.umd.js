@@ -1,5 +1,5 @@
-import baseConfig from './config.base';
-import pkg from '../package.json';
+import baseConfig from './config.base.js';
+import pkg from './packageJson.js';
 
 export default {
   ...baseConfig,
