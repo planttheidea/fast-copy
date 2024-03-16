@@ -57,7 +57,10 @@ export function getCleanClone(prototype: any): any {
     return prototype === Object.prototype ? {} : create(prototype);
   }
 
-  if (~toStringFunction.call(Constructor).indexOf('[native code]')) {
+  if (
+    Constructor &&
+    ~toStringFunction.call(Constructor).indexOf('[native code]')
+  ) {
     try {
       return new Constructor();
     } catch {}

@@ -56,7 +56,7 @@ describe('createCache', () => {
 });
 
 describe('getCleanClone', () => {
-  it('will return a pure object when there is no constructor', () => {
+  it('will return a pure object when there is no prototype', () => {
     const object = Object.create(null);
 
     const result = utils.getCleanClone(Object.getPrototypeOf(object));
@@ -65,6 +65,23 @@ describe('getCleanClone', () => {
     expect(result).toEqual(object);
 
     expect(Object.getPrototypeOf(result)).toBe(null);
+  });
+
+  it('will return a pure object when there is a prototype but no constructor', () => {
+    const Empty = function () {
+      // empty
+    };
+    Empty.prototype = Object.create(null);
+
+    // @ts-expect-error - Testing `fast-querystring` V8 optimization
+    const object = new Empty();
+
+    const result = utils.getCleanClone(Object.getPrototypeOf(object));
+
+    expect(result).not.toBe(object);
+    expect(result).toEqual(object);
+
+    expect(Object.getPrototypeOf(result)).toBe(Empty.prototype);
   });
 
   it('will return a pure object when there is no __proto__ property', () => {
