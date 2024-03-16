@@ -1,5 +1,9 @@
 # fast-copy CHANGELOG
 
+## 3.0.2
+
+- [#95](https://github.com/planttheidea/fast-copy/pull/95) - Add support for objects that have a prototype with no constructor
+
 ## 3.0.1
 
 - [#78](https://github.com/planttheidea/fast-copy/pull/78) - Work when running Node process with `--disable-proto=throw` (thanks [@castarco](https://github.com/castarco))
