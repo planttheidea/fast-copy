@@ -106,6 +106,7 @@ const packages = {
   // 'fast-deepclone': require('fast-deepclone'),
   'lodash.cloneDeep': require('lodash').cloneDeep,
   ramda: require('ramda').clone,
+  "node-json": (o) => JSON.parse(JSON.stringify(o)),
 };
 
 const suite = createSuite({
