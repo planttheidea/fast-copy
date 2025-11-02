@@ -1,4 +1,4 @@
-import { getCleanClone, getRegExpFlags } from './utils';
+import { getCleanClone } from './utils';
 
 import type { Cache } from './utils';
 
@@ -241,10 +241,7 @@ export function copyRegExp<Value extends RegExp>(
   regExp: Value,
   state: State,
 ): Value {
-  const clone = new state.Constructor(
-    regExp.source,
-    getRegExpFlags(regExp),
-  ) as Value;
+  const clone = new state.Constructor(regExp.source, regExp.flags) as Value;
 
   clone.lastIndex = regExp.lastIndex;
 

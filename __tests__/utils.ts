@@ -1,4 +1,4 @@
-import { getCleanClone, getRegExpFlags } from '../src/utils';
+import { getCleanClone } from '../src/utils';
 
 interface PlainObject {
   [key: string]: any;
@@ -107,66 +107,5 @@ describe('getCleanClone', () => {
     expect(result).toEqual(Object.create(Foo.prototype));
 
     expect(Object.getPrototypeOf(result)).toBe(Foo.prototype);
-  });
-});
-
-describe('getRegExpFlags', () => {
-  it('will return an empty string when no flags are on the regexp', () => {
-    const regexp = /foo/;
-
-    const result = getRegExpFlags(regexp);
-
-    expect(result).toEqual('');
-  });
-
-  it('will add the g flag when one is on the regexp', () => {
-    const regexp = /foo/g;
-
-    const result = getRegExpFlags(regexp);
-
-    expect(result).toEqual('g');
-  });
-
-  it('will add the i flag when one is on the regexp', () => {
-    const regexp = /foo/i;
-
-    const result = getRegExpFlags(regexp);
-
-    expect(result).toEqual('i');
-  });
-
-  it('will add the m flag when one is on the regexp', () => {
-    const regexp = /foo/m;
-
-    const result = getRegExpFlags(regexp);
-
-    expect(result).toEqual('m');
-  });
-
-  it('will add the u flag when one is on the regexp', () => {
-    // @ts-expect-error - Testing u flag
-    const regexp = /foo/u;
-
-    const result = getRegExpFlags(regexp);
-
-    expect(result).toEqual('u');
-  });
-
-  it('will add the g flag when one is on the regexp', () => {
-    // @ts-expect-error - Testing y flag
-    const regexp = /foo/y;
-
-    const result = getRegExpFlags(regexp);
-
-    expect(result).toEqual('y');
-  });
-
-  it('will add all flags preset on the regexp', () => {
-    // @ts-expect-error - Testing uy flag
-    const regexp = /foo/gimuy;
-
-    const result = getRegExpFlags(regexp);
-
-    expect(result).toEqual('gimuy');
   });
 });
