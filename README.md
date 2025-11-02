@@ -15,12 +15,13 @@ A [blazing fast](#benchmarks) deep object copier
     - [`copy`](#copy)
     - [`copyStrict`](#copystrict)
     - [`createCopier`](#createcopier)
-      - [Copier methods](#copier-methods)
-      - [Copier state](#copier-state)
-        - [`cache`](#cache)
-        - [`copier`](#copier)
-        - [`Constructor` / `prototype`](#constructor--prototype)
-    - [`createStrictCopier`](#createstrictcopier)
+      - [`createCache`](#createcache)
+      - [`methods`](#methods)
+        - [Copier state](#copier-state)
+          - [`cache`](#cache)
+          - [`copier`](#copier)
+          - [`Constructor` / `prototype`](#constructor--prototype)
+      - [`strict`](#strict)
   - [Types supported](#types-supported)
   - [Aspects of default copiers](#aspects-of-default-copiers)
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
@@ -90,16 +91,19 @@ const copied = copy(object);
 
 ### `createCopier`
 
-Create a custom copier based on the type-specific methods passed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
+Create a custom copier based on the type-specific method overrides passed, as well as configuration options for how copies should be performed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
 
 ```js
 import { createCopier } from 'fast-copy';
 
-const copyShallow = createCopier({
-  array: (array) => [...array],
-  map: (map) => new Map(map.entries()),
-  object: (object) => ({ ...object }),
-  set: (set) => new Set(set.values()),
+const copyShallowStrict = createCopier({
+  methods: {
+    array: (array) => [...array],
+    map: (map) => new Map(map.entries()),
+    object: (object) => ({ ...object }),
+    set: (set) => new Set(set.values()),
+  },
+  strict: true,
 });
 ```
 
@@ -116,9 +120,11 @@ interface State {
 }
 ```
 
-Any method overriding the defaults must maintain this contract.
+#### `createCache`
 
-#### Copier methods
+Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new `WeakMap` instance.
+
+#### `methods`
 
 - `array` => `Array`
 - `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
@@ -131,9 +137,9 @@ Any method overriding the defaults must maintain this contract.
 - `regExp` => `RegExp`
 - `set` => `Set`
 
-#### Copier state
+##### Copier state
 
-##### `cache`
+###### `cache`
 
 If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future lookups:
 
@@ -150,7 +156,7 @@ function shallowlyCloneArray<Value extends any[]>(
 }
 ```
 
-##### `copier`
+###### `copier`
 
 `copier` is provided for recursive calls with deeply-nested objects.
 
@@ -171,7 +177,7 @@ function deeplyCloneArray<Value extends any[]>(
 
 Note above I am using `forEach` instead of a simple `map`. This is because it is highly recommended to store the clone in [`cache`](#cache) eagerly when deeply copying, so that nested circular references are handled correctly.
 
-##### `Constructor` / `prototype`
+###### `Constructor` / `prototype`
 
 Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
 
@@ -203,36 +209,11 @@ function deeplyCloneCustomObject<Value extends CustomObject>(
 }
 ```
 
-### `createStrictCopier`
+#### `strict`
 
-Create a custom copier based on the type-specific methods passed, but defaulting to the same functions normally used for `copyStrict`. This is useful if you want to squeeze out better performance while maintaining strict requirements, or perform something other than a strict deep copy.
+Enforces strict copying of properties, which includes properties that are not standard for that object. An example would be a named key on an array.
 
-```js
-const createStrictClone = (value, clone) =>
-  Object.getOwnPropertyNames(value).reduce(
-    (clone, property) =>
-      Object.defineProperty(
-        clone,
-        property,
-        Object.getOwnPropertyDescriptor(value, property) || {
-          configurable: true,
-          enumerable: true,
-          value: clone[property],
-          writable: true,
-        },
-      ),
-    clone,
-  );
-
-const copyStrictShallow = createStrictCopier({
-  array: (array) => createStrictClone(array, []),
-  map: (map) => createStrictClone(map, new Map(map.entries())),
-  object: (object) => createStrictClone(object, {}),
-  set: (set) => createStrictClone(set, new Set(set.values())),
-});
-```
-
-**NOTE**: This method creates a copier that is significantly slower than [`copy`](#copy), as well as likely a copier created by [`createCopier`](#createcopier), so it is recommended to only use this when you have specific use-cases that require it.
+**NOTE**: This creates a copier that is significantly slower than "loose" mode, so it is recommended to only use this when you have specific use-cases that require it.
 
 ## Types supported
 
