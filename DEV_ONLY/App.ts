@@ -1,7 +1,7 @@
 import React from 'react';
 import cloneDeep from 'lodash/cloneDeep';
 
-import copy, { copyStrict, createCopier, createStrictCopier } from '../src';
+import { copy, copyStrict, createCopier, createStrictCopier } from '../src';
 
 // import '../benchmarks';
 

@@ -177,4 +177,4 @@ export const copyStrict = createStrictCopier({});
 /**
  * Copy an value deeply as much as possible.
  */
-export default createCopier({});
+export const copy = createCopier({});
