@@ -8,7 +8,7 @@ interface Cache {
 
 export interface CreateCopierOptions {
   array?: InternalCopier<any[]>;
-  arrayBuffer?: InternalCopier<ArrayBuffer>;
+  arrayBuffer?: InternalCopier<ArrayBufferLike>;
   blob?: InternalCopier<Blob>;
   dataView?: InternalCopier<DataView>;
   date?: InternalCopier<Date>;
@@ -43,7 +43,7 @@ export function copyStrict<Value>(value: Value): Value;
  * Create a custom copier based on the object-specific copy methods passed.
  */
 export function createCopier(
-  options: CreateCopierOptions
+  options: CreateCopierOptions,
 ): <Value>(value: Value) => Value;
 
 /**
@@ -51,5 +51,5 @@ export function createCopier(
  * same internals as `copyStrict`.
  */
 export function createStrictCopier(
-  options: CreateCopierOptions
+  options: CreateCopierOptions,
 ): <Value>(value: Value) => Value;
