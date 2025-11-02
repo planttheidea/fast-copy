@@ -13,21 +13,44 @@ export interface State {
 
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
-/**
- * Get the properites used when copying objects strictly. This includes both keys and symbols.
- */
-const getStrictProperties = ((getNames, getSymbols) => {
-  if (typeof getSymbols === 'function') {
-    return (object: object): Array<string | symbol> => {
-      const names = getNames(object) as Array<string | symbol>;
-      const symbols = getSymbols(object);
+function copyOwnDescriptor(
+  value: object,
+  property: string | symbol,
+  state: State,
+): PropertyDescriptor {
+  const descriptor = Object.getOwnPropertyDescriptor(value, property);
 
-      return symbols.length ? names.concat(symbols) : names;
+  if (!descriptor) {
+    // In extreme edge cases where the property descriptor cannot be retrived, fall back to
+    // the loose assignment.
+    return { configurable: true, enumerable: true, value, writable: true };
+  }
+
+  if (!descriptor.get && !descriptor.set) {
+    // Only clone the value if actually a value, not a getter / setter.
+    return {
+      configurable: descriptor.configurable,
+      enumerable: descriptor.enumerable,
+      value: state.copier(descriptor.value, state),
+      writable: descriptor.writable,
     };
   }
 
-  return getNames;
-})(Object.getOwnPropertyNames, Object.getOwnPropertySymbols);
+  return descriptor;
+}
+
+function defineProperty(
+  clone: object,
+  property: string | symbol,
+  descriptor: PropertyDescriptor,
+) {
+  try {
+    Object.defineProperty(clone, property, descriptor);
+  } catch {
+    // Tee above can fail on node in edge cases, so fall back to the loose assignment.
+    (clone as any)[property] = descriptor.value;
+  }
+}
 
 /**
  * Striclty copy all properties contained on the object.
@@ -37,35 +60,20 @@ function copyOwnPropertiesStrict<Value extends object>(
   clone: Value,
   state: State,
 ): Value {
-  const properties = getStrictProperties(value);
+  const names = Object.getOwnPropertyNames(value);
 
-  for (let index = 0; index < properties.length; ++index) {
-    const property = properties[index];
+  for (let index = 0; index < names.length; ++index) {
+    const name = names[index];
 
-    if (property === 'callee' || property === 'caller') {
-      continue;
-    }
+    defineProperty(clone, name, copyOwnDescriptor(value, name, state));
+  }
 
-    const descriptor = Object.getOwnPropertyDescriptor(value, property);
+  const symbols = Object.getOwnPropertySymbols(value);
 
-    if (!descriptor) {
-      // In extra edge cases where the property descriptor cannot be retrived, fall back to
-      // the loose assignment.
-      (clone as any)[property] = state.copier((value as any)[property], state);
-      continue;
-    }
+  for (let index = 0; index < symbols.length; ++index) {
+    const symbol = symbols[index];
 
-    // Only clone the value if actually a value, not a getter / setter.
-    if (!descriptor.get && !descriptor.set) {
-      descriptor.value = state.copier(descriptor.value, state);
-    }
-
-    try {
-      Object.defineProperty(clone, property, descriptor);
-    } catch {
-      // Tee above can fail on node in edge cases, so fall back to the loose assignment.
-      (clone as any)[property] = descriptor.value;
-    }
+    defineProperty(clone, symbol, copyOwnDescriptor(value, symbol, state));
   }
 
   return clone;
@@ -171,55 +179,33 @@ export function copyMapStrict<Value extends Map<any, any>>(
 /**
  * Deeply copy the properties (keys and symbols) and values of the original.
  */
-export const copyObjectLoose = ((getSymbols) => {
-  if (typeof getSymbols === 'function') {
-    return <Value extends Record<string, any>>(
-      object: Value,
-      state: State,
-    ): Value => {
-      const clone = getCleanClone(state.prototype);
+export function copyObjectLoose<Value extends Record<string, any>>(
+  object: Value,
+  state: State,
+): Value {
+  const clone = getCleanClone(state.prototype);
 
-      // set in the cache immediately to be able to reuse the object recursively
-      state.cache.set(object, clone);
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(object, clone);
 
-      for (const key in object) {
-        if (hasOwnProperty.call(object, key)) {
-          clone[key] = state.copier(object[key], state);
-        }
-      }
-
-      const symbols = getSymbols(object);
-
-      for (let index = 0; index < symbols.length; ++index) {
-        const symbol = symbols[index];
-
-        if (propertyIsEnumerable.call(object, symbol)) {
-          clone[symbol] = state.copier((object as any)[symbol], state);
-        }
-      }
-
-      return clone;
-    };
+  for (const key in object) {
+    if (hasOwnProperty.call(object, key)) {
+      clone[key] = state.copier(object[key], state);
+    }
   }
 
-  return <Value extends Record<string, any>>(
-    object: Value,
-    state: State,
-  ): Value => {
-    const clone: any = getCleanClone(state.prototype);
+  const symbols = Object.getOwnPropertySymbols(object);
 
-    // set in the cache immediately to be able to reuse the object recursively
-    state.cache.set(object, clone);
+  for (let index = 0; index < symbols.length; ++index) {
+    const symbol = symbols[index];
 
-    for (const key in object) {
-      if (hasOwnProperty.call(object, key)) {
-        clone[key] = state.copier(object[key], state);
-      }
+    if (propertyIsEnumerable.call(object, symbol)) {
+      clone[symbol] = state.copier((object as any)[symbol], state);
     }
+  }
 
-    return clone;
-  };
-})(Object.getOwnPropertySymbols);
+  return clone;
+}
 
 /**
  * Deeply copy the properties (keys and symbols) and values of the original, as well

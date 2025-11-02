@@ -4,14 +4,14 @@ interface PlainObject {
 }
 
 import { createCache } from '../src/utils';
-
-let copier: typeof import('../src/copier');
-
-beforeEach(() => {
-  jest.isolateModules(() => {
-    copier = jest.requireActual('../src/copier');
-  });
-});
+import {
+  copyArrayStrict,
+  copyMapStrict,
+  copyObjectLoose,
+  copyObjectStrict,
+  copyPrimitiveWrapper,
+  copySetStrict,
+} from '../src/copier';
 
 describe('copyArrayStrict', () => {
   it('will copy both indices and explicit properties', () => {
@@ -22,7 +22,7 @@ describe('copyArrayStrict', () => {
 
     object.baz = 'baz';
 
-    const result = copier.copyArrayStrict(object, {
+    const result = copyArrayStrict(object, {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
@@ -36,47 +36,7 @@ describe('copyArrayStrict', () => {
 });
 
 describe('copyObjectLoose', () => {
-  it('will create an object clone when property symbols are not supported', () => {
-    const original = Object.getOwnPropertySymbols;
-
-    jest.isolateModules(() => {
-      // @ts-expect-error - Override for testing.
-      Object.getOwnPropertySymbols = undefined;
-      copier = jest.requireActual('../src/copier');
-    });
-
-    const symbol = Symbol('quz');
-    const object = {
-      bar: { baz: 'quz' },
-      foo: 'bar',
-      [symbol]: 'blah',
-    };
-    const mockCopier = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
-    const prototype = Object.getPrototypeOf(object);
-
-    const result = copier.copyObjectLoose(object, {
-      Constructor: prototype.constructor,
-      cache,
-      copier: mockCopier,
-      prototype,
-    });
-
-    Object.getOwnPropertySymbols = original;
-
-    expect(result).not.toBe(object);
-    expect(result).toEqual(
-      Object.keys(object).reduce((clone: PlainObject, key): PlainObject => {
-        clone[key] = object[key as keyof typeof object];
-
-        return clone;
-      }, {}),
-    );
-
-    expect(mockCopier).toHaveBeenCalledTimes(Object.keys(object).length);
-  });
-
-  it('will create an object clone when property symbols are supported', () => {
+  it('will create an object clone', () => {
     const object = {
       bar: { baz: 'quz' },
       [Symbol('quz')]: 'blah',
@@ -85,7 +45,7 @@ describe('copyObjectLoose', () => {
     const cache = createCache();
     const prototype = Object.getPrototypeOf(object);
 
-    const result = copier.copyObjectLoose(object, {
+    const result = copyObjectLoose(object, {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
@@ -102,15 +62,7 @@ describe('copyObjectLoose', () => {
 });
 
 describe('copyObjectStrict', () => {
-  it('will create an object clone when property symbols are not supported', () => {
-    const original = Object.getOwnPropertySymbols;
-
-    jest.isolateModules(() => {
-      // @ts-expect-error - Override for testing.
-      Object.getOwnPropertySymbols = undefined;
-      copier = jest.requireActual('../src/copier');
-    });
-
+  it('will create an object clone', () => {
     const object: PlainObject = {
       bar: { baz: 'quz' },
     };
@@ -128,51 +80,7 @@ describe('copyObjectStrict', () => {
     const cache = createCache();
     const prototype = Object.getPrototypeOf(object);
 
-    const result = copier.copyObjectStrict(object, {
-      Constructor: prototype.constructor,
-      cache,
-      copier: mockCopier,
-      prototype,
-    });
-
-    Object.getOwnPropertySymbols = original;
-
-    expect(result).not.toBe(object);
-    expect(result).toEqual(
-      Object.keys(object).reduce(
-        (clone: PlainObject, key: string): PlainObject => {
-          clone[key] = object[key];
-
-          return clone;
-        },
-        {},
-      ),
-    );
-
-    expect(mockCopier).toHaveBeenCalledTimes(
-      Object.getOwnPropertyNames(object).length,
-    );
-  });
-
-  it('will create an object clone when property symbols are not supported', () => {
-    const object: PlainObject = {
-      bar: { baz: 'quz' },
-    };
-
-    Object.defineProperty(object, 'foo', {
-      value: 'bar',
-    });
-
-    Object.defineProperty(object, Symbol('quz'), {
-      enumerable: true,
-      value: 'blah',
-    });
-
-    const mockCopier = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
-    const prototype = Object.getPrototypeOf(object);
-
-    const result = copier.copyObjectStrict(object, {
+    const result = copyObjectStrict(object, {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
@@ -201,7 +109,7 @@ describe('copyMapStrict', () => {
 
     object.baz = 'baz';
 
-    const result = copier.copyMapStrict(object, {
+    const result = copyMapStrict(object, {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
@@ -225,7 +133,7 @@ describe('copyPrimitiveWrapper', () => {
       const cache = createCache();
       const prototype = Object.getPrototypeOf(primitiveWrapper);
 
-      const result = copier.copyPrimitiveWrapper(primitiveWrapper, {
+      const result = copyPrimitiveWrapper(primitiveWrapper, {
         Constructor: prototype.constructor,
         cache,
         copier: mockCopier,
@@ -247,7 +155,7 @@ describe('copySetStrict', () => {
 
     object.baz = 'baz';
 
-    const result = copier.copySetStrict(object, {
+    const result = copySetStrict(object, {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
