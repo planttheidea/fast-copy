@@ -24,9 +24,6 @@ export function getCleanClone(prototype: any): any {
   }
 
   if (
-    // Being extremely cautious here, in case someone does something wild like
-    // explicitly setting the constructor to a primitive.
-
     Constructor &&
     ~toStringFunction.call(Constructor).indexOf('[native code]')
   ) {
