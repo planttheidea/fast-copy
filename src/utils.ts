@@ -77,21 +77,17 @@ function getRegExpFlagsModern(regExp: RegExp): string {
 export const getRegExpFlags =
   /test/g.flags === 'g' ? getRegExpFlagsModern : getRegExpFlagsLegacy;
 
-function getTagLegacy(value: any): string {
+/**
+ * Get the tag of the value passed, so that the correct copier can be used.
+ */
+export function getTag(value: any): string {
+  const stringTag = value[Symbol.toStringTag];
+
+  if (stringTag) {
+    return stringTag;
+  }
+
   const type = toStringObject.call(value);
 
   return type.substring(8, type.length - 1);
 }
-
-function getTagModern(value: any): string {
-  // Logical OR is used here since result of Symbol.toStringTag will be a populated string
-  // if available, otherwise it will be undefined.
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-  return value[Symbol.toStringTag] || getTagLegacy(value);
-}
-
-/**
- * Get the tag of the value passed, so that the correct copier can be used.
- */
-export const getTag =
-  typeof Symbol !== 'undefined' ? getTagModern : getTagLegacy;
