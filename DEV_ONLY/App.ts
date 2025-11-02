@@ -5,9 +5,7 @@ import copy, { copyStrict, createCopier, createStrictCopier } from '../src';
 
 // import '../benchmarks';
 
-type PlainObject = {
-  [key: string]: any;
-};
+type PlainObject = Record<string, any>;
 
 class Foo {
   value: any;
@@ -18,7 +16,7 @@ class Foo {
 }
 
 const object: PlainObject = {
-  arguments: (function (foo, bar, baz) {
+  arguments: (function (_foo, _bar, _baz) {
     // Specifically testing arguments object
     // eslint-disable-next-line prefer-rest-params
     return arguments;
@@ -127,20 +125,21 @@ const copyShallow = createCopier({
   set: (set) => new Set(set.values()),
 });
 
-const copyOwnProperties = (value, clone) =>
+const copyOwnProperties = <Value>(value: Value, clone: Value) =>
   Object.getOwnPropertyNames(value).reduce(
     (clone, property) =>
       Object.defineProperty(
         clone,
         property,
-        Object.getOwnPropertyDescriptor(value, property) || {
+        Object.getOwnPropertyDescriptor(value, property) ?? {
           configurable: true,
           enumerable: true,
+          // @ts-expect-error - Allow indexing by string.
           value: clone[property],
           writable: true,
-        }
+        },
       ),
-    clone
+    clone,
   );
 
 const copyStrictShallow = createStrictCopier({

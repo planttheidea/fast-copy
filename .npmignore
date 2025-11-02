@@ -4,6 +4,7 @@
 .idea
 .nyc_output
 .rpt2_cache
+.yarn
 .yarnrc
 __tests__
 benchmark

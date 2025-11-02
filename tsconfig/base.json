@@ -7,13 +7,15 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "noImplicitAny": true,
-    "outDir": "./dist",
+    "outDir": "../dist",
     "skipLibCheck": true,
     "sourceMap": true,
+    "strict": true,
+    "strictNullChecks": true,
     "inlineSources": true,
     "target": "es5",
     "types": ["jest", "node", "react"]
   },
   "exclude": ["node_modules"],
-  "include": ["../src/*", "../__tests__/*"]
+  "include": ["../src/*", "../__tests__/*", "../DEV_ONLY/*"]
 }
