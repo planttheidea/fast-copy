@@ -61,6 +61,14 @@
       }
     }
   },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "index.d.ts",
+    "LICENSE",
+    "package.json",
+    "README.md"
+  ],
   "homepage": "https://github.com/planttheidea/fast-copy#readme",
   "keywords": [
     "clone",
