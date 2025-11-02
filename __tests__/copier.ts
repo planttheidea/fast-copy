@@ -3,7 +3,6 @@ interface PlainObject {
   [index: number]: any;
 }
 
-import { createCache } from '../src/utils';
 import {
   copyArrayStrict,
   copyMapStrict,
@@ -12,12 +11,13 @@ import {
   copyPrimitiveWrapper,
   copySetStrict,
 } from '../src/copier';
+import { createDefaultCache } from '../src/options';
 
 describe('copyArrayStrict', () => {
   it('will copy both indices and explicit properties', () => {
     const object: any = ['foo', 'bar'];
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
     object.baz = 'baz';
@@ -42,7 +42,7 @@ describe('copyObjectLoose', () => {
       [Symbol('quz')]: 'blah',
     };
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
     const result = copyObjectLoose(object, {
@@ -77,7 +77,7 @@ describe('copyObjectStrict', () => {
     });
 
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
     const result = copyObjectStrict(object, {
@@ -104,7 +104,7 @@ describe('copyMapStrict', () => {
       ['bar', 'bar'],
     ]);
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
     object.baz = 'baz';
@@ -130,7 +130,7 @@ describe('copyPrimitiveWrapper', () => {
 
     [boolean, number, string].forEach((primitiveWrapper) => {
       const mockCopier = jest.fn().mockImplementation((arg) => arg);
-      const cache = createCache();
+      const cache = createDefaultCache();
       const prototype = Object.getPrototypeOf(primitiveWrapper);
 
       const result = copyPrimitiveWrapper(primitiveWrapper, {
@@ -150,7 +150,7 @@ describe('copySetStrict', () => {
   it('will copy both values and explicit properties', () => {
     const object: any = new Set(['foo', 'bar']);
     const mockCopier = jest.fn().mockImplementation((arg) => arg);
-    const cache = createCache();
+    const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
     object.baz = 'baz';

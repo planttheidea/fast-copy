@@ -9,41 +9,6 @@ const toStringFunction = Function.prototype.toString;
 const toStringObject = Object.prototype.toString;
 
 /**
- * @classdesc Fallback cache for when WeakMap is not natively supported
- */
-class LegacyCache {
-  private _keys: any[] = [];
-  private _values: any[] = [];
-
-  has(key: any): boolean {
-    return !!~this._keys.indexOf(key);
-  }
-
-  get(key: any): any {
-    return this._values[this._keys.indexOf(key)];
-  }
-
-  set(key: any, value: any): void {
-    this._keys.push(key);
-    this._values.push(value);
-  }
-}
-
-function createCacheLegacy(): Cache {
-  return new LegacyCache();
-}
-
-function createCacheModern(): Cache {
-  return new WeakMap();
-}
-
-/**
- * Get a new cache object to prevent circular references.
- */
-export const createCache =
-  typeof WeakMap !== 'undefined' ? createCacheModern : createCacheLegacy;
-
-/**
  * Get an empty version of the object with the same prototype it has.
  */
 export function getCleanClone(prototype: any): any {
