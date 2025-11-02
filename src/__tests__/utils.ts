@@ -1,4 +1,4 @@
-import { getCleanClone } from '../utils';
+import { getCleanClone } from '../utils.ts';
 
 interface PlainObject {
   [key: string]: any;

@@ -1,11 +1,11 @@
-import { getOptions } from './options';
-import { getTag } from './utils';
+import { getOptions } from './options.ts';
+import { getTag } from './utils.ts';
 
-import type { State } from './copier';
-import type { CreateCopierOptions } from './options';
+import type { State } from './copier.ts';
+import type { CreateCopierOptions } from './options.ts';
 
-export type { State } from './copier';
-export type { CreateCopierOptions } from './options';
+export type { State } from './copier.ts';
+export type { CreateCopierOptions } from './options.ts';
 
 /**
  * Create a custom copier based on custom options for any of the following:

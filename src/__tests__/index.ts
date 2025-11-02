@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { copy, copyStrict } from '../index';
+import { copy, copyStrict } from '../index.ts';
 
 interface PlainObject {
   [key: string]: any;

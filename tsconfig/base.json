@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "baseUrl": "src",
     "esModuleInterop": true,
     "jsx": "react",
     "lib": ["DOM", "ESNext"],
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "noImplicitAny": true,
     "outDir": "../dist",
     "skipLibCheck": true,

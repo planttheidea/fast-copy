@@ -1,6 +1,6 @@
-import { getCleanClone } from './utils';
+import { getCleanClone } from './utils.ts';
 
-import type { Cache } from './utils';
+import type { Cache } from './utils.ts';
 
 export type InternalCopier<Value> = (value: Value, state: State) => Value;
 
