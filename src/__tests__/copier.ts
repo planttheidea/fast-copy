@@ -10,8 +10,8 @@ import {
   copyObjectStrict,
   copyPrimitiveWrapper,
   copySetStrict,
-} from '../src/copier';
-import { createDefaultCache } from '../src/options';
+} from '../copier';
+import { createDefaultCache } from '../options';
 
 describe('copyArrayStrict', () => {
   it('will copy both indices and explicit properties', () => {
