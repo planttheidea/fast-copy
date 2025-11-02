@@ -27,11 +27,11 @@ A [blazing fast](#benchmarks) deep object copier
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
     - [Generator objects are copied, but still reference the original generator's state](#generator-objects-are-copied-but-still-reference-the-original-generators-state)
   - [Benchmarks](#benchmarks)
-      - [Simple objects](#simple-objects)
-      - [Complex objects](#complex-objects)
-      - [Big data](#big-data)
-      - [Circular objects](#circular-objects)
-      - [Special objects](#special-objects)
+    - [Simple objects](#simple-objects)
+    - [Complex objects](#complex-objects)
+    - [Big data](#big-data)
+    - [Circular objects](#circular-objects)
+    - [Special objects](#special-objects)
   - [Development](#development)
 
 ## Usage
@@ -219,9 +219,9 @@ const createStrictClone = (value, clone) =>
           enumerable: true,
           value: clone[property],
           writable: true,
-        }
+        },
       ),
-    clone
+    clone,
   );
 
 const copyStrictShallow = createStrictCopier({
@@ -305,13 +305,13 @@ _Small number of properties, all values are primitives_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **5,880,312**       |
-| lodash.cloneDeep   | 2,706,261           |
-| clone              | 2,207,231           |
-| deepclone          | 1,274,810           |
-| fast-clone         | 1,239,952           |
-| ramda              | 1,146,152           |
-| fast-copy (strict) | 852,382             |
+| **fast-copy**      | **7,106,436**       |
+| lodash.cloneDeep   | 2,925,806           |
+| clone              | 2,665,733           |
+| fast-clone         | 1,635,636           |
+| ramda              | 1,143,794           |
+| deepclone          | 1,253,298           |
+| fast-copy (strict) | 1,007,193           |
 
 #### Complex objects
 
@@ -319,13 +319,13 @@ _Large number of properties, values are a combination of primitives and complex 
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **162,858**         |
-| ramda              | 142,104             |
-| deepclone          | 133,607             |
-| fast-clone         | 101,143             |
-| clone              | 70,872              |
-| fast-copy (strict) | 62,961              |
-| lodash.cloneDeep   | 62,060              |
+| **fast-copy**      | **174,056**         |
+| deepclone          | 135,491             |
+| fast-clone         | 99,246              |
+| clone              | 82,487              |
+| ramda              | 78,805              |
+| lodash.cloneDeep   | 66,068              |
+| fast-copy (strict) | 65,617              |
 
 #### Big data
 
@@ -333,13 +333,13 @@ _Very large number of properties with high amount of nesting, mainly objects and
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **303**             |
-| fast-clone         | 245                 |
-| deepclone          | 151                 |
-| lodash.cloneDeep   | 150                 |
-| clone              | 93                  |
-| fast-copy (strict) | 90                  |
-| ramda              | 42                  |
+| **fast-copy**      | **676**             |
+| fast-clone         | 265                 |
+| lodash.cloneDeep   | 165                 |
+| deepclone          | 149                 |
+| clone              | 122                 |
+| fast-copy (strict) | 120                 |
+| ramda              | 39                  |
 
 #### Circular objects
 
@@ -347,12 +347,12 @@ _Objects that deeply reference themselves_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **2,420,466**       |
-| deepclone          | 1,386,896           |
-| ramda              | 1,024,108           |
-| lodash.cloneDeep   | 989,796             |
-| clone              | 987,721             |
-| fast-copy (strict) | 617,602             |
+| **fast-copy**      | **3,183,967**       |
+| deepclone          | 1,285,548           |
+| lodash.cloneDeep   | 1,104,529           |
+| clone              | 1,103,213           |
+| fast-copy (strict) | 757,758             |
+| ramda              | 388,033             |
 | fast-clone         | 0 (not supported)   |
 
 #### Special objects
@@ -361,13 +361,13 @@ _Custom constructors, React components, etc_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **152,792**         |
-| clone              | 74,347              |
-| fast-clone         | 66,576              |
-| lodash.cloneDeep   | 64,760              |
-| ramda              | 53,542              |
-| deepclone          | 28,823              |
-| fast-copy (strict) | 21,362              |
+| **fast-copy**      | **174,273**         |
+| clone              | 82,030              |
+| lodash.cloneDeep   | 69,234              |
+| fast-clone         | 58,831              |
+| deepclone          | 25,780              |
+| ramda              | 25,309              |
+| fast-copy (strict) | 17,766              |
 
 ## Development
 
