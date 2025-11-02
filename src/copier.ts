@@ -13,42 +13,35 @@ export interface State {
 
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
-function copyOwnDescriptor(
-  value: object,
+function copyOwnDescriptor<Value extends object>(
+  original: Value,
+  clone: Value,
   property: string | symbol,
   state: State,
-): PropertyDescriptor {
-  const descriptor = Object.getOwnPropertyDescriptor(value, property);
+): void {
+  const ownDescriptor = Object.getOwnPropertyDescriptor(original, property) || {
+    configurable: true,
+    enumerable: true,
+    value: original[property as keyof Value],
+    writable: true,
+  };
+  const descriptor =
+    ownDescriptor.get || ownDescriptor.set
+      ? ownDescriptor
+      : {
+          configurable: ownDescriptor.configurable,
+          enumerable: ownDescriptor.enumerable,
+          value: state.copier(ownDescriptor.value, state),
+          writable: ownDescriptor.writable,
+        };
 
-  if (!descriptor) {
-    // In extreme edge cases where the property descriptor cannot be retrived, fall back to
-    // the loose assignment.
-    return { configurable: true, enumerable: true, value, writable: true };
-  }
-
-  if (!descriptor.get && !descriptor.set) {
-    // Only clone the value if actually a value, not a getter / setter.
-    return {
-      configurable: descriptor.configurable,
-      enumerable: descriptor.enumerable,
-      value: state.copier(descriptor.value, state),
-      writable: descriptor.writable,
-    };
-  }
-
-  return descriptor;
-}
-
-function defineProperty(
-  clone: object,
-  property: string | symbol,
-  descriptor: PropertyDescriptor,
-) {
   try {
     Object.defineProperty(clone, property, descriptor);
   } catch {
-    // Tee above can fail on node in edge cases, so fall back to the loose assignment.
-    (clone as any)[property] = descriptor.value;
+    // The above can fail on node in extreme edge cases, so fall back to the loose assignment.
+    clone[property as keyof Value] = descriptor.get
+      ? descriptor.get()
+      : descriptor.value;
   }
 }
 
@@ -63,17 +56,13 @@ function copyOwnPropertiesStrict<Value extends object>(
   const names = Object.getOwnPropertyNames(value);
 
   for (let index = 0; index < names.length; ++index) {
-    const name = names[index];
-
-    defineProperty(clone, name, copyOwnDescriptor(value, name, state));
+    copyOwnDescriptor(value, clone, names[index], state);
   }
 
   const symbols = Object.getOwnPropertySymbols(value);
 
   for (let index = 0; index < symbols.length; ++index) {
-    const symbol = symbols[index];
-
-    defineProperty(clone, symbol, copyOwnDescriptor(value, symbol, state));
+    copyOwnDescriptor(value, clone, symbols[index], state);
   }
 
   return clone;

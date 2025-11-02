@@ -104,7 +104,7 @@ export function getOptions({
     ? Object.assign(defaultMethods, methodsOverride)
     : defaultMethods;
   const copiers = getTagSpecificCopiers(methods);
-  const createCache = createCacheOverride ?? createDefaultCache;
+  const createCache = createCacheOverride || createDefaultCache;
 
   // Extra safety check to ensure that object and array copiers are always provided,
   // avoiding runtime errors.
