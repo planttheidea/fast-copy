@@ -311,7 +311,7 @@ _Small number of properties, all values are primitives_
 | fast-clone         | 1,635,636           |
 | ramda              | 1,143,794           |
 | deepclone          | 1,253,298           |
-| fast-copy (strict) | 1,007,193           |
+| fast-copy (strict) | 1,161,882           |
 
 #### Complex objects
 
@@ -324,8 +324,8 @@ _Large number of properties, values are a combination of primitives and complex 
 | fast-clone         | 99,246              |
 | clone              | 82,487              |
 | ramda              | 78,805              |
+| fast-copy (strict) | 70,160              |
 | lodash.cloneDeep   | 66,068              |
-| fast-copy (strict) | 65,617              |
 
 #### Big data
 
@@ -337,8 +337,8 @@ _Very large number of properties with high amount of nesting, mainly objects and
 | fast-clone         | 265                 |
 | lodash.cloneDeep   | 165                 |
 | deepclone          | 149                 |
+| fast-copy (strict) | 133                 |
 | clone              | 122                 |
-| fast-copy (strict) | 120                 |
 | ramda              | 39                  |
 
 #### Circular objects
@@ -351,7 +351,7 @@ _Objects that deeply reference themselves_
 | deepclone          | 1,285,548           |
 | lodash.cloneDeep   | 1,104,529           |
 | clone              | 1,103,213           |
-| fast-copy (strict) | 757,758             |
+| fast-copy (strict) | 1,028,220           |
 | ramda              | 388,033             |
 | fast-clone         | 0 (not supported)   |
 
@@ -367,7 +367,7 @@ _Custom constructors, React components, etc_
 | fast-clone         | 58,831              |
 | deepclone          | 25,780              |
 | ramda              | 25,309              |
-| fast-copy (strict) | 17,766              |
+| fast-copy (strict) | 20,480              |
 
 ## Development
 

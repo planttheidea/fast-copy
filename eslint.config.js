@@ -25,6 +25,7 @@ export default defineConfig([
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      '@typescript-eslint/prefer-for-of': 'off',
       '@typescript-eslint/unbound-method': 'off',
     },
     settings: {

@@ -11,51 +11,42 @@ export interface State {
   prototype: any;
 }
 
-const {
-  defineProperty,
-  getOwnPropertyDescriptor,
-  getOwnPropertyNames,
-  getOwnPropertySymbols,
-} = Object;
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
-
-const SUPPORTS_SYMBOL = typeof getOwnPropertySymbols === 'function';
-
-function getStrictPropertiesModern(object: any): Array<string | symbol> {
-  return (getOwnPropertyNames(object) as Array<string | symbol>).concat(
-    getOwnPropertySymbols(object),
-  );
-}
 
 /**
  * Get the properites used when copying objects strictly. This includes both keys and symbols.
  */
-const getStrictProperties = SUPPORTS_SYMBOL
-  ? getStrictPropertiesModern
-  : getOwnPropertyNames;
+const getStrictProperties = ((getNames, getSymbols) => {
+  if (typeof getSymbols === 'function') {
+    return (object: object): Array<string | symbol> => {
+      const names = getNames(object) as Array<string | symbol>;
+      const symbols = getSymbols(object);
+
+      return symbols.length ? names.concat(symbols) : names;
+    };
+  }
+
+  return getNames;
+})(Object.getOwnPropertyNames, Object.getOwnPropertySymbols);
 
 /**
  * Striclty copy all properties contained on the object.
  */
-function copyOwnPropertiesStrict<Value>(
+function copyOwnPropertiesStrict<Value extends object>(
   value: Value,
   clone: Value,
   state: State,
 ): Value {
   const properties = getStrictProperties(value);
 
-  for (
-    let index = 0, length = properties.length, property, descriptor;
-    index < length;
-    ++index
-  ) {
-    property = properties[index];
+  for (let index = 0; index < properties.length; ++index) {
+    const property = properties[index];
 
     if (property === 'callee' || property === 'caller') {
       continue;
     }
 
-    descriptor = getOwnPropertyDescriptor(value, property);
+    const descriptor = Object.getOwnPropertyDescriptor(value, property);
 
     if (!descriptor) {
       // In extra edge cases where the property descriptor cannot be retrived, fall back to
@@ -70,7 +61,7 @@ function copyOwnPropertiesStrict<Value>(
     }
 
     try {
-      defineProperty(clone, property, descriptor);
+      Object.defineProperty(clone, property, descriptor);
     } catch {
       // Tee above can fail on node in edge cases, so fall back to the loose assignment.
       (clone as any)[property] = descriptor.value;
@@ -89,7 +80,7 @@ export function copyArrayLoose(array: any[], state: State) {
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(array, clone);
 
-  for (let index = 0, length = array.length; index < length; ++index) {
+  for (let index = 0; index < array.length; ++index) {
     clone[index] = state.copier(array[index], state);
   }
 
@@ -177,62 +168,58 @@ export function copyMapStrict<Value extends Map<any, any>>(
   return copyOwnPropertiesStrict(map, copyMapLoose(map, state), state);
 }
 
-function copyObjectLooseLegacy<Value extends Record<string, any>>(
-  object: Value,
-  state: State,
-): Value {
-  const clone: any = getCleanClone(state.prototype);
-
-  // set in the cache immediately to be able to reuse the object recursively
-  state.cache.set(object, clone);
-
-  for (const key in object) {
-    if (hasOwnProperty.call(object, key)) {
-      clone[key] = state.copier(object[key], state);
-    }
-  }
-
-  return clone;
-}
-
-function copyObjectLooseModern<Value extends Record<string, any>>(
-  object: Value,
-  state: State,
-): Value {
-  const clone = getCleanClone(state.prototype);
-
-  // set in the cache immediately to be able to reuse the object recursively
-  state.cache.set(object, clone);
-
-  for (const key in object) {
-    if (hasOwnProperty.call(object, key)) {
-      clone[key] = state.copier(object[key], state);
-    }
-  }
-
-  const symbols = getOwnPropertySymbols(object);
-
-  for (
-    let index = 0, length = symbols.length, symbol;
-    index < length;
-    ++index
-  ) {
-    symbol = symbols[index];
-
-    if (propertyIsEnumerable.call(object, symbol)) {
-      clone[symbol] = state.copier((object as any)[symbol], state);
-    }
-  }
-
-  return clone;
-}
-
 /**
  * Deeply copy the properties (keys and symbols) and values of the original.
  */
-export const copyObjectLoose = SUPPORTS_SYMBOL
-  ? copyObjectLooseModern
-  : copyObjectLooseLegacy;
+export const copyObjectLoose = ((getSymbols) => {
+  if (typeof getSymbols === 'function') {
+    return <Value extends Record<string, any>>(
+      object: Value,
+      state: State,
+    ): Value => {
+      const clone = getCleanClone(state.prototype);
+
+      // set in the cache immediately to be able to reuse the object recursively
+      state.cache.set(object, clone);
+
+      for (const key in object) {
+        if (hasOwnProperty.call(object, key)) {
+          clone[key] = state.copier(object[key], state);
+        }
+      }
+
+      const symbols = getSymbols(object);
+
+      for (let index = 0; index < symbols.length; ++index) {
+        const symbol = symbols[index];
+
+        if (propertyIsEnumerable.call(object, symbol)) {
+          clone[symbol] = state.copier((object as any)[symbol], state);
+        }
+      }
+
+      return clone;
+    };
+  }
+
+  return <Value extends Record<string, any>>(
+    object: Value,
+    state: State,
+  ): Value => {
+    const clone: any = getCleanClone(state.prototype);
+
+    // set in the cache immediately to be able to reuse the object recursively
+    state.cache.set(object, clone);
+
+    for (const key in object) {
+      if (hasOwnProperty.call(object, key)) {
+        clone[key] = state.copier(object[key], state);
+      }
+    }
+
+    return clone;
+  };
+})(Object.getOwnPropertySymbols);
 
 /**
  * Deeply copy the properties (keys and symbols) and values of the original, as well

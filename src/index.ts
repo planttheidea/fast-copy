@@ -21,8 +21,6 @@ import type { InternalCopier, State } from './copier';
 
 export type { State } from './copier';
 
-const { isArray } = Array;
-const { assign } = Object;
 // Handling extremely old environments without Object.getPrototypeOf.
 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 const getPrototypeOf = Object.getPrototypeOf || ((obj) => obj.__proto__);
@@ -52,7 +50,7 @@ const DEFAULT_LOOSE_OPTIONS: Required<CreateCopierOptions> = {
   regExp: copyRegExp,
   set: copySetLoose,
 };
-const DEFAULT_STRICT_OPTIONS: Required<CreateCopierOptions> = assign(
+const DEFAULT_STRICT_OPTIONS: Required<CreateCopierOptions> = Object.assign(
   {},
   DEFAULT_LOOSE_OPTIONS,
   {
@@ -104,7 +102,7 @@ function getTagSpecificCopiers(
  * Create a custom copier based on the object-specific copy methods passed.
  */
 export function createCopier(options: CreateCopierOptions) {
-  const normalizedOptions = assign({}, DEFAULT_LOOSE_OPTIONS, options);
+  const normalizedOptions = Object.assign({}, DEFAULT_LOOSE_OPTIONS, options);
   const tagSpecificCopiers = getTagSpecificCopiers(normalizedOptions);
 
   if (!tagSpecificCopiers.Object || !tagSpecificCopiers.Array) {
@@ -136,7 +134,7 @@ export function createCopier(options: CreateCopierOptions) {
     }
 
     // arrays
-    if (isArray(value)) {
+    if (Array.isArray(value)) {
       return copyArray(value, state);
     }
 
@@ -164,7 +162,7 @@ export function createCopier(options: CreateCopierOptions) {
  * same internals as `copyStrict`.
  */
 export function createStrictCopier(options: CreateCopierOptions) {
-  return createCopier(assign({}, DEFAULT_STRICT_OPTIONS, options));
+  return createCopier(Object.assign({}, DEFAULT_STRICT_OPTIONS, options));
 }
 
 /**
