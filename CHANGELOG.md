@@ -1,5 +1,13 @@
 # fast-copy CHANGELOG
 
+## 4.0.0
+
+### BREAKING CHANGES
+
+- Legacy environment support has been removed; `Symbol`, `WeakMap`, and `RegExp.prototype.flags` are now expected to be present.
+- `createCopier` now receives an object of options. The methods passed previously are namespaced under the `methods` key in that options object.
+- `createStrictCopier` has been removed; please use the `strict` option passed to `createCopier`
+
 ## 3.0.2
 
 - [#95](https://github.com/planttheidea/fast-copy/pull/95) - Add support for objects that have a prototype with no constructor

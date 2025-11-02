@@ -4,7 +4,6 @@ export interface Cache {
   get: (key: any) => any;
 }
 
-const { create } = Object;
 const toStringFunction = Function.prototype.toString;
 const toStringObject = Object.prototype.toString;
 
@@ -13,7 +12,7 @@ const toStringObject = Object.prototype.toString;
  */
 export function getCleanClone(prototype: any): any {
   if (!prototype) {
-    return create(null);
+    return Object.create(null);
   }
 
   const Constructor = prototype.constructor;
@@ -21,7 +20,7 @@ export function getCleanClone(prototype: any): any {
   if (Constructor === Object) {
     return prototype === Object.prototype
       ? {}
-      : create(prototype as object | null);
+      : Object.create(prototype as object | null);
   }
 
   if (
@@ -38,7 +37,7 @@ export function getCleanClone(prototype: any): any {
     }
   }
 
-  return create(prototype as object | null);
+  return Object.create(prototype as object | null);
 }
 
 /**
