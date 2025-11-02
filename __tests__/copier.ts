@@ -1,7 +1,7 @@
-type PlainObject = {
+interface PlainObject {
   [key: string]: any;
   [index: number]: any;
-};
+}
 
 import { createCache } from '../src/utils';
 
@@ -9,7 +9,7 @@ let copier: typeof import('../src/copier');
 
 beforeEach(() => {
   jest.isolateModules(() => {
-    copier = require('../src/copier');
+    copier = jest.requireActual('../src/copier');
   });
 });
 
@@ -40,8 +40,9 @@ describe('copyObjectLoose', () => {
     const original = Object.getOwnPropertySymbols;
 
     jest.isolateModules(() => {
+      // @ts-expect-error - Override for testing.
       Object.getOwnPropertySymbols = undefined;
-      copier = require('../src/copier');
+      copier = jest.requireActual('../src/copier');
     });
 
     const symbol = Symbol('quz');
@@ -69,7 +70,7 @@ describe('copyObjectLoose', () => {
         clone[key] = object[key as keyof typeof object];
 
         return clone;
-      }, {})
+      }, {}),
     );
 
     expect(mockCopier).toHaveBeenCalledTimes(Object.keys(object).length);
@@ -95,7 +96,7 @@ describe('copyObjectLoose', () => {
     expect(result).toEqual(object);
 
     expect(mockCopier).toHaveBeenCalledTimes(
-      Object.keys(object).length + Object.getOwnPropertySymbols(object).length
+      Object.keys(object).length + Object.getOwnPropertySymbols(object).length,
     );
   });
 });
@@ -105,8 +106,9 @@ describe('copyObjectStrict', () => {
     const original = Object.getOwnPropertySymbols;
 
     jest.isolateModules(() => {
+      // @ts-expect-error - Override for testing.
       Object.getOwnPropertySymbols = undefined;
-      copier = require('../src/copier');
+      copier = jest.requireActual('../src/copier');
     });
 
     const object: PlainObject = {
@@ -143,12 +145,12 @@ describe('copyObjectStrict', () => {
 
           return clone;
         },
-        {}
-      )
+        {},
+      ),
     );
 
     expect(mockCopier).toHaveBeenCalledTimes(
-      Object.getOwnPropertyNames(object).length
+      Object.getOwnPropertyNames(object).length,
     );
   });
 
@@ -182,7 +184,7 @@ describe('copyObjectStrict', () => {
 
     expect(mockCopier).toHaveBeenCalledTimes(
       Object.getOwnPropertyNames(object).length +
-        Object.getOwnPropertySymbols(object).length
+        Object.getOwnPropertySymbols(object).length,
     );
   });
 });

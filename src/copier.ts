@@ -23,7 +23,7 @@ const SUPPORTS_SYMBOL = typeof getOwnPropertySymbols === 'function';
 
 function getStrictPropertiesModern(object: any): Array<string | symbol> {
   return (getOwnPropertyNames(object) as Array<string | symbol>).concat(
-    getOwnPropertySymbols(object)
+    getOwnPropertySymbols(object),
   );
 }
 
@@ -40,7 +40,7 @@ const getStrictProperties = SUPPORTS_SYMBOL
 function copyOwnPropertiesStrict<Value>(
   value: Value,
   clone: Value,
-  state: State
+  state: State,
 ): Value {
   const properties = getStrictProperties(value);
 
@@ -71,7 +71,7 @@ function copyOwnPropertiesStrict<Value>(
 
     try {
       defineProperty(clone, property, descriptor);
-    } catch (error) {
+    } catch {
       // Tee above can fail on node in edge cases, so fall back to the loose assignment.
       (clone as any)[property] = descriptor.value;
     }
@@ -101,7 +101,7 @@ export function copyArrayLoose(array: any[], state: State) {
  */
 export function copyArrayStrict<Value extends any[]>(
   array: Value,
-  state: State
+  state: State,
 ) {
   const clone = new state.Constructor() as Value;
 
@@ -114,9 +114,9 @@ export function copyArrayStrict<Value extends any[]>(
 /**
  * Copy the contents of the ArrayBuffer.
  */
-export function copyArrayBuffer<Value extends ArrayBuffer>(
+export function copyArrayBuffer<Value extends ArrayBufferLike>(
   arrayBuffer: Value,
-  _state: State
+  _state: State,
 ): Value {
   return arrayBuffer.slice(0) as Value;
 }
@@ -126,7 +126,7 @@ export function copyArrayBuffer<Value extends ArrayBuffer>(
  */
 export function copyBlob<Value extends Blob>(
   blob: Value,
-  _state: State
+  _state: State,
 ): Value {
   return blob.slice(0, blob.size, blob.type) as Value;
 }
@@ -136,7 +136,7 @@ export function copyBlob<Value extends Blob>(
  */
 export function copyDataView<Value extends DataView>(
   dataView: Value,
-  state: State
+  state: State,
 ): Value {
   return new state.Constructor(copyArrayBuffer(dataView.buffer, state));
 }
@@ -153,7 +153,7 @@ export function copyDate<Value extends Date>(date: Value, state: State): Value {
  */
 export function copyMapLoose<Value extends Map<any, any>>(
   map: Value,
-  state: State
+  state: State,
 ): Value {
   const clone = new state.Constructor() as Value;
 
@@ -172,14 +172,14 @@ export function copyMapLoose<Value extends Map<any, any>>(
  */
 export function copyMapStrict<Value extends Map<any, any>>(
   map: Value,
-  state: State
+  state: State,
 ) {
   return copyOwnPropertiesStrict(map, copyMapLoose(map, state), state);
 }
 
 function copyObjectLooseLegacy<Value extends Record<string, any>>(
   object: Value,
-  state: State
+  state: State,
 ): Value {
   const clone: any = getCleanClone(state.prototype);
 
@@ -197,7 +197,7 @@ function copyObjectLooseLegacy<Value extends Record<string, any>>(
 
 function copyObjectLooseModern<Value extends Record<string, any>>(
   object: Value,
-  state: State
+  state: State,
 ): Value {
   const clone = getCleanClone(state.prototype);
 
@@ -240,7 +240,7 @@ export const copyObjectLoose = SUPPORTS_SYMBOL
  */
 export function copyObjectStrict<Value extends Record<string, any>>(
   object: Value,
-  state: State
+  state: State,
 ): Value {
   const clone = getCleanClone(state.prototype);
 
@@ -255,8 +255,8 @@ export function copyObjectStrict<Value extends Record<string, any>>(
  */
 export function copyPrimitiveWrapper<
   // Specifically use the object constructor types
-  // eslint-disable-next-line @typescript-eslint/ban-types
-  Value extends Boolean | Number | String
+  // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+  Value extends Boolean | Number | String,
 >(primitiveObject: Value, state: State): Value {
   return new state.Constructor(primitiveObject.valueOf());
 }
@@ -266,11 +266,11 @@ export function copyPrimitiveWrapper<
  */
 export function copyRegExp<Value extends RegExp>(
   regExp: Value,
-  state: State
+  state: State,
 ): Value {
   const clone = new state.Constructor(
     regExp.source,
-    getRegExpFlags(regExp)
+    getRegExpFlags(regExp),
   ) as Value;
 
   clone.lastIndex = regExp.lastIndex;
@@ -293,7 +293,7 @@ export function copySelf<Value>(value: Value, _state: State): Value {
  */
 export function copySetLoose<Value extends Set<any>>(
   set: Value,
-  state: State
+  state: State,
 ): Value {
   const clone = new state.Constructor() as Value;
 
@@ -312,7 +312,7 @@ export function copySetLoose<Value extends Set<any>>(
  */
 export function copySetStrict<Value extends Set<any>>(
   set: Value,
-  state: State
+  state: State,
 ): Value {
   return copyOwnPropertiesStrict(set, copySetLoose(set, state), state);
 }

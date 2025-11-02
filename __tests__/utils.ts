@@ -1,13 +1,13 @@
-type PlainObject = {
+interface PlainObject {
   [key: string]: any;
   [index: number]: any;
-};
+}
 
 let utils: typeof import('../src/utils');
 
 beforeEach(() => {
   jest.isolateModules(() => {
-    utils = require('../src/utils');
+    utils = jest.requireActual('../src/utils');
   });
 });
 
@@ -21,10 +21,11 @@ describe('createCache', () => {
   it('will create a cache based on a tiny WeakMap fill if not available globally', () => {
     const original = globalThis.WeakMap;
 
+    // @ts-expect-error - Override for testing.
     globalThis.WeakMap = undefined;
 
     jest.isolateModules(() => {
-      utils = require('../src/utils');
+      utils = jest.requireActual('../src/utils');
     });
 
     const result = utils.createCache();
@@ -194,6 +195,7 @@ describe('getRegExpFlags', () => {
   });
 
   it('will add the u flag when one is on the regexp', () => {
+    // @ts-expect-error - Testing u flag
     const regexp = /foo/u;
 
     const result = utils.getRegExpFlags(regexp);
@@ -202,6 +204,7 @@ describe('getRegExpFlags', () => {
   });
 
   it('will add the g flag when one is on the regexp', () => {
+    // @ts-expect-error - Testing y flag
     const regexp = /foo/y;
 
     const result = utils.getRegExpFlags(regexp);
@@ -210,6 +213,7 @@ describe('getRegExpFlags', () => {
   });
 
   it('will add all flags preset on the regexp', () => {
+    // @ts-expect-error - Testing uy flag
     const regexp = /foo/gimuy;
 
     const result = utils.getRegExpFlags(regexp);

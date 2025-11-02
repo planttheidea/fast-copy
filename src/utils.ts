@@ -4,9 +4,9 @@ export interface Cache {
   get: (key: any) => any;
 }
 
-const { toString: toStringFunction } = Function.prototype;
 const { create } = Object;
-const { toString: toStringObject } = Object.prototype;
+const toStringFunction = Function.prototype.toString;
+const toStringObject = Object.prototype.toString;
 
 /**
  * @classdesc Fallback cache for when WeakMap is not natively supported
@@ -15,15 +15,15 @@ class LegacyCache {
   private _keys: any[] = [];
   private _values: any[] = [];
 
-  has(key: any) {
+  has(key: any): boolean {
     return !!~this._keys.indexOf(key);
   }
 
-  get(key: any) {
+  get(key: any): any {
     return this._values[this._keys.indexOf(key)];
   }
 
-  set(key: any, value: any) {
+  set(key: any, value: any): void {
     this._keys.push(key);
     this._values.push(value);
   }
@@ -54,19 +54,26 @@ export function getCleanClone(prototype: any): any {
   const Constructor = prototype.constructor;
 
   if (Constructor === Object) {
-    return prototype === Object.prototype ? {} : create(prototype);
+    return prototype === Object.prototype
+      ? {}
+      : create(prototype as object | null);
   }
 
   if (
+    // Being extremely cautious here, in case someone does something wild like
+    // explicitly setting the constructor to a primitive.
+     
     Constructor &&
     ~toStringFunction.call(Constructor).indexOf('[native code]')
   ) {
     try {
       return new Constructor();
-    } catch {}
+    } catch {
+      // Ignore
+    }
   }
 
-  return create(prototype);
+  return create(prototype as object | null);
 }
 
 function getRegExpFlagsLegacy(regExp: RegExp): string {
@@ -112,6 +119,9 @@ function getTagLegacy(value: any): string {
 }
 
 function getTagModern(value: any): string {
+  // Logical OR is used here since result of Symbol.toStringTag will be a populated string
+  // if available, otherwise it will be undefined.
+  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   return value[Symbol.toStringTag] || getTagLegacy(value);
 }
 

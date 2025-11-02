@@ -23,7 +23,9 @@ export type { State } from './copier';
 
 const { isArray } = Array;
 const { assign } = Object;
-const getPrototypeOf = Object.getPrototypeOf || ((obj) => obj.__proto__)
+// Handling extremely old environments without Object.getPrototypeOf.
+// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+const getPrototypeOf = Object.getPrototypeOf || ((obj) => obj.__proto__);
 
 export interface CreateCopierOptions {
   array?: InternalCopier<any[]>;
@@ -58,15 +60,15 @@ const DEFAULT_STRICT_OPTIONS: Required<CreateCopierOptions> = assign(
     map: copyMapStrict,
     object: copyObjectStrict,
     set: copySetStrict,
-  }
+  },
 );
 
 /**
  * Get the copiers used for each specific object tag.
  */
 function getTagSpecificCopiers(
-  options: Required<CreateCopierOptions>
-): Record<string, InternalCopier<any>> {
+  options: Required<CreateCopierOptions>,
+): Record<string, InternalCopier<any> | undefined> {
   return {
     Arguments: options.object,
     Array: options.array,
@@ -104,7 +106,12 @@ function getTagSpecificCopiers(
 export function createCopier(options: CreateCopierOptions) {
   const normalizedOptions = assign({}, DEFAULT_LOOSE_OPTIONS, options);
   const tagSpecificCopiers = getTagSpecificCopiers(normalizedOptions);
-  const { Array: array, Object: object } = tagSpecificCopiers;
+
+  if (!tagSpecificCopiers.Object || !tagSpecificCopiers.Array) {
+    throw new Error('An object and array copier must be provided.');
+  }
+
+  const { Array: copyArray, Object: copyObject } = tagSpecificCopiers;
 
   function copier(value: any, state: State): any {
     state.prototype = state.Constructor = undefined;
@@ -118,16 +125,19 @@ export function createCopier(options: CreateCopierOptions) {
     }
 
     state.prototype = getPrototypeOf(value);
+    // Using logical AND for speed, since optional chaining transforms to
+    // a local variable usage.
+    // eslint-disable-next-line @typescript-eslint/prefer-optional-chain
     state.Constructor = state.prototype && state.prototype.constructor;
 
     // plain objects
     if (!state.Constructor || state.Constructor === Object) {
-      return object(value, state);
+      return copyObject(value, state);
     }
 
     // arrays
     if (isArray(value)) {
-      return array(value, state);
+      return copyArray(value, state);
     }
 
     const tagSpecificCopier = tagSpecificCopiers[getTag(value)];
@@ -136,7 +146,7 @@ export function createCopier(options: CreateCopierOptions) {
       return tagSpecificCopier(value, state);
     }
 
-    return typeof value.then === 'function' ? value : object(value, state);
+    return typeof value.then === 'function' ? value : copyObject(value, state);
   }
 
   return function copy<Value>(value: Value): Value {

@@ -3,10 +3,10 @@ import React from 'react';
 
 import copy, { copyStrict } from '../src';
 
-type PlainObject = {
+interface PlainObject {
   [key: string]: any;
   [index: number]: any;
-};
+}
 
 const hash = crypto.createHash('sha256');
 
@@ -48,7 +48,7 @@ Object.defineProperties(SIMPLE_TYPES, {
 });
 
 const COMPLEX_TYPES: PlainObject = {
-  arguments: (function (foo, bar, baz) {
+  arguments: (function (_foo, _bar, _baz) {
     // Specifically testing arguments object
     // eslint-disable-next-line prefer-rest-params
     return arguments;
@@ -119,6 +119,7 @@ class Foo {
   }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-extraneous-class
 class Bar {
   constructor(value: any) {
     this.constructor = value;
@@ -167,11 +168,11 @@ describe('copy', () => {
     expect(result).not.toBe(SIMPLE_TYPES);
     expect(result).toEqual(SIMPLE_TYPES);
 
-    const properties = [].concat(
+    const properties = ([] as Array<string | symbol>).concat(
       Object.keys(SIMPLE_TYPES),
       Object.getOwnPropertySymbols(SIMPLE_TYPES).filter((symbol) =>
-        Object.prototype.propertyIsEnumerable.call(SIMPLE_TYPES, symbol)
-      )
+        Object.prototype.propertyIsEnumerable.call(SIMPLE_TYPES, symbol),
+      ),
     );
 
     properties.forEach((property: string | symbol) => {
@@ -194,7 +195,7 @@ describe('copy', () => {
     const properties = [
       ...Object.keys(COMPLEX_TYPES),
       ...Object.getOwnPropertySymbols(COMPLEX_TYPES).filter((symbol) =>
-        Object.prototype.propertyIsEnumerable.call(COMPLEX_TYPES, symbol)
+        Object.prototype.propertyIsEnumerable.call(COMPLEX_TYPES, symbol),
       ),
     ];
 
@@ -204,7 +205,7 @@ describe('copy', () => {
         expect({ ...result[property] }).toEqual({ ...COMPLEX_TYPES[property] });
       } else if (property === 'customPrototype') {
         expect(Object.getPrototypeOf(result[property])).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property])
+          Object.getPrototypeOf(COMPLEX_TYPES[property]),
         );
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
       } else {
@@ -303,9 +304,9 @@ describe('copyStrict', () => {
     expect(result).not.toBe(SIMPLE_TYPES);
     expect(result).toEqual(SIMPLE_TYPES);
 
-    const properties = [].concat(
+    const properties = ([] as Array<string | symbol>).concat(
       Object.getOwnPropertyNames(SIMPLE_TYPES),
-      Object.getOwnPropertySymbols(SIMPLE_TYPES)
+      Object.getOwnPropertySymbols(SIMPLE_TYPES),
     );
 
     properties.forEach((property: string | symbol) => {
@@ -325,9 +326,9 @@ describe('copyStrict', () => {
 
     expect(result).toEqual(complexTypes);
 
-    const properties = [].concat(
+    const properties = ([] as Array<string | symbol>).concat(
       Object.getOwnPropertyNames(complexTypes),
-      Object.getOwnPropertySymbols(complexTypes)
+      Object.getOwnPropertySymbols(complexTypes),
     );
 
     properties.forEach((property: string | symbol) => {
@@ -337,7 +338,7 @@ describe('copyStrict', () => {
         expect({ ...result[property] }).toEqual({ ...COMPLEX_TYPES[property] });
       } else if (property === 'customPrototype') {
         expect(Object.getPrototypeOf(result[property])).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property])
+          Object.getPrototypeOf(COMPLEX_TYPES[property]),
         );
 
         expect(result[property]).toEqual(COMPLEX_TYPES[property]);
