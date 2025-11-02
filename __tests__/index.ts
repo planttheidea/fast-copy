@@ -50,6 +50,7 @@ const COMPLEX_TYPES: PlainObject = {
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
+  blob: new Blob(['<a id="a">hey!</a>'], { type: 'text/html' }),
   buffer: Buffer.from('this is a test buffer'),
   customPrototype: Object.create({
     method() {
@@ -68,8 +69,6 @@ const COMPLEX_TYPES: PlainObject = {
   object: { foo: { bar: 'baz' } },
   regexp: /foo/,
   set: new Set().add('foo').add({ bar: { baz: 'quz' } }),
-  // Disabling, as jest fails intermittently with blob construction.
-  // blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
   uint8Array: new Uint8Array([11, 12]),
   uint8ClampedArray: new Uint8ClampedArray([13, 14]),
   uint16Array: new Uint16Array([15, 16]),
@@ -181,10 +180,7 @@ describe('copy', () => {
     expect(result).not.toBe(COMPLEX_TYPES);
 
     const complexTypes = { ...COMPLEX_TYPES };
-
     complexTypes.arguments = { ...COMPLEX_TYPES.arguments };
-
-    expect(result).toEqual(complexTypes);
 
     const properties = [
       ...Object.keys(COMPLEX_TYPES),
@@ -194,17 +190,23 @@ describe('copy', () => {
     ];
 
     properties.forEach((property: string | symbol) => {
+      const value = result[property as string];
+
       if (property === 'arguments') {
-        expect(result[property].constructor).toBe(Object);
-        expect({ ...result[property] }).toEqual({ ...COMPLEX_TYPES[property] });
+        expect(value.constructor).toBe(Object);
+        expect({ ...value }).toEqual({ ...COMPLEX_TYPES[property] });
+      } else if (property === 'blob') {
+        expect(value).toBeInstanceOf(Blob);
+        expect(value.size).toBe(complexTypes[property].size);
+        expect(value.type).toBe(complexTypes[property].type);
       } else if (property === 'customPrototype') {
-        expect(Object.getPrototypeOf(result[property])).toBe(
+        expect(Object.getPrototypeOf(value)).toBe(
           Object.getPrototypeOf(COMPLEX_TYPES[property]),
         );
-        expect(result[property]).toEqual(COMPLEX_TYPES[property]);
+        expect(value).toEqual(COMPLEX_TYPES[property]);
       } else {
         // @ts-expect-error - Symbol not supported property type
-        expect(result[property]).toEqual(COMPLEX_TYPES[property]);
+        expect(value).toEqual(COMPLEX_TYPES[property]);
       }
     });
   });
@@ -318,27 +320,29 @@ describe('copyStrict', () => {
 
     complexTypes.arguments = { ...COMPLEX_TYPES.arguments };
 
-    expect(result).toEqual(complexTypes);
-
     const properties = ([] as Array<string | symbol>).concat(
       Object.getOwnPropertyNames(complexTypes),
       Object.getOwnPropertySymbols(complexTypes),
     );
 
     properties.forEach((property: string | symbol) => {
-      if (property === 'arguments') {
-        expect(result[property].constructor).toBe(Object);
+      const value = result[property as string];
 
-        expect({ ...result[property] }).toEqual({ ...COMPLEX_TYPES[property] });
+      if (property === 'arguments') {
+        expect(value.constructor).toBe(Object);
+        expect({ ...value }).toEqual({ ...COMPLEX_TYPES[property] });
+      } else if (property === 'blob') {
+        expect(value).toBeInstanceOf(Blob);
+        expect(value.size).toBe(complexTypes[property].size);
+        expect(value.type).toBe(complexTypes[property].type);
       } else if (property === 'customPrototype') {
-        expect(Object.getPrototypeOf(result[property])).toBe(
+        expect(Object.getPrototypeOf(value)).toBe(
           Object.getPrototypeOf(COMPLEX_TYPES[property]),
         );
-
-        expect(result[property]).toEqual(COMPLEX_TYPES[property]);
+        expect(value).toEqual(COMPLEX_TYPES[property]);
       } else {
         // @ts-expect-error - Symbol not supported property type
-        expect(result[property]).toEqual(COMPLEX_TYPES[property]);
+        expect(value).toEqual(COMPLEX_TYPES[property]);
       }
     });
   });
