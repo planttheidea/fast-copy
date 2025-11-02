@@ -37,7 +37,7 @@ A [blazing fast](#benchmarks) deep object copier
 ## Usage
 
 ```js
-import copy from 'fast-copy';
+import { copy } from 'fast-copy';
 import { deepEqual } from 'fast-equals';
 
 const object = {
@@ -61,7 +61,7 @@ console.log(deepEqual(copiedObject, object)); // true
 Deeply copy the object passed.
 
 ```js
-import copy from 'fast-copy';
+import { copy } from 'fast-copy';
 
 const copied = copy({ foo: 'bar' });
 ```
