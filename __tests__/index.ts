@@ -1,4 +1,3 @@
-import crypto from 'crypto';
 import React from 'react';
 
 import copy, { copyStrict } from '../src';
@@ -7,10 +6,6 @@ interface PlainObject {
   [key: string]: any;
   [index: number]: any;
 }
-
-const hash = crypto.createHash('sha256');
-
-hash.update('foo bar');
 
 const SIMPLE_TYPES: PlainObject = {
   boolean: true,
@@ -66,7 +61,6 @@ const COMPLEX_TYPES: PlainObject = {
   date: new Date(),
   float32Array: new Float32Array([1, 2]),
   float64Array: new Float64Array([3, 4]),
-  hash,
   int8Array: new Int8Array([5, 6]),
   int16Array: new Int16Array([7, 8]),
   int32Array: new Int32Array([9, 10]),
