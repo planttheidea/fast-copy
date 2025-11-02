@@ -7,7 +7,7 @@
     "module": "ESNext",
     "moduleResolution": "Node",
     "noImplicitAny": true,
-    "outDir": "./dist",
+    "outDir": "../dist",
     "skipLibCheck": true,
     "sourceMap": true,
     "strict": true,
