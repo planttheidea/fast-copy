@@ -360,15 +360,18 @@ Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencie
 - build:esm => build ESM files and types
 - build:min => build minified files and types
 - build:umd => build UMD files and types
-- clean => run `rimraf` on the `dist` folder
+- clean => remove the `dist` folder and all its contents
+- clean:cjs => remove the `dist/cjs` folder and all its contents
+- clean:esm => remove the `dist/esm` folder and all its contents
+- clean:min => remove the `dist/min` folder and all its contents
+- clean:umd => remove the `dist/umd` folder and all its contents
 - dev => start webpack playground App
-- dist => run `clean` and `build` scripts
-- lint => run ESLint on all files in `src` folder (also runs on `dev` script)
+- lint => run `eslint`
 - lint:fix => run `lint` script, but with auto-fixer
-- prepublishOnly => run `lint`, `test:coverage`, and `dist` scripts
 - release => run `prepublishOnly` and release with new version
 - release:beta => run `prepublishOnly` and release with new beta version
 - release:dry => run `prepublishOnly` and simulate a new release
+- release:scripts => run `lint`, `test:coverage`, and `dist` scripts
 - start => run `dev`
 - test => run AVA with NODE_ENV=test on all files in `test` folder
 - test:coverage => run same script as `test` with code coverage calculation via `nyc`
