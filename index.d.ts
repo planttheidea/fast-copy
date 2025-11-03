@@ -6,19 +6,25 @@ interface Cache {
   get: (key: any) => any;
 }
 
-export interface CreateCopierOptions {
+type InternalCopier<Value> = (value: Value, state: State) => Value;
+
+export interface CopierMethods {
   array?: InternalCopier<any[]>;
-  arrayBuffer?: InternalCopier<ArrayBufferLike>;
+  arrayBuffer?: InternalCopier<ArrayBuffer>;
   blob?: InternalCopier<Blob>;
   dataView?: InternalCopier<DataView>;
   date?: InternalCopier<Date>;
+  error?: InternalCopier<any>;
   map?: InternalCopier<Map<any, any>>;
   object?: InternalCopier<Record<string, any>>;
   regExp?: InternalCopier<RegExp>;
   set?: InternalCopier<Set<any>>;
 }
-
-type InternalCopier<Value> = (value: Value, state: State) => Value;
+export interface CreateCopierOptions {
+  createCache?: () => Cache;
+  methods?: CopierMethods;
+  strict?: boolean;
+}
 
 export interface State {
   Constructor: any;
@@ -30,7 +36,7 @@ export interface State {
 /**
  * Copy an value deeply as much as possible.
  */
-export default function copy<Value>(value: Value): Value;
+export function copy<Value>(value: Value): Value;
 
 /**
  * Copy an value deeply as much as possible, where strict recreation of object properties
@@ -40,16 +46,11 @@ export default function copy<Value>(value: Value): Value;
 export function copyStrict<Value>(value: Value): Value;
 
 /**
- * Create a custom copier based on the object-specific copy methods passed.
+ * Create a custom copier based on custom options for any of the following:
+ *   - `createCache` method to create a cache for copied objects
+ *   - custom copier `methods` for specific object types
+ *   - `strict` mode to copy all properties with their descriptors
  */
 export function createCopier(
-  options: CreateCopierOptions,
-): <Value>(value: Value) => Value;
-
-/**
- * Create a custom copier based on the object-specific copy methods passed, defaulting to the
- * same internals as `copyStrict`.
- */
-export function createStrictCopier(
-  options: CreateCopierOptions,
+  options?: CreateCopierOptions,
 ): <Value>(value: Value) => Value;
