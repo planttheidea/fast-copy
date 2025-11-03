@@ -95,8 +95,10 @@ Create a custom copier based on the type-specific method overrides passed, as we
 
 ```js
 import { createCopier } from 'fast-copy';
+import { LRUCache } from 'lru-cache';
 
 const copyShallowStrict = createCopier({
+  createCache: () => new LRUCache(),
   methods: {
     array: (array) => [...array],
     map: (map) => new Map(map.entries()),
@@ -107,24 +109,13 @@ const copyShallowStrict = createCopier({
 });
 ```
 
-Each internal copier method has the following contract:
-
-```js
-type InternalCopier<Value> = (value: Value, state: State) => Value;
-
-interface State {
-  Constructor: any;
-  cache: WeakMap;
-  copier: InternalCopier<any>;
-  prototype: any;
-}
-```
-
 #### `createCache`
 
 Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new `WeakMap` instance.
 
 #### `methods`
+
+Methods used for copying specific object types. A list of the methods and which object types they handle:
 
 - `array` => `Array`
 - `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
@@ -136,6 +127,19 @@ Method that creates the internal [`cache`](#cache) in the [Copier state](#copier
 - `object` => `Object`, or any custom constructor
 - `regExp` => `RegExp`
 - `set` => `Set`
+
+Each method has the following contract:
+
+```js
+type InternalCopier<Value> = (value: Value, state: State) => Value;
+
+interface State {
+  Constructor: any;
+  cache: WeakMap;
+  copier: InternalCopier<any>;
+  prototype: any;
+}
+```
 
 ##### Copier state
 
