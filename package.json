@@ -18,6 +18,7 @@
     "@types/react": "^19.2.2",
     "@typescript-eslint/eslint-plugin": "^8.46.3",
     "@typescript-eslint/parser": "^8.46.3",
+    "@vitest/coverage-v8": "4.0.7",
     "benchee": "^1.1.0",
     "cli-table3": "^0.6.5",
     "clone": "^2.1.2",
@@ -103,7 +104,7 @@
     "release:scripts": "npm run typecheck && npm run lint && npm run test && npm run build",
     "start": "npm run dev",
     "test": "vitest run",
-    "test:coverage": "vitest run -- --coverage",
+    "test:coverage": "vitest run --coverage",
     "test:watch": "vitest -- --watch",
     "typecheck": "tsc --noEmit"
   },
