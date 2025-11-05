@@ -15,7 +15,7 @@ import {
   copySelf,
   copySetLoose,
   copySetStrict,
-} from './copier.ts';
+} from './copier.js';
 import type { Cache } from './utils.ts';
 
 export interface CopierMethods {
