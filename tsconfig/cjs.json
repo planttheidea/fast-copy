@@ -2,7 +2,8 @@
   "extends": "./declarations.json",
   "compilerOptions": {
     "declarationDir": "../dist/cjs/types",
-    "module": "CommonJS",
+    "module": "Node16",
+    "moduleResolution": "Node16",
     "outDir": "../dist/cjs"
   }
 }

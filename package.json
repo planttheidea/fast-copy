@@ -48,11 +48,11 @@
   "exports": {
     ".": {
       "import": {
-        "types": "./dist/esm/types/index.d.ts",
+        "types": "./dist/esm/types/index.d.mts",
         "default": "./dist/esm/index.mjs"
       },
       "require": {
-        "types": "./dist/cjs/types/index.d.ts",
+        "types": "./dist/cjs/types/index.d.cts",
         "default": "./dist/cjs/index.cjs"
       },
       "default": {
@@ -61,6 +61,14 @@
       }
     }
   },
+  "files": [
+    "dist",
+    "CHANGELOG.md",
+    "index.d.ts",
+    "LICENSE",
+    "package.json",
+    "README.md"
+  ],
   "homepage": "https://github.com/planttheidea/fast-copy#readme",
   "keywords": [
     "clone",
@@ -77,21 +85,24 @@
     "url": "git+https://github.com/planttheidea/fast-copy.git"
   },
   "scripts": {
-    "benchmark": "npm run clean && npm run build:cjs && node benchmark/index.cjs",
-    "build": "npm run build:esm && npm run build:cjs && npm run build:umd && npm run build:min",
-    "build:cjs": "NODE_ENV=production rollup -c rollup/config.cjs.js && tsc -p ./tsconfig/cjs.json",
-    "build:esm": "NODE_ENV=production rollup -c rollup/config.esm.js && tsc -p ./tsconfig/esm.json",
+    "benchmark": "npm run clean:cjs && npm run build:cjs && node benchmark/index.cjs",
+    "build": "npm run clean && npm run build:esm && npm run build:cjs && npm run build:umd && npm run build:min",
+    "build:cjs": "NODE_ENV=production rollup -c rollup/config.cjs.js && tsc -p ./tsconfig/cjs.json && node scripts/create-cts-files.js",
+    "build:esm": "NODE_ENV=production rollup -c rollup/config.esm.js && tsc -p ./tsconfig/esm.json && node scripts/create-mts-files.js",
     "build:min": "NODE_ENV=production rollup -c rollup/config.min.js && tsc -p ./tsconfig/min.json",
     "build:umd": "NODE_ENV=production rollup -c rollup/config.umd.js && tsc -p ./tsconfig/umd.json",
-    "clean": "rimraf dist",
+    "clean": "rm -rf dist",
+    "clean:cjs": "rm -rf dist/cjs",
+    "clean:esm": "rm -rf dist/esm",
+    "clean:min": "rm -rf dist/min",
+    "clean:umd": "rm -rf dist/umd",
     "dev": "NODE_ENV=development webpack-dev-server --config=webpack/webpack.config.js",
-    "dist": "npm run clean && npm run build",
-    "lint": "eslint 'src/*.ts' '__tests__/*.ts' 'DEV_ONLY/*.ts'",
+    "lint": "eslint",
     "lint:fix": "npm run lint -- --fix",
-    "prepublishOnly": "npm run lint && npm run typecheck && npm run test && npm run dist",
     "release": "release-it",
     "release:beta": "release-it --config=.release-it.beta.json",
     "release:dry": "release-it --dry-run",
+    "release:scripts": "npm run typecheck && npm run lint && npm run test && npm run build",
     "start": "npm run dev",
     "test": "NODE_PATH=. jest",
     "test:coverage": "npm run test -- --coverage",
@@ -100,5 +111,5 @@
   },
   "type": "module",
   "types": "index.d.ts",
-  "version": "3.0.2"
+  "version": "4.0.0-beta.3"
 }

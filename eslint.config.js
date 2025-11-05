@@ -3,7 +3,12 @@ import { defineConfig, globalIgnores } from 'eslint/config';
 import tsEslint from 'typescript-eslint';
 
 export default defineConfig([
-  globalIgnores(['.next/*', '.yarn/*', 'node_modules/*']),
+  globalIgnores([
+    '**/!(src|DEV_ONLY)/**/*', // Ignore everything in all directories except src
+    '**/!(src|DEV_ONLY)', // Ignore all directories except src
+    '!src/**/*', // Don't ignore anything in src directory
+    '!DEV_ONLY/**/*', // Don't ignore anything in DEV_ONLY directory
+  ]),
   eslint.configs.recommended,
   tsEslint.configs.strictTypeChecked,
   tsEslint.configs.stylisticTypeChecked,
@@ -25,6 +30,8 @@ export default defineConfig([
         'error',
         { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
       ],
+      '@typescript-eslint/prefer-for-of': 'off',
+      '@typescript-eslint/prefer-nullish-coalescing': 'off',
       '@typescript-eslint/unbound-method': 'off',
     },
     settings: {

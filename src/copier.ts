@@ -1,6 +1,6 @@
-import { getCleanClone, getRegExpFlags } from './utils';
+import { getCleanClone } from './utils.ts';
 
-import type { Cache } from './utils';
+import type { Cache } from './utils.ts';
 
 export type InternalCopier<Value> = (value: Value, state: State) => Value;
 
@@ -11,70 +11,58 @@ export interface State {
   prototype: any;
 }
 
-const {
-  defineProperty,
-  getOwnPropertyDescriptor,
-  getOwnPropertyNames,
-  getOwnPropertySymbols,
-} = Object;
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
-const SUPPORTS_SYMBOL = typeof getOwnPropertySymbols === 'function';
+function copyOwnDescriptor<Value extends object>(
+  original: Value,
+  clone: Value,
+  property: string | symbol,
+  state: State,
+): void {
+  const ownDescriptor = Object.getOwnPropertyDescriptor(original, property) || {
+    configurable: true,
+    enumerable: true,
+    value: original[property as keyof Value],
+    writable: true,
+  };
+  const descriptor =
+    ownDescriptor.get || ownDescriptor.set
+      ? ownDescriptor
+      : {
+          configurable: ownDescriptor.configurable,
+          enumerable: ownDescriptor.enumerable,
+          value: state.copier(ownDescriptor.value, state),
+          writable: ownDescriptor.writable,
+        };
 
-function getStrictPropertiesModern(object: any): Array<string | symbol> {
-  return (getOwnPropertyNames(object) as Array<string | symbol>).concat(
-    getOwnPropertySymbols(object),
-  );
+  try {
+    Object.defineProperty(clone, property, descriptor);
+  } catch {
+    // The above can fail on node in extreme edge cases, so fall back to the loose assignment.
+    clone[property as keyof Value] = descriptor.get
+      ? descriptor.get()
+      : descriptor.value;
+  }
 }
-
-/**
- * Get the properites used when copying objects strictly. This includes both keys and symbols.
- */
-const getStrictProperties = SUPPORTS_SYMBOL
-  ? getStrictPropertiesModern
-  : getOwnPropertyNames;
 
 /**
  * Striclty copy all properties contained on the object.
  */
-function copyOwnPropertiesStrict<Value>(
+function copyOwnPropertiesStrict<Value extends object>(
   value: Value,
   clone: Value,
   state: State,
 ): Value {
-  const properties = getStrictProperties(value);
+  const names = Object.getOwnPropertyNames(value);
 
-  for (
-    let index = 0, length = properties.length, property, descriptor;
-    index < length;
-    ++index
-  ) {
-    property = properties[index];
+  for (let index = 0; index < names.length; ++index) {
+    copyOwnDescriptor(value, clone, names[index], state);
+  }
 
-    if (property === 'callee' || property === 'caller') {
-      continue;
-    }
+  const symbols = Object.getOwnPropertySymbols(value);
 
-    descriptor = getOwnPropertyDescriptor(value, property);
-
-    if (!descriptor) {
-      // In extra edge cases where the property descriptor cannot be retrived, fall back to
-      // the loose assignment.
-      (clone as any)[property] = state.copier((value as any)[property], state);
-      continue;
-    }
-
-    // Only clone the value if actually a value, not a getter / setter.
-    if (!descriptor.get && !descriptor.set) {
-      descriptor.value = state.copier(descriptor.value, state);
-    }
-
-    try {
-      defineProperty(clone, property, descriptor);
-    } catch {
-      // Tee above can fail on node in edge cases, so fall back to the loose assignment.
-      (clone as any)[property] = descriptor.value;
-    }
+  for (let index = 0; index < symbols.length; ++index) {
+    copyOwnDescriptor(value, clone, symbols[index], state);
   }
 
   return clone;
@@ -89,7 +77,7 @@ export function copyArrayLoose(array: any[], state: State) {
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(array, clone);
 
-  for (let index = 0, length = array.length; index < length; ++index) {
+  for (let index = 0; index < array.length; ++index) {
     clone[index] = state.copier(array[index], state);
   }
 
@@ -177,25 +165,10 @@ export function copyMapStrict<Value extends Map<any, any>>(
   return copyOwnPropertiesStrict(map, copyMapLoose(map, state), state);
 }
 
-function copyObjectLooseLegacy<Value extends Record<string, any>>(
-  object: Value,
-  state: State,
-): Value {
-  const clone: any = getCleanClone(state.prototype);
-
-  // set in the cache immediately to be able to reuse the object recursively
-  state.cache.set(object, clone);
-
-  for (const key in object) {
-    if (hasOwnProperty.call(object, key)) {
-      clone[key] = state.copier(object[key], state);
-    }
-  }
-
-  return clone;
-}
-
-function copyObjectLooseModern<Value extends Record<string, any>>(
+/**
+ * Deeply copy the properties (keys and symbols) and values of the original.
+ */
+export function copyObjectLoose<Value extends Record<string, any>>(
   object: Value,
   state: State,
 ): Value {
@@ -210,14 +183,10 @@ function copyObjectLooseModern<Value extends Record<string, any>>(
     }
   }
 
-  const symbols = getOwnPropertySymbols(object);
+  const symbols = Object.getOwnPropertySymbols(object);
 
-  for (
-    let index = 0, length = symbols.length, symbol;
-    index < length;
-    ++index
-  ) {
-    symbol = symbols[index];
+  for (let index = 0; index < symbols.length; ++index) {
+    const symbol = symbols[index];
 
     if (propertyIsEnumerable.call(object, symbol)) {
       clone[symbol] = state.copier((object as any)[symbol], state);
@@ -226,13 +195,6 @@ function copyObjectLooseModern<Value extends Record<string, any>>(
 
   return clone;
 }
-
-/**
- * Deeply copy the properties (keys and symbols) and values of the original.
- */
-export const copyObjectLoose = SUPPORTS_SYMBOL
-  ? copyObjectLooseModern
-  : copyObjectLooseLegacy;
 
 /**
  * Deeply copy the properties (keys and symbols) and values of the original, as well
@@ -268,10 +230,7 @@ export function copyRegExp<Value extends RegExp>(
   regExp: Value,
   state: State,
 ): Value {
-  const clone = new state.Constructor(
-    regExp.source,
-    getRegExpFlags(regExp),
-  ) as Value;
+  const clone = new state.Constructor(regExp.source, regExp.flags) as Value;
 
   clone.lastIndex = regExp.lastIndex;
 

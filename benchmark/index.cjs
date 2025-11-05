@@ -100,7 +100,7 @@ const packages = {
   clone: require('clone'),
   deepclone: require('deepclone'),
   'fast-clone': require('fast-clone'),
-  'fast-copy': require('../dist/cjs/index.cjs').default,
+  'fast-copy': require('../dist/cjs/index.cjs').copy,
   'fast-copy (strict)': require('../dist/cjs/index.cjs').copyStrict,
   // deactivated while it cannot build on linux
   // 'fast-deepclone': require('fast-deepclone'),
@@ -117,7 +117,7 @@ const suite = createSuite({
 
         return groupResults.map(({ name, stats }) => {
           const existingRowIndex = combined.findIndex(
-            ({ name: rowName }) => name === rowName
+            ({ name: rowName }) => name === rowName,
           );
 
           return ~existingRowIndex
@@ -178,7 +178,7 @@ const suite = createSuite({
   },
   onResult({ name, stats }) {
     console.log(
-      `Benchmark completed for ${name}: ${stats.ops.toLocaleString()} ops/sec`
+      `Benchmark completed for ${name}: ${stats.ops.toLocaleString()} ops/sec`,
     );
   },
 });

@@ -1,11 +1,12 @@
 {
   "compilerOptions": {
+    "allowImportingTsExtensions": true,
     "baseUrl": "src",
     "esModuleInterop": true,
     "jsx": "react",
     "lib": ["DOM", "ESNext"],
-    "module": "ESNext",
-    "moduleResolution": "Node",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
     "noImplicitAny": true,
     "outDir": "../dist",
     "skipLibCheck": true,
@@ -13,9 +14,9 @@
     "strict": true,
     "strictNullChecks": true,
     "inlineSources": true,
-    "target": "es5",
+    "target": "ES2015",
     "types": ["jest", "node", "react"]
   },
   "exclude": ["node_modules"],
-  "include": ["../src/*", "../__tests__/*", "../DEV_ONLY/*"]
+  "include": ["../src/**/*", "../DEV_ONLY/*"]
 }

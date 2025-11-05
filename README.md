@@ -15,29 +15,30 @@ A [blazing fast](#benchmarks) deep object copier
     - [`copy`](#copy)
     - [`copyStrict`](#copystrict)
     - [`createCopier`](#createcopier)
-      - [Copier methods](#copier-methods)
-      - [Copier state](#copier-state)
-        - [`cache`](#cache)
-        - [`copier`](#copier)
-        - [`Constructor` / `prototype`](#constructor--prototype)
-    - [`createStrictCopier`](#createstrictcopier)
+      - [`createCache`](#createcache)
+      - [`methods`](#methods)
+        - [Copier state](#copier-state)
+          - [`cache`](#cache)
+          - [`copier`](#copier)
+          - [`Constructor` / `prototype`](#constructor--prototype)
+      - [`strict`](#strict)
   - [Types supported](#types-supported)
   - [Aspects of default copiers](#aspects-of-default-copiers)
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
     - [Generator objects are copied, but still reference the original generator's state](#generator-objects-are-copied-but-still-reference-the-original-generators-state)
   - [Benchmarks](#benchmarks)
-      - [Simple objects](#simple-objects)
-      - [Complex objects](#complex-objects)
-      - [Big data](#big-data)
-      - [Circular objects](#circular-objects)
-      - [Special objects](#special-objects)
+    - [Simple objects](#simple-objects)
+    - [Complex objects](#complex-objects)
+    - [Big data](#big-data)
+    - [Circular objects](#circular-objects)
+    - [Special objects](#special-objects)
   - [Development](#development)
 
 ## Usage
 
 ```js
-import copy from 'fast-copy';
+import { copy } from 'fast-copy';
 import { deepEqual } from 'fast-equals';
 
 const object = {
@@ -61,7 +62,7 @@ console.log(deepEqual(copiedObject, object)); // true
 Deeply copy the object passed.
 
 ```js
-import copy from 'fast-copy';
+import { copy } from 'fast-copy';
 
 const copied = copy({ foo: 'bar' });
 ```
@@ -90,35 +91,31 @@ const copied = copy(object);
 
 ### `createCopier`
 
-Create a custom copier based on the type-specific methods passed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
+Create a custom copier based on the type-specific method overrides passed, as well as configuration options for how copies should be performed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
 
 ```js
 import { createCopier } from 'fast-copy';
+import { LRUCache } from 'lru-cache';
 
-const copyShallow = createCopier({
-  array: (array) => [...array],
-  map: (map) => new Map(map.entries()),
-  object: (object) => ({ ...object }),
-  set: (set) => new Set(set.values()),
+const copyShallowStrict = createCopier({
+  createCache: () => new LRUCache(),
+  methods: {
+    array: (array) => [...array],
+    map: (map) => new Map(map.entries()),
+    object: (object) => ({ ...object }),
+    set: (set) => new Set(set.values()),
+  },
+  strict: true,
 });
 ```
 
-Each internal copier method has the following contract:
+#### `createCache`
 
-```js
-type InternalCopier<Value> = (value: Value, state: State) => Value;
+Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new `WeakMap` instance.
 
-interface State {
-  Constructor: any;
-  cache: WeakMap;
-  copier: InternalCopier<any>;
-  prototype: any;
-}
-```
+#### `methods`
 
-Any method overriding the defaults must maintain this contract.
-
-#### Copier methods
+Methods used for copying specific object types. A list of the methods and which object types they handle:
 
 - `array` => `Array`
 - `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
@@ -131,9 +128,22 @@ Any method overriding the defaults must maintain this contract.
 - `regExp` => `RegExp`
 - `set` => `Set`
 
-#### Copier state
+Each method has the following contract:
 
-##### `cache`
+```js
+type InternalCopier<Value> = (value: Value, state: State) => Value;
+
+interface State {
+  Constructor: any;
+  cache: WeakMap;
+  copier: InternalCopier<any>;
+  prototype: any;
+}
+```
+
+##### Copier state
+
+###### `cache`
 
 If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future lookups:
 
@@ -150,7 +160,7 @@ function shallowlyCloneArray<Value extends any[]>(
 }
 ```
 
-##### `copier`
+###### `copier`
 
 `copier` is provided for recursive calls with deeply-nested objects.
 
@@ -171,7 +181,7 @@ function deeplyCloneArray<Value extends any[]>(
 
 Note above I am using `forEach` instead of a simple `map`. This is because it is highly recommended to store the clone in [`cache`](#cache) eagerly when deeply copying, so that nested circular references are handled correctly.
 
-##### `Constructor` / `prototype`
+###### `Constructor` / `prototype`
 
 Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
 
@@ -203,36 +213,11 @@ function deeplyCloneCustomObject<Value extends CustomObject>(
 }
 ```
 
-### `createStrictCopier`
+#### `strict`
 
-Create a custom copier based on the type-specific methods passed, but defaulting to the same functions normally used for `copyStrict`. This is useful if you want to squeeze out better performance while maintaining strict requirements, or perform something other than a strict deep copy.
+Enforces strict copying of properties, which includes properties that are not standard for that object. An example would be a named key on an array.
 
-```js
-const createStrictClone = (value, clone) =>
-  Object.getOwnPropertyNames(value).reduce(
-    (clone, property) =>
-      Object.defineProperty(
-        clone,
-        property,
-        Object.getOwnPropertyDescriptor(value, property) || {
-          configurable: true,
-          enumerable: true,
-          value: clone[property],
-          writable: true,
-        }
-      ),
-    clone
-  );
-
-const copyStrictShallow = createStrictCopier({
-  array: (array) => createStrictClone(array, []),
-  map: (map) => createStrictClone(map, new Map(map.entries())),
-  object: (object) => createStrictClone(object, {}),
-  set: (set) => createStrictClone(set, new Set(set.values())),
-});
-```
-
-**NOTE**: This method creates a copier that is significantly slower than [`copy`](#copy), as well as likely a copier created by [`createCopier`](#createcopier), so it is recommended to only use this when you have specific use-cases that require it.
+**NOTE**: This creates a copier that is significantly slower than "loose" mode, so it is recommended to only use this when you have specific use-cases that require it.
 
 ## Types supported
 
@@ -283,7 +268,7 @@ Circular objects are supported out of the box. By default, a cache based on `Wea
 
 ## Aspects of default copiers
 
-Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are detailed below. If your use-cases require different handling, you can always create your own custom copier with [`createCopier`](#createcopier) or [`createStrictCopier`](#createstrictcopier).
+Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are detailed below. If your use-cases require different handling, you can always create your own custom copier with [`createCopier`](#createcopier).
 
 ### Error references are copied directly, instead of creating a new `*Error` object
 
@@ -305,13 +290,13 @@ _Small number of properties, all values are primitives_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **5,880,312**       |
-| lodash.cloneDeep   | 2,706,261           |
-| clone              | 2,207,231           |
-| deepclone          | 1,274,810           |
-| fast-clone         | 1,239,952           |
-| ramda              | 1,146,152           |
-| fast-copy (strict) | 852,382             |
+| **fast-copy**      | **7,106,436**       |
+| lodash.cloneDeep   | 2,925,806           |
+| clone              | 2,665,733           |
+| fast-clone         | 1,635,636           |
+| ramda              | 1,143,794           |
+| deepclone          | 1,253,298           |
+| fast-copy (strict) | 1,161,882           |
 
 #### Complex objects
 
@@ -319,13 +304,13 @@ _Large number of properties, values are a combination of primitives and complex 
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **162,858**         |
-| ramda              | 142,104             |
-| deepclone          | 133,607             |
-| fast-clone         | 101,143             |
-| clone              | 70,872              |
-| fast-copy (strict) | 62,961              |
-| lodash.cloneDeep   | 62,060              |
+| **fast-copy**      | **174,056**         |
+| deepclone          | 135,491             |
+| fast-clone         | 99,246              |
+| clone              | 82,487              |
+| ramda              | 78,805              |
+| fast-copy (strict) | 70,160              |
+| lodash.cloneDeep   | 66,068              |
 
 #### Big data
 
@@ -333,13 +318,13 @@ _Very large number of properties with high amount of nesting, mainly objects and
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **303**             |
-| fast-clone         | 245                 |
-| deepclone          | 151                 |
-| lodash.cloneDeep   | 150                 |
-| clone              | 93                  |
-| fast-copy (strict) | 90                  |
-| ramda              | 42                  |
+| **fast-copy**      | **676**             |
+| fast-clone         | 265                 |
+| lodash.cloneDeep   | 165                 |
+| deepclone          | 149                 |
+| fast-copy (strict) | 133                 |
+| clone              | 122                 |
+| ramda              | 39                  |
 
 #### Circular objects
 
@@ -347,12 +332,12 @@ _Objects that deeply reference themselves_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **2,420,466**       |
-| deepclone          | 1,386,896           |
-| ramda              | 1,024,108           |
-| lodash.cloneDeep   | 989,796             |
-| clone              | 987,721             |
-| fast-copy (strict) | 617,602             |
+| **fast-copy**      | **3,183,967**       |
+| deepclone          | 1,285,548           |
+| lodash.cloneDeep   | 1,104,529           |
+| clone              | 1,103,213           |
+| fast-copy (strict) | 1,028,220           |
+| ramda              | 388,033             |
 | fast-clone         | 0 (not supported)   |
 
 #### Special objects
@@ -361,13 +346,13 @@ _Custom constructors, React components, etc_
 
 |                    | Operations / second |
 | ------------------ | ------------------- |
-| **fast-copy**      | **152,792**         |
-| clone              | 74,347              |
-| fast-clone         | 66,576              |
-| lodash.cloneDeep   | 64,760              |
-| ramda              | 53,542              |
-| deepclone          | 28,823              |
-| fast-copy (strict) | 21,362              |
+| **fast-copy**      | **174,273**         |
+| clone              | 82,030              |
+| lodash.cloneDeep   | 69,234              |
+| fast-clone         | 58,831              |
+| deepclone          | 25,780              |
+| ramda              | 25,309              |
+| fast-copy (strict) | 20,480              |
 
 ## Development
 
@@ -379,15 +364,18 @@ Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencie
 - build:esm => build ESM files and types
 - build:min => build minified files and types
 - build:umd => build UMD files and types
-- clean => run `rimraf` on the `dist` folder
+- clean => remove the `dist` folder and all its contents
+- clean:cjs => remove the `dist/cjs` folder and all its contents
+- clean:esm => remove the `dist/esm` folder and all its contents
+- clean:min => remove the `dist/min` folder and all its contents
+- clean:umd => remove the `dist/umd` folder and all its contents
 - dev => start webpack playground App
-- dist => run `clean` and `build` scripts
-- lint => run ESLint on all files in `src` folder (also runs on `dev` script)
+- lint => run `eslint`
 - lint:fix => run `lint` script, but with auto-fixer
-- prepublishOnly => run `lint`, `test:coverage`, and `dist` scripts
 - release => run `prepublishOnly` and release with new version
 - release:beta => run `prepublishOnly` and release with new beta version
 - release:dry => run `prepublishOnly` and simulate a new release
+- release:scripts => run `lint`, `test:coverage`, and `dist` scripts
 - start => run `dev`
 - test => run AVA with NODE_ENV=test on all files in `test` folder
 - test:coverage => run same script as `test` with code coverage calculation via `nyc`
