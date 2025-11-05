@@ -268,7 +268,7 @@ Circular objects are supported out of the box. By default, a cache based on `Wea
 
 ## Aspects of default copiers
 
-Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are detailed below. If your use-cases require different handling, you can always create your own custom copier with [`createCopier`](#createcopier) or [`createStrictCopier`](#createstrictcopier).
+Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are detailed below. If your use-cases require different handling, you can always create your own custom copier with [`createCopier`](#createcopier).
 
 ### Error references are copied directly, instead of creating a new `*Error` object
 
