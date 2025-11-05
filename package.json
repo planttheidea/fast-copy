@@ -10,6 +10,7 @@
   "description": "A blazing fast deep object copier",
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^16.0.3",
+    "@rollup/plugin-terser": "^0.4.4",
     "@rollup/plugin-typescript": "^12.3.0",
     "@types/eslint": "^9.6.1",
     "@types/lodash": "^4.17.20",
@@ -35,7 +36,6 @@
     "react-dom": "^19.2.0",
     "release-it": "19.0.5",
     "rollup": "^4.52.5",
-    "rollup-plugin-terser": "^7.0.2",
     "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
