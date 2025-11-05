@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import React from 'react';
 
-import { copy, copyStrict } from '../index.ts';
+import { copy, copyStrict } from '../index.js';
 
 interface PlainObject {
   [key: string]: any;

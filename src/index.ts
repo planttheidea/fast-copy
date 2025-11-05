@@ -1,5 +1,5 @@
-import { getOptions } from './options.ts';
-import { getTag } from './utils.ts';
+import { getOptions } from './options.js';
+import { getTag } from './utils.js';
 
 import type { State } from './copier.ts';
 import type { CreateCopierOptions } from './options.ts';

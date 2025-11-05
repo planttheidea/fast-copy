@@ -1,4 +1,4 @@
-import { getCleanClone } from './utils.ts';
+import { getCleanClone } from './utils.js';
 
 import type { Cache } from './utils.ts';
 

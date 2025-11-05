@@ -7,7 +7,10 @@ async function createCtsFiles() {
 
   for (const file of definitionFiles) {
     const content = readFileSync(`./dist/cjs/types/${file}`, 'utf-8');
-    const updatedContent = content.replaceAll('.ts', '.d.cts');
+    const updatedContent = content
+      .replaceAll('.ts', '.d.cts')
+      .replaceAll('.js', '.d.cts')
+      .replaceAll('import {', 'import type {');
 
     writeFileSync(`./dist/cjs/types/${file}`, updatedContent, 'utf-8');
 

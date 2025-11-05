@@ -7,7 +7,10 @@ async function createMtsFiles() {
 
   for (const file of definitionFiles) {
     const content = readFileSync(`./dist/esm/types/${file}`, 'utf-8');
-    const updatedContent = content.replaceAll('.ts', '.d.mts');
+    const updatedContent = content
+      .replaceAll('.ts', '.d.mts')
+      .replaceAll('.js', '.d.mts')
+      .replaceAll('import {', 'import type {');
 
     writeFileSync(`./dist/esm/types/${file}`, updatedContent, 'utf-8');
 
