@@ -17,5 +17,5 @@
     "types": ["node", "react"]
   },
   "exclude": ["node_modules"],
-  "include": ["../src/**/*", "../DEV_ONLY/*"]
+  "include": ["../src/**/*", "../dev/*"]
 }
