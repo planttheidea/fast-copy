@@ -4,6 +4,7 @@
 
 ### BREAKING CHANGES
 
+- The default `copy` method is now a named export, and the default export has been removed.
 - Legacy environment support has been removed; `Symbol`, `WeakMap`, and `RegExp.prototype.flags` are now expected to be present.
 - `createCopier` now receives an object of options. The methods passed previously are namespaced under the `methods` key in that options object.
 - `createStrictCopier` has been removed; please use the `strict` option passed to `createCopier`
