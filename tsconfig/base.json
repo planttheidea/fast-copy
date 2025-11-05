@@ -15,7 +15,7 @@
     "strictNullChecks": true,
     "inlineSources": true,
     "target": "ES2015",
-    "types": ["jest", "node", "react"]
+    "types": ["node", "react"]
   },
   "exclude": ["node_modules"],
   "include": ["../src/**/*", "../DEV_ONLY/*"]

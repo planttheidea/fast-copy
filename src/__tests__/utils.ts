@@ -1,3 +1,4 @@
+import { describe, expect, it } from 'vitest';
 import { getCleanClone } from '../utils.ts';
 
 interface PlainObject {

@@ -1,3 +1,5 @@
+import { describe, expect, it, vi } from 'vitest';
+
 interface PlainObject {
   [key: string]: any;
   [index: number]: any;
@@ -16,7 +18,7 @@ import { createDefaultCache } from '../options.ts';
 describe('copyArrayStrict', () => {
   it('will copy both indices and explicit properties', () => {
     const object: any = ['foo', 'bar'];
-    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = vi.fn().mockImplementation((arg) => arg);
     const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
@@ -41,7 +43,7 @@ describe('copyObjectLoose', () => {
       bar: { baz: 'quz' },
       [Symbol('quz')]: 'blah',
     };
-    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = vi.fn().mockImplementation((arg) => arg);
     const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
@@ -76,7 +78,7 @@ describe('copyObjectStrict', () => {
       value: 'blah',
     });
 
-    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = vi.fn().mockImplementation((arg) => arg);
     const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
@@ -103,7 +105,7 @@ describe('copyMapStrict', () => {
       ['foo', 'foo'],
       ['bar', 'bar'],
     ]);
-    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = vi.fn().mockImplementation((arg) => arg);
     const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
@@ -129,7 +131,7 @@ describe('copyPrimitiveWrapper', () => {
     const string = new String('foo');
 
     [boolean, number, string].forEach((primitiveWrapper) => {
-      const mockCopier = jest.fn().mockImplementation((arg) => arg);
+      const mockCopier = vi.fn().mockImplementation((arg) => arg);
       const cache = createDefaultCache();
       const prototype = Object.getPrototypeOf(primitiveWrapper);
 
@@ -149,7 +151,7 @@ describe('copyPrimitiveWrapper', () => {
 describe('copySetStrict', () => {
   it('will copy both values and explicit properties', () => {
     const object: any = new Set(['foo', 'bar']);
-    const mockCopier = jest.fn().mockImplementation((arg) => arg);
+    const mockCopier = vi.fn().mockImplementation((arg) => arg);
     const cache = createDefaultCache();
     const prototype = Object.getPrototypeOf(object);
 
