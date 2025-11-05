@@ -24,10 +24,7 @@
     "clone": "^2.1.2",
     "deepclone": "^1.0.2",
     "eslint": "^9.39.1",
-    "eslint-webpack-plugin": "^5.0.2",
     "fast-clone": "^1.5.13",
-    "html-webpack-plugin": "^5.6.4",
-    "in-publish": "^2.0.1",
     "lodash": "^4.17.21",
     "nyc": "^17.1.0",
     "ramda": "^0.32.0",
@@ -36,14 +33,10 @@
     "release-it": "19.0.5",
     "rollup": "^4.52.5",
     "rollup-plugin-terser": "^7.0.2",
-    "ts-loader": "^9.5.4",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.46.3",
     "vite": "^7.2.0",
-    "vitest": "^4.0.7",
-    "webpack": "^5.102.1",
-    "webpack-cli": "^6.0.1",
-    "webpack-dev-server": "^5.2.2"
+    "vitest": "^4.0.7"
   },
   "exports": {
     ".": {
