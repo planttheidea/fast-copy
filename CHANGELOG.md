@@ -5,17 +5,21 @@
 ### BREAKING CHANGES
 
 - The default `copy` method is now a named export, and the default export has been removed.
-- Legacy environment support has been removed; `Symbol`, `WeakMap`, and `RegExp.prototype.flags` are now expected to be present.
-- `createCopier` now receives an object of options. The methods passed previously are namespaced under the `methods` key in that options object.
+- Legacy environment support has been removed; `Symbol`, `WeakMap`, and `RegExp.prototype.flags` are now expected to be
+  present.
+- `createCopier` now receives an object of options. The methods passed previously are namespaced under the `methods` key
+  in that options object.
 - `createStrictCopier` has been removed; please use the `strict` option passed to `createCopier`
 
 ## 3.0.2
 
-- [#95](https://github.com/planttheidea/fast-copy/pull/95) - Add support for objects that have a prototype with no constructor
+- [#95](https://github.com/planttheidea/fast-copy/pull/95) - Add support for objects that have a prototype with no
+  constructor
 
 ## 3.0.1
 
-- [#78](https://github.com/planttheidea/fast-copy/pull/78) - Work when running Node process with `--disable-proto=throw` (thanks [@castarco](https://github.com/castarco))
+- [#78](https://github.com/planttheidea/fast-copy/pull/78) - Work when running Node process with `--disable-proto=throw`
+  (thanks [@castarco](https://github.com/castarco))
 
 ## 3.0.0
 
@@ -32,7 +36,8 @@
 
 **Enhancements**
 
-- Support `exports` option, to have bettern handling for different environments (ESM vs CJS vs UMD) and improve tree-shaking when supported
+- Support `exports` option, to have bettern handling for different environments (ESM vs CJS vs UMD) and improve
+  tree-shaking when supported
 - Can now create a custom copier (either standard or strict), allowing maximum performance for specific use-cases
 - Small speed improvements when handling certain object types
 
@@ -46,15 +51,19 @@
 
 ## 2.1.6
 
-- Revert [#69](https://github.com/planttheidea/fast-copy/pull/69) and [#71](https://github.com/planttheidea/fast-copy/pull/71), as they broke the package for NodeJS consumption (will be reintroduced in v3, as breaking changes are required)
+- Revert [#69](https://github.com/planttheidea/fast-copy/pull/69) and
+  [#71](https://github.com/planttheidea/fast-copy/pull/71), as they broke the package for NodeJS consumption (will be
+  reintroduced in v3, as breaking changes are required)
 
 ## 2.1.5 - DO NOT USE
 
-- Ensure `"type": "module"` is set to allow ESM in NodeJS to work [#71](https://github.com/planttheidea/fast-copy/pull/71)
+- Ensure `"type": "module"` is set to allow ESM in NodeJS to work
+  [#71](https://github.com/planttheidea/fast-copy/pull/71)
 
 ## 2.1.4 - DO NOT USE
 
-- Provide `"exports"` definition in `package.json` [#69](https://github.com/planttheidea/fast-copy/pull/69) (thanks [@liteoood](https://github.com/ilteoood))
+- Provide `"exports"` definition in `package.json` [#69](https://github.com/planttheidea/fast-copy/pull/69) (thanks
+  [@liteoood](https://github.com/ilteoood))
 
 ## 2.1.3
 
@@ -63,7 +72,8 @@
 ## 2.1.2
 
 - Support `constructor` property override on object [#60](https://github.com/planttheidea/fast-copy/pull/60)
-- Provide better support for `constructor` override on non-plain object types [#61](https://github.com/planttheidea/fast-copy/pull/61)
+- Provide better support for `constructor` override on non-plain object types
+  [#61](https://github.com/planttheidea/fast-copy/pull/61)
 - Remove `tslint` in favor of `@typescript-eslint` [#62](https://github.com/planttheidea/fast-copy/pull/62)
 
 ## 2.1.1
@@ -73,13 +83,15 @@
 
 ## 2.1.0
 
-- Support cloning `Blob` [#31](https://github.com/planttheidea/fast-copy/pull/31) (thanks [@fratzigner](https://github.com/fratzinger))
+- Support cloning `Blob` [#31](https://github.com/planttheidea/fast-copy/pull/31) (thanks
+  [@fratzigner](https://github.com/fratzinger))
 - Fix cloning descriptors that only are getters / setters in strict mode
 - Handle errors when defining properties in strict mode
 
 ## 2.0.5
 
-- Fix issue copying objects referenced multiple times in source [#28](https://github.com/planttheidea/fast-copy/pull/28) (thanks [@darkowic](https://github.com/darkowic))
+- Fix issue copying objects referenced multiple times in source [#28](https://github.com/planttheidea/fast-copy/pull/28)
+  (thanks [@darkowic](https://github.com/darkowic))
 
 ## 2.0.4
 
@@ -133,7 +145,8 @@
 
 ## 1.1.1
 
-- Fix cache using `WeakSet` when there was support for `WeakMap`s instead of `WeakSet`s (in case one was polyfilled but not the other)
+- Fix cache using `WeakSet` when there was support for `WeakMap`s instead of `WeakSet`s (in case one was polyfilled but
+  not the other)
 
 ## 1.1.0
 

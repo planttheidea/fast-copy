@@ -72,8 +72,7 @@ export interface CreateCopierOptions {
   strict?: boolean;
 }
 
-export interface RequiredCreateCopierOptions
-  extends Omit<Required<CreateCopierOptions>, 'methods'> {
+export interface RequiredCreateCopierOptions extends Omit<Required<CreateCopierOptions>, 'methods'> {
   copiers: Copiers;
   methods: Required<CopierMethods>;
 }
@@ -100,9 +99,7 @@ export function getOptions({
     set: strict ? copySetStrict : copySetLoose,
   };
 
-  const methods = methodsOverride
-    ? Object.assign(defaultMethods, methodsOverride)
-    : defaultMethods;
+  const methods = methodsOverride ? Object.assign(defaultMethods, methodsOverride) : defaultMethods;
   const copiers = getTagSpecificCopiers(methods);
   const createCache = createCacheOverride || createDefaultCache;
 
@@ -119,9 +116,7 @@ export function getOptions({
 /**
  * Get the copiers used for each specific object tag.
  */
-export function getTagSpecificCopiers(
-  methods: Required<CopierMethods>,
-): Copiers {
+export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers {
   return {
     Arguments: methods.object,
     Array: methods.array,

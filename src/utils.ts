@@ -18,15 +18,10 @@ export function getCleanClone(prototype: any): any {
   const Constructor = prototype.constructor;
 
   if (Constructor === Object) {
-    return prototype === Object.prototype
-      ? {}
-      : Object.create(prototype as object | null);
+    return prototype === Object.prototype ? {} : Object.create(prototype as object | null);
   }
 
-  if (
-    Constructor &&
-    ~toStringFunction.call(Constructor).indexOf('[native code]')
-  ) {
+  if (Constructor && ~toStringFunction.call(Constructor).indexOf('[native code]')) {
     try {
       return new Constructor();
     } catch {

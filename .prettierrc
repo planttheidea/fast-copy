@@ -1,0 +1,23 @@
+{
+  "arrowParens": "always",
+  "bracketSameLine": false,
+  "bracketSpacing": true,
+  "checkIgnorePragma": true,
+  "embeddedLanguageFormatting": "auto",
+  "endOfLine": "lf",
+  "experimentalTernaries": false,
+  "experimentalOperatorPosition": "start",
+  "jsxSingleQuote": false,
+  "insertPragma": false,
+  "objectWrap": "preserve",
+  "printWidth": 120,
+  "proseWrap": "always",
+  "requirePragma": false,
+  "quoteProps": "as-needed",
+  "semi": true,
+  "singleAttributePerLine": true,
+  "singleQuote": true,
+  "tabWidth": 2,
+  "trailingComma": "all",
+  "useTabs": false
+}

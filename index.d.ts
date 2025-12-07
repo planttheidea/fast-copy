@@ -51,6 +51,4 @@ export function copyStrict<Value>(value: Value): Value;
  *   - custom copier `methods` for specific object types
  *   - `strict` mode to copy all properties with their descriptors
  */
-export function createCopier(
-  options?: CreateCopierOptions,
-): <Value>(value: Value) => Value;
+export function createCopier(options?: CreateCopierOptions): <Value>(value: Value) => Value;

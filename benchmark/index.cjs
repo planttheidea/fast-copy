@@ -116,18 +116,14 @@ const suite = createSuite({
         const groupResults = results[group];
 
         return groupResults.map(({ name, stats }) => {
-          const existingRowIndex = combined.findIndex(
-            ({ name: rowName }) => name === rowName,
-          );
+          const existingRowIndex = combined.findIndex(({ name: rowName }) => name === rowName);
 
           return ~existingRowIndex
             ? {
                 ...combined[existingRowIndex],
                 stats: {
-                  elapsed: (combined[existingRowIndex].stats.elapsed +=
-                    stats.elapsed),
-                  iterations: (combined[existingRowIndex].stats.iterations +=
-                    stats.iterations),
+                  elapsed: (combined[existingRowIndex].stats.elapsed += stats.elapsed),
+                  iterations: (combined[existingRowIndex].stats.iterations += stats.iterations),
                 },
               }
             : {
@@ -177,9 +173,7 @@ const suite = createSuite({
     console.log('');
   },
   onResult({ name, stats }) {
-    console.log(
-      `Benchmark completed for ${name}: ${stats.ops.toLocaleString()} ops/sec`,
-    );
+    console.log(`Benchmark completed for ${name}: ${stats.ops.toLocaleString()} ops/sec`);
   },
 });
 

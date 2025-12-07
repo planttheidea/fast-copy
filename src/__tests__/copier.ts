@@ -57,9 +57,7 @@ describe('copyObjectLoose', () => {
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
 
-    expect(mockCopier).toHaveBeenCalledTimes(
-      Object.keys(object).length + Object.getOwnPropertySymbols(object).length,
-    );
+    expect(mockCopier).toHaveBeenCalledTimes(Object.keys(object).length + Object.getOwnPropertySymbols(object).length);
   });
 });
 
@@ -93,8 +91,7 @@ describe('copyObjectStrict', () => {
     expect(result).toEqual(object);
 
     expect(mockCopier).toHaveBeenCalledTimes(
-      Object.getOwnPropertyNames(object).length +
-        Object.getOwnPropertySymbols(object).length,
+      Object.getOwnPropertyNames(object).length + Object.getOwnPropertySymbols(object).length,
     );
   });
 });

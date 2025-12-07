@@ -87,11 +87,14 @@ object.nonEnumerable = Object.defineProperty(object, 'bar', {
 const copied = copy(object);
 ```
 
-**NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have specific use-cases that require it.
+**NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have
+specific use-cases that require it.
 
 ### `createCopier`
 
-Create a custom copier based on the type-specific method overrides passed, as well as configuration options for how copies should be performed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
+Create a custom copier based on the type-specific method overrides passed, as well as configuration options for how
+copies should be performed. This is useful if you want to squeeze out maximum performance, or perform something other
+than a standard deep copy.
 
 ```js
 import { createCopier } from 'fast-copy';
@@ -111,18 +114,21 @@ const copyShallowStrict = createCopier({
 
 #### `createCache`
 
-Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new `WeakMap` instance.
+Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new
+`WeakMap` instance.
 
 #### `methods`
 
 Methods used for copying specific object types. A list of the methods and which object types they handle:
 
 - `array` => `Array`
-- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
+- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`,
+  `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
 - `blob` => `Blob`
 - `dataView` => `DataView`
 - `date` => `Date`
-- `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`, `URIError`
+- `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`,
+  `URIError`
 - `map` => `Map`
 - `object` => `Object`, or any custom constructor
 - `regExp` => `RegExp`
@@ -145,7 +151,8 @@ interface State {
 
 ###### `cache`
 
-If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future lookups:
+If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future
+lookups:
 
 ```js
 function shallowlyCloneArray<Value extends any[]>(
@@ -179,11 +186,13 @@ function deeplyCloneArray<Value extends any[]>(
 }
 ```
 
-Note above I am using `forEach` instead of a simple `map`. This is because it is highly recommended to store the clone in [`cache`](#cache) eagerly when deeply copying, so that nested circular references are handled correctly.
+Note above I am using `forEach` instead of a simple `map`. This is because it is highly recommended to store the clone
+in [`cache`](#cache) eagerly when deeply copying, so that nested circular references are handled correctly.
 
 ###### `Constructor` / `prototype`
 
-Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
+Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or
+arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
 
 ```js
 function deeplyCloneSubclassArray<Value extends CustomArray>(
@@ -215,9 +224,11 @@ function deeplyCloneCustomObject<Value extends CustomObject>(
 
 #### `strict`
 
-Enforces strict copying of properties, which includes properties that are not standard for that object. An example would be a named key on an array.
+Enforces strict copying of properties, which includes properties that are not standard for that object. An example would
+be a named key on an array.
 
-**NOTE**: This creates a copier that is significantly slower than "loose" mode, so it is recommended to only use this when you have specific use-cases that require it.
+**NOTE**: This creates a copier that is significantly slower than "loose" mode, so it is recommended to only use this
+when you have specific use-cases that require it.
 
 ## Types supported
 
@@ -248,7 +259,8 @@ The following object types are deeply cloned when they are either properties on 
 - `React` components
 - Custom constructors
 
-The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use-case implementation does not expect cloning:
+The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use-case
+implementation does not expect cloning:
 
 - `AsyncFunction`
 - `Boolean` primitives
@@ -264,23 +276,37 @@ The following object types are copied directly, as they are either primitives, c
 - `WeakMap`
 - `WeakSet`
 
-Circular objects are supported out of the box. By default, a cache based on `WeakSet` is used, but if `WeakSet` is not available then a fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
+Circular objects are supported out of the box. By default, a cache based on `WeakSet` is used, but if `WeakSet` is not
+available then a fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
 
 ## Aspects of default copiers
 
-Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are detailed below. If your use-cases require different handling, you can always create your own custom copier with [`createCopier`](#createcopier).
+Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this
+library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are
+detailed below. If your use-cases require different handling, you can always create your own custom copier with
+[`createCopier`](#createcopier).
 
 ### Error references are copied directly, instead of creating a new `*Error` object
 
-While it would be relatively trivial to copy over the message and stack to a new object of the same `Error` subclass, it is a common practice to "override" the message or stack, and copies would not retain this mutation. As such, the original reference is copied.
+While it would be relatively trivial to copy over the message and stack to a new object of the same `Error` subclass, it
+is a common practice to "override" the message or stack, and copies would not retain this mutation. As such, the
+original reference is copied.
 
 ### The constructor of the original object is used, instead of using known globals
 
-Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the constructor of the original object. However, the expectation is that these subclasses would have the same constructur signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if the contract differs.
+Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the
+constructor of the original object. However, the expectation is that these subclasses would have the same constructur
+signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if
+the contract differs.
 
 ### Generator objects are copied, but still reference the original generator's state
 
-[Generator objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are specific types of iterators, but appear like standard objects that just have a few methods (`next`, `throw`, `return`). These methods are bound to the internal state of the generator, which cannot be copied effectively. Normally this would be treated like other "uncopiable" objects and simply pass the reference through, however the "validation" of whether it is a generator object or a standard object is not guaranteed (duck-typing) and there is a runtime cost associated with. Therefore, the simplest path of treating it like a standard object (copying methods to a new object) was taken.
+[Generator objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are
+specific types of iterators, but appear like standard objects that just have a few methods (`next`, `throw`, `return`).
+These methods are bound to the internal state of the generator, which cannot be copied effectively. Normally this would
+be treated like other "uncopiable" objects and simply pass the reference through, however the "validation" of whether it
+is a generator object or a standard object is not guaranteed (duck-typing) and there is a runtime cost associated with.
+Therefore, the simplest path of treating it like a standard object (copying methods to a new object) was taken.
 
 ## Benchmarks
 
@@ -356,7 +382,8 @@ _Custom constructors, React components, etc_
 
 ## Development
 
-Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencies. The following npm scripts are available:
+Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencies. The following npm scripts are
+available:
 
 - benchmark => run benchmark tests against other equality libraries
 - build => run `build:esm`, `build:cjs`, `build:umd`, and `build:min` scripts

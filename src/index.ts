@@ -50,9 +50,7 @@ export function createCopier(options: CreateCopierOptions = {}) {
       return tagSpecificCopier(value, state);
     }
 
-    return typeof value.then === 'function'
-      ? value
-      : copyObject(value as Record<string, any>, state);
+    return typeof value.then === 'function' ? value : copyObject(value as Record<string, any>, state);
   }
 
   return function copy<Value>(value: Value): Value {
