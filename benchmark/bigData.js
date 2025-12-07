@@ -1,4 +1,4 @@
-module.exports = {
+export const BIG_DATA = {
   uid: '74201148-c9db-4d2f-93d4-74749d1e7b40',
   workflow_uid: '6d4963f7-ad62-4a30-892a-6e5cbde74f4a',
   name: 'Vulnerability Prioritization',

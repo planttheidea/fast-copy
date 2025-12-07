@@ -1907,13 +1907,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"benchee@npm:^1.1.0":
-  version: 1.1.0
-  resolution: "benchee@npm:1.1.0"
-  checksum: 10c0/1bbfae92af054622f3ee41856cf5df471c9cd9f6ae68efc1f7505876fe32ec7e1de7e74b0711d1918524a73686353fe4d8447f9a8458250f390aeb018ebe6c1e
-  languageName: node
-  linkType: hard
-
 "brace-expansion@npm:^1.1.7":
   version: 1.1.12
   resolution: "brace-expansion@npm:1.1.12"
@@ -3109,7 +3102,6 @@ __metadata:
     "@types/ramda": "npm:^0.31.1"
     "@types/react": "npm:^19.2.7"
     "@vitest/coverage-v8": "npm:^4.0.15"
-    benchee: "npm:^1.1.0"
     cli-table3: "npm:^0.6.5"
     clone: "npm:^2.1.2"
     deepclone: "npm:^1.0.2"
@@ -3122,6 +3114,7 @@ __metadata:
     react-dom: "npm:^19.2.1"
     release-it: "npm:19.0.6"
     rollup: "npm:^4.53.3"
+    tinybench: "npm:^6.0.0"
     typescript: "npm:^5.9.3"
     vite: "npm:^7.2.6"
     vitest: "npm:^4.0.15"
@@ -6098,6 +6091,13 @@ __metadata:
   version: 2.9.0
   resolution: "tinybench@npm:2.9.0"
   checksum: 10c0/c3500b0f60d2eb8db65250afe750b66d51623057ee88720b7f064894a6cb7eb93360ca824a60a31ab16dab30c7b1f06efe0795b352e37914a9d4bad86386a20c
+  languageName: node
+  linkType: hard
+
+"tinybench@npm:^6.0.0":
+  version: 6.0.0
+  resolution: "tinybench@npm:6.0.0"
+  checksum: 10c0/d0a0c3cf53881d227e8bdeae03e456e6ad0abc362440d296efc8fa14f8acdb97304c547bae90db2c56d18697432f359785f5866ff35ed2ae539380f8f5d4eb19
   languageName: node
   linkType: hard
 
