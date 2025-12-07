@@ -4,7 +4,9 @@ export interface Cache {
   get: (key: any) => any;
 }
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const toStringFunction = Function.prototype.toString;
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const toStringObject = Object.prototype.toString;
 
 /**

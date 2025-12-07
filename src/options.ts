@@ -1,4 +1,3 @@
-import type { InternalCopier } from './copier.ts';
 import {
   copyArrayBuffer,
   copyArrayLoose,
@@ -16,6 +15,7 @@ import {
   copySetLoose,
   copySetStrict,
 } from './copier.js';
+import type { InternalCopier } from './copier.ts';
 import type { Cache } from './utils.ts';
 
 export interface CopierMethods {

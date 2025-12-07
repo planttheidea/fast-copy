@@ -1,10 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-
-interface PlainObject {
-  [key: string]: any;
-  [index: number]: any;
-}
-
 import {
   copyArrayStrict,
   copyMapStrict,
@@ -12,8 +6,13 @@ import {
   copyObjectStrict,
   copyPrimitiveWrapper,
   copySetStrict,
-} from '../copier.js';
-import { createDefaultCache } from '../options.js';
+} from '../src/copier.js';
+import { createDefaultCache } from '../src/options.js';
+
+interface PlainObject {
+  [key: string]: any;
+  [index: number]: any;
+}
 
 describe('copyArrayStrict', () => {
   it('will copy both indices and explicit properties', () => {

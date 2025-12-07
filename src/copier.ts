@@ -1,5 +1,4 @@
 import { getCleanClone } from './utils.js';
-
 import type { Cache } from './utils.ts';
 
 export type InternalCopier<Value> = (value: Value, state: State) => Value;
@@ -11,6 +10,7 @@ export interface State {
   prototype: any;
 }
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
 function copyOwnDescriptor<Value extends object>(
@@ -50,13 +50,13 @@ function copyOwnPropertiesStrict<Value extends object>(value: Value, clone: Valu
   const names = Object.getOwnPropertyNames(value);
 
   for (let index = 0; index < names.length; ++index) {
-    copyOwnDescriptor(value, clone, names[index], state);
+    copyOwnDescriptor(value, clone, names[index]!, state);
   }
 
   const symbols = Object.getOwnPropertySymbols(value);
 
   for (let index = 0; index < symbols.length; ++index) {
-    copyOwnDescriptor(value, clone, symbols[index], state);
+    copyOwnDescriptor(value, clone, symbols[index]!, state);
   }
 
   return clone;
@@ -159,7 +159,7 @@ export function copyObjectLoose<Value extends Record<string, any>>(object: Value
   const symbols = Object.getOwnPropertySymbols(object);
 
   for (let index = 0; index < symbols.length; ++index) {
-    const symbol = symbols[index];
+    const symbol = symbols[index]!;
 
     if (propertyIsEnumerable.call(object, symbol)) {
       clone[symbol] = state.copier((object as any)[symbol], state);
