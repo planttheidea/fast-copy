@@ -1,5 +1,10 @@
 # fast-copy CHANGELOG
 
+## 4.0.1
+
+- [#110](https://github.com/planttheidea/fast-copy/pull/110) - Fix legacy types not aligning with types from build
+  package
+
 ## 4.0.0
 
 ### BREAKING CHANGES
