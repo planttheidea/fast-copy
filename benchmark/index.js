@@ -2,7 +2,7 @@ import Table from 'cli-table3';
 import clone from 'clone';
 import deepclone from 'deepclone';
 import fastClone from 'fast-clone';
-// import fastDeepclone from 'fast-deepclone';
+import fastDeepclone from 'fast-deepclone';
 import { copy as fastCopy, copyStrict as fastCopyStrict } from '../dist/es/index.mjs';
 import lodashCloneDeep from 'lodash/cloneDeep.js';
 import orderBy from 'lodash/orderBy.js';
@@ -17,7 +17,7 @@ function getResults(tasks) {
   });
 
   tasks.forEach(({ name, result }) => {
-    table.push([name, +result.throughput.mean.toFixed(6)]);
+    table.push([name, +(result.throughput?.mean ?? 0).toFixed(6)]);
   });
 
   return table.toString();
@@ -105,7 +105,7 @@ const methods = {
   'fast-copy': fastCopy,
   'fast-copy (strict)': fastCopyStrict,
   // deactivated while it cannot build on linux
-  // 'fast-deepclone': fastDeepclone,
+  'fast-deepclone': fastDeepclone,
   'lodash.cloneDeep': lodashCloneDeep,
   ramda: ramdaClone,
 };
@@ -133,8 +133,8 @@ async function run(name, object) {
   await bench.run();
 
   const tasks = orderBy(
-    bench.tasks.filter(({ result }) => result?.throughput),
-    ({ result }) => result.throughput.mean,
+    bench.tasks.filter(({ result }) => result),
+    ({ result }) => result.throughput?.mean ?? 0,
     ['desc'],
   );
   const table = getResults(tasks);

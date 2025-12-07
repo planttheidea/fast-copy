@@ -33,7 +33,6 @@ A [blazing fast](#benchmarks) deep object copier
     - [Big data](#big-data)
     - [Circular objects](#circular-objects)
     - [Special objects](#special-objects)
-  - [Development](#development)
 
 ## Usage
 
@@ -314,97 +313,123 @@ Therefore, the simplest path of treating it like a standard object (copying meth
 
 _Small number of properties, all values are primitives_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **7,106,436**       |
-| lodash.cloneDeep   | 2,925,806           |
-| clone              | 2,665,733           |
-| fast-clone         | 1,635,636           |
-| ramda              | 1,143,794           |
-| deepclone          | 1,253,298           |
-| fast-copy (strict) | 1,161,882           |
+```bash
+┌────────────────────┬────────────────┐
+│ Name               │ Ops / sec      │
+├────────────────────┼────────────────┤
+│ fast-copy          │ 4606103.720559 │
+├────────────────────┼────────────────┤
+│ lodash.cloneDeep   │ 2575175.39241  │
+├────────────────────┼────────────────┤
+│ clone              │ 2172921.6353   │
+├────────────────────┼────────────────┤
+│ ramda              │ 1919715.448951 │
+├────────────────────┼────────────────┤
+│ fast-clone         │ 1576610.693318 │
+├────────────────────┼────────────────┤
+│ deepclone          │ 1173500.05884  │
+├────────────────────┼────────────────┤
+│ fast-copy (strict) │ 1049310.47701  │
+└────────────────────┴────────────────┘
+Fastest was "fast-copy".
+```
 
 #### Complex objects
 
 _Large number of properties, values are a combination of primitives and complex objects_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **174,056**         |
-| deepclone          | 135,491             |
-| fast-clone         | 99,246              |
-| clone              | 82,487              |
-| ramda              | 78,805              |
-| fast-copy (strict) | 70,160              |
-| lodash.cloneDeep   | 66,068              |
+```bash
+┌────────────────────┬───────────────┐
+│ Name               │ Ops / sec     │
+├────────────────────┼───────────────┤
+│ fast-copy          │ 235511.4532   │
+├────────────────────┼───────────────┤
+│ deepclone          │ 142976.849406 │
+├────────────────────┼───────────────┤
+│ clone              │ 125026.837887 │
+├────────────────────┼───────────────┤
+│ ramda              │ 114216.98158  │
+├────────────────────┼───────────────┤
+│ fast-clone         │ 111388.215547 │
+├────────────────────┼───────────────┤
+│ fast-copy (strict) │ 77683.900047  │
+├────────────────────┼───────────────┤
+│ lodash.cloneDeep   │ 71343.431983  │
+└────────────────────┴───────────────┘
+Fastest was "fast-copy".
+```
 
 #### Big data
 
 _Very large number of properties with high amount of nesting, mainly objects and arrays_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **676**             |
-| fast-clone         | 265                 |
-| lodash.cloneDeep   | 165                 |
-| deepclone          | 149                 |
-| fast-copy (strict) | 133                 |
-| clone              | 122                 |
-| ramda              | 39                  |
+```bash
+Testing big data object...
+┌────────────────────┬────────────┐
+│ Name               │ Ops / sec  │
+├────────────────────┼────────────┤
+│ fast-copy          │ 325.548627 │
+├────────────────────┼────────────┤
+│ fast-clone         │ 257.913886 │
+├────────────────────┼────────────┤
+│ deepclone          │ 158.228042 │
+├────────────────────┼────────────┤
+│ lodash.cloneDeep   │ 153.520966 │
+├────────────────────┼────────────┤
+│ fast-copy (strict) │ 126.027381 │
+├────────────────────┼────────────┤
+│ clone              │ 123.383641 │
+├────────────────────┼────────────┤
+│ ramda              │ 35.507959  │
+└────────────────────┴────────────┘
+Fastest was "fast-copy".
+```
 
 #### Circular objects
 
-_Objects that deeply reference themselves_
-
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **3,183,967**       |
-| deepclone          | 1,285,548           |
-| lodash.cloneDeep   | 1,104,529           |
-| clone              | 1,103,213           |
-| fast-copy (strict) | 1,028,220           |
-| ramda              | 388,033             |
-| fast-clone         | 0 (not supported)   |
+```bash
+Testing circular object...
+┌────────────────────┬────────────────┐
+│ Name               │ Ops / sec      │
+├────────────────────┼────────────────┤
+│ fast-copy          │ 1344790.296938 │
+├────────────────────┼────────────────┤
+│ deepclone          │ 1127781.641192 │
+├────────────────────┼────────────────┤
+│ lodash.cloneDeep   │ 894679.711048  │
+├────────────────────┼────────────────┤
+│ clone              │ 892911.50594   │
+├────────────────────┼────────────────┤
+│ fast-copy (strict) │ 821339.44828   │
+├────────────────────┼────────────────┤
+│ ramda              │ 615222.946985  │
+├────────────────────┼────────────────┤
+│ fast-clone         │ 0              │
+└────────────────────┴────────────────┘
+Fastest was "fast-copy".
+```
 
 #### Special objects
 
 _Custom constructors, React components, etc_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **174,273**         |
-| clone              | 82,030              |
-| lodash.cloneDeep   | 69,234              |
-| fast-clone         | 58,831              |
-| deepclone          | 25,780              |
-| ramda              | 25,309              |
-| fast-copy (strict) | 20,480              |
-
-## Development
-
-Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencies. The following npm scripts are
-available:
-
-- benchmark => run benchmark tests against other equality libraries
-- build => run `build:esm`, `build:cjs`, `build:umd`, and `build:min` scripts
-- build:cjs => build CJS files and types
-- build:esm => build ESM files and types
-- build:min => build minified files and types
-- build:umd => build UMD files and types
-- clean => remove the `dist` folder and all its contents
-- clean:cjs => remove the `dist/cjs` folder and all its contents
-- clean:esm => remove the `dist/esm` folder and all its contents
-- clean:min => remove the `dist/min` folder and all its contents
-- clean:umd => remove the `dist/umd` folder and all its contents
-- dev => start webpack playground App
-- lint => run `eslint`
-- lint:fix => run `lint` script, but with auto-fixer
-- release => run `prepublishOnly` and release with new version
-- release:beta => run `prepublishOnly` and release with new beta version
-- release:dry => run `prepublishOnly` and simulate a new release
-- release:scripts => run `lint`, `test:coverage`, and `dist` scripts
-- start => run `dev`
-- test => run AVA with NODE_ENV=test on all files in `test` folder
-- test:coverage => run same script as `test` with code coverage calculation via `nyc`
-- test:watch => run same script as `test` but keep persistent watcher
-- typecheck => run `tsc` on the codebase
+```bash
+┌────────────────────┬──────────────┐
+│ Name               │ Ops / sec    │
+├────────────────────┼──────────────┤
+│ fast-copy          │ 86875.694416 │
+├────────────────────┼──────────────┤
+│ clone              │ 73525.671381 │
+├────────────────────┼──────────────┤
+│ lodash.cloneDeep   │ 63280.563976 │
+├────────────────────┼──────────────┤
+│ fast-clone         │ 52991.064016 │
+├────────────────────┼──────────────┤
+│ ramda              │ 31770.652317 │
+├────────────────────┼──────────────┤
+│ deepclone          │ 24253.795114 │
+├────────────────────┼──────────────┤
+│ fast-copy (strict) │ 19112.538416 │
+└────────────────────┴──────────────┘
+Fastest was "fast-copy".
+```
