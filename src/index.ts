@@ -1,8 +1,7 @@
-import { getOptions } from './options.js';
-import { getTag } from './utils.js';
-
 import type { State } from './copier.ts';
+import { getOptions } from './options.js';
 import type { CreateCopierOptions } from './options.ts';
+import { getTag } from './utils.js';
 
 export type { State } from './copier.ts';
 export type { CreateCopierOptions } from './options.ts';
@@ -50,9 +49,7 @@ export function createCopier(options: CreateCopierOptions = {}) {
       return tagSpecificCopier(value, state);
     }
 
-    return typeof value.then === 'function'
-      ? value
-      : copyObject(value as Record<string, any>, state);
+    return typeof value.then === 'function' ? value : copyObject(value as Record<string, any>, state);
   }
 
   return function copy<Value>(value: Value): Value {

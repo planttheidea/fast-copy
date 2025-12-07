@@ -1,7 +1,6 @@
-import { describe, expect, it } from 'vitest';
 import React from 'react';
-
-import { copy, copyStrict } from '../index.js';
+import { describe, expect, it } from 'vitest';
+import { copy, copyStrict } from '../src/index.js';
 
 interface PlainObject {
   [key: string]: any;
@@ -201,9 +200,7 @@ describe('copy', () => {
         expect(value.size).toBe(complexTypes[property].size);
         expect(value.type).toBe(complexTypes[property].type);
       } else if (property === 'customPrototype') {
-        expect(Object.getPrototypeOf(value)).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property]),
-        );
+        expect(Object.getPrototypeOf(value)).toBe(Object.getPrototypeOf(COMPLEX_TYPES[property]));
         expect(value).toEqual(COMPLEX_TYPES[property]);
       } else {
         // @ts-expect-error - Symbol not supported property type
@@ -337,9 +334,7 @@ describe('copyStrict', () => {
         expect(value.size).toBe(complexTypes[property].size);
         expect(value.type).toBe(complexTypes[property].type);
       } else if (property === 'customPrototype') {
-        expect(Object.getPrototypeOf(value)).toBe(
-          Object.getPrototypeOf(COMPLEX_TYPES[property]),
-        );
+        expect(Object.getPrototypeOf(value)).toBe(Object.getPrototypeOf(COMPLEX_TYPES[property]));
         expect(value).toEqual(COMPLEX_TYPES[property]);
       } else {
         // @ts-expect-error - Symbol not supported property type

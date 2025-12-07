@@ -33,7 +33,6 @@ A [blazing fast](#benchmarks) deep object copier
     - [Big data](#big-data)
     - [Circular objects](#circular-objects)
     - [Special objects](#special-objects)
-  - [Development](#development)
 
 ## Usage
 
@@ -87,11 +86,14 @@ object.nonEnumerable = Object.defineProperty(object, 'bar', {
 const copied = copy(object);
 ```
 
-**NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have specific use-cases that require it.
+**NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have
+specific use-cases that require it.
 
 ### `createCopier`
 
-Create a custom copier based on the type-specific method overrides passed, as well as configuration options for how copies should be performed. This is useful if you want to squeeze out maximum performance, or perform something other than a standard deep copy.
+Create a custom copier based on the type-specific method overrides passed, as well as configuration options for how
+copies should be performed. This is useful if you want to squeeze out maximum performance, or perform something other
+than a standard deep copy.
 
 ```js
 import { createCopier } from 'fast-copy';
@@ -111,18 +113,21 @@ const copyShallowStrict = createCopier({
 
 #### `createCache`
 
-Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new `WeakMap` instance.
+Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new
+`WeakMap` instance.
 
 #### `methods`
 
 Methods used for copying specific object types. A list of the methods and which object types they handle:
 
 - `array` => `Array`
-- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
+- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`,
+  `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
 - `blob` => `Blob`
 - `dataView` => `DataView`
 - `date` => `Date`
-- `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`, `URIError`
+- `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`,
+  `URIError`
 - `map` => `Map`
 - `object` => `Object`, or any custom constructor
 - `regExp` => `RegExp`
@@ -145,7 +150,8 @@ interface State {
 
 ###### `cache`
 
-If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future lookups:
+If you want to maintain circular reference handling, then you'll need the methods to handle cache population for future
+lookups:
 
 ```js
 function shallowlyCloneArray<Value extends any[]>(
@@ -179,11 +185,13 @@ function deeplyCloneArray<Value extends any[]>(
 }
 ```
 
-Note above I am using `forEach` instead of a simple `map`. This is because it is highly recommended to store the clone in [`cache`](#cache) eagerly when deeply copying, so that nested circular references are handled correctly.
+Note above I am using `forEach` instead of a simple `map`. This is because it is highly recommended to store the clone
+in [`cache`](#cache) eagerly when deeply copying, so that nested circular references are handled correctly.
 
 ###### `Constructor` / `prototype`
 
-Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
+Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or
+arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
 
 ```js
 function deeplyCloneSubclassArray<Value extends CustomArray>(
@@ -215,9 +223,11 @@ function deeplyCloneCustomObject<Value extends CustomObject>(
 
 #### `strict`
 
-Enforces strict copying of properties, which includes properties that are not standard for that object. An example would be a named key on an array.
+Enforces strict copying of properties, which includes properties that are not standard for that object. An example would
+be a named key on an array.
 
-**NOTE**: This creates a copier that is significantly slower than "loose" mode, so it is recommended to only use this when you have specific use-cases that require it.
+**NOTE**: This creates a copier that is significantly slower than "loose" mode, so it is recommended to only use this
+when you have specific use-cases that require it.
 
 ## Types supported
 
@@ -248,7 +258,8 @@ The following object types are deeply cloned when they are either properties on 
 - `React` components
 - Custom constructors
 
-The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use-case implementation does not expect cloning:
+The following object types are copied directly, as they are either primitives, cannot be cloned, or the common use-case
+implementation does not expect cloning:
 
 - `AsyncFunction`
 - `Boolean` primitives
@@ -264,23 +275,37 @@ The following object types are copied directly, as they are either primitives, c
 - `WeakMap`
 - `WeakSet`
 
-Circular objects are supported out of the box. By default, a cache based on `WeakSet` is used, but if `WeakSet` is not available then a fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
+Circular objects are supported out of the box. By default, a cache based on `WeakSet` is used, but if `WeakSet` is not
+available then a fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
 
 ## Aspects of default copiers
 
-Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are detailed below. If your use-cases require different handling, you can always create your own custom copier with [`createCopier`](#createcopier).
+Inherently, what is considered a valid copy is subjective because of different requirements and use-cases. For this
+library, some decisions were explicitly made for the default copiers of specific object types, and those decisions are
+detailed below. If your use-cases require different handling, you can always create your own custom copier with
+[`createCopier`](#createcopier).
 
 ### Error references are copied directly, instead of creating a new `*Error` object
 
-While it would be relatively trivial to copy over the message and stack to a new object of the same `Error` subclass, it is a common practice to "override" the message or stack, and copies would not retain this mutation. As such, the original reference is copied.
+While it would be relatively trivial to copy over the message and stack to a new object of the same `Error` subclass, it
+is a common practice to "override" the message or stack, and copies would not retain this mutation. As such, the
+original reference is copied.
 
 ### The constructor of the original object is used, instead of using known globals
 
-Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the constructor of the original object. However, the expectation is that these subclasses would have the same constructur signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if the contract differs.
+Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the
+constructor of the original object. However, the expectation is that these subclasses would have the same constructur
+signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if
+the contract differs.
 
 ### Generator objects are copied, but still reference the original generator's state
 
-[Generator objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are specific types of iterators, but appear like standard objects that just have a few methods (`next`, `throw`, `return`). These methods are bound to the internal state of the generator, which cannot be copied effectively. Normally this would be treated like other "uncopiable" objects and simply pass the reference through, however the "validation" of whether it is a generator object or a standard object is not guaranteed (duck-typing) and there is a runtime cost associated with. Therefore, the simplest path of treating it like a standard object (copying methods to a new object) was taken.
+[Generator objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are
+specific types of iterators, but appear like standard objects that just have a few methods (`next`, `throw`, `return`).
+These methods are bound to the internal state of the generator, which cannot be copied effectively. Normally this would
+be treated like other "uncopiable" objects and simply pass the reference through, however the "validation" of whether it
+is a generator object or a standard object is not guaranteed (duck-typing) and there is a runtime cost associated with.
+Therefore, the simplest path of treating it like a standard object (copying methods to a new object) was taken.
 
 ## Benchmarks
 
@@ -288,96 +313,123 @@ Starting in ES2015, native globals can be subclassed like any custom class. When
 
 _Small number of properties, all values are primitives_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **7,106,436**       |
-| lodash.cloneDeep   | 2,925,806           |
-| clone              | 2,665,733           |
-| fast-clone         | 1,635,636           |
-| ramda              | 1,143,794           |
-| deepclone          | 1,253,298           |
-| fast-copy (strict) | 1,161,882           |
+```bash
+┌────────────────────┬────────────────┐
+│ Name               │ Ops / sec      │
+├────────────────────┼────────────────┤
+│ fast-copy          │ 4606103.720559 │
+├────────────────────┼────────────────┤
+│ lodash.cloneDeep   │ 2575175.39241  │
+├────────────────────┼────────────────┤
+│ clone              │ 2172921.6353   │
+├────────────────────┼────────────────┤
+│ ramda              │ 1919715.448951 │
+├────────────────────┼────────────────┤
+│ fast-clone         │ 1576610.693318 │
+├────────────────────┼────────────────┤
+│ deepclone          │ 1173500.05884  │
+├────────────────────┼────────────────┤
+│ fast-copy (strict) │ 1049310.47701  │
+└────────────────────┴────────────────┘
+Fastest was "fast-copy".
+```
 
 #### Complex objects
 
 _Large number of properties, values are a combination of primitives and complex objects_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **174,056**         |
-| deepclone          | 135,491             |
-| fast-clone         | 99,246              |
-| clone              | 82,487              |
-| ramda              | 78,805              |
-| fast-copy (strict) | 70,160              |
-| lodash.cloneDeep   | 66,068              |
+```bash
+┌────────────────────┬───────────────┐
+│ Name               │ Ops / sec     │
+├────────────────────┼───────────────┤
+│ fast-copy          │ 235511.4532   │
+├────────────────────┼───────────────┤
+│ deepclone          │ 142976.849406 │
+├────────────────────┼───────────────┤
+│ clone              │ 125026.837887 │
+├────────────────────┼───────────────┤
+│ ramda              │ 114216.98158  │
+├────────────────────┼───────────────┤
+│ fast-clone         │ 111388.215547 │
+├────────────────────┼───────────────┤
+│ fast-copy (strict) │ 77683.900047  │
+├────────────────────┼───────────────┤
+│ lodash.cloneDeep   │ 71343.431983  │
+└────────────────────┴───────────────┘
+Fastest was "fast-copy".
+```
 
 #### Big data
 
 _Very large number of properties with high amount of nesting, mainly objects and arrays_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **676**             |
-| fast-clone         | 265                 |
-| lodash.cloneDeep   | 165                 |
-| deepclone          | 149                 |
-| fast-copy (strict) | 133                 |
-| clone              | 122                 |
-| ramda              | 39                  |
+```bash
+Testing big data object...
+┌────────────────────┬────────────┐
+│ Name               │ Ops / sec  │
+├────────────────────┼────────────┤
+│ fast-copy          │ 325.548627 │
+├────────────────────┼────────────┤
+│ fast-clone         │ 257.913886 │
+├────────────────────┼────────────┤
+│ deepclone          │ 158.228042 │
+├────────────────────┼────────────┤
+│ lodash.cloneDeep   │ 153.520966 │
+├────────────────────┼────────────┤
+│ fast-copy (strict) │ 126.027381 │
+├────────────────────┼────────────┤
+│ clone              │ 123.383641 │
+├────────────────────┼────────────┤
+│ ramda              │ 35.507959  │
+└────────────────────┴────────────┘
+Fastest was "fast-copy".
+```
 
 #### Circular objects
 
-_Objects that deeply reference themselves_
-
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **3,183,967**       |
-| deepclone          | 1,285,548           |
-| lodash.cloneDeep   | 1,104,529           |
-| clone              | 1,103,213           |
-| fast-copy (strict) | 1,028,220           |
-| ramda              | 388,033             |
-| fast-clone         | 0 (not supported)   |
+```bash
+Testing circular object...
+┌────────────────────┬────────────────┐
+│ Name               │ Ops / sec      │
+├────────────────────┼────────────────┤
+│ fast-copy          │ 1344790.296938 │
+├────────────────────┼────────────────┤
+│ deepclone          │ 1127781.641192 │
+├────────────────────┼────────────────┤
+│ lodash.cloneDeep   │ 894679.711048  │
+├────────────────────┼────────────────┤
+│ clone              │ 892911.50594   │
+├────────────────────┼────────────────┤
+│ fast-copy (strict) │ 821339.44828   │
+├────────────────────┼────────────────┤
+│ ramda              │ 615222.946985  │
+├────────────────────┼────────────────┤
+│ fast-clone         │ 0              │
+└────────────────────┴────────────────┘
+Fastest was "fast-copy".
+```
 
 #### Special objects
 
 _Custom constructors, React components, etc_
 
-|                    | Operations / second |
-| ------------------ | ------------------- |
-| **fast-copy**      | **174,273**         |
-| clone              | 82,030              |
-| lodash.cloneDeep   | 69,234              |
-| fast-clone         | 58,831              |
-| deepclone          | 25,780              |
-| ramda              | 25,309              |
-| fast-copy (strict) | 20,480              |
-
-## Development
-
-Standard practice, clone the repo and `yarn` (or `npm i`) to get the dependencies. The following npm scripts are available:
-
-- benchmark => run benchmark tests against other equality libraries
-- build => run `build:esm`, `build:cjs`, `build:umd`, and `build:min` scripts
-- build:cjs => build CJS files and types
-- build:esm => build ESM files and types
-- build:min => build minified files and types
-- build:umd => build UMD files and types
-- clean => remove the `dist` folder and all its contents
-- clean:cjs => remove the `dist/cjs` folder and all its contents
-- clean:esm => remove the `dist/esm` folder and all its contents
-- clean:min => remove the `dist/min` folder and all its contents
-- clean:umd => remove the `dist/umd` folder and all its contents
-- dev => start webpack playground App
-- lint => run `eslint`
-- lint:fix => run `lint` script, but with auto-fixer
-- release => run `prepublishOnly` and release with new version
-- release:beta => run `prepublishOnly` and release with new beta version
-- release:dry => run `prepublishOnly` and simulate a new release
-- release:scripts => run `lint`, `test:coverage`, and `dist` scripts
-- start => run `dev`
-- test => run AVA with NODE_ENV=test on all files in `test` folder
-- test:coverage => run same script as `test` with code coverage calculation via `nyc`
-- test:watch => run same script as `test` but keep persistent watcher
-- typecheck => run `tsc` on the codebase
+```bash
+┌────────────────────┬──────────────┐
+│ Name               │ Ops / sec    │
+├────────────────────┼──────────────┤
+│ fast-copy          │ 86875.694416 │
+├────────────────────┼──────────────┤
+│ clone              │ 73525.671381 │
+├────────────────────┼──────────────┤
+│ lodash.cloneDeep   │ 63280.563976 │
+├────────────────────┼──────────────┤
+│ fast-clone         │ 52991.064016 │
+├────────────────────┼──────────────┤
+│ ramda              │ 31770.652317 │
+├────────────────────┼──────────────┤
+│ deepclone          │ 24253.795114 │
+├────────────────────┼──────────────┤
+│ fast-copy (strict) │ 19112.538416 │
+└────────────────────┴──────────────┘
+Fastest was "fast-copy".
+```

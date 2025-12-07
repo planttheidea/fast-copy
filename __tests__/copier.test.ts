@@ -1,10 +1,4 @@
 import { describe, expect, it, vi } from 'vitest';
-
-interface PlainObject {
-  [key: string]: any;
-  [index: number]: any;
-}
-
 import {
   copyArrayStrict,
   copyMapStrict,
@@ -12,8 +6,13 @@ import {
   copyObjectStrict,
   copyPrimitiveWrapper,
   copySetStrict,
-} from '../copier.js';
-import { createDefaultCache } from '../options.js';
+} from '../src/copier.js';
+import { createDefaultCache } from '../src/options.js';
+
+interface PlainObject {
+  [key: string]: any;
+  [index: number]: any;
+}
 
 describe('copyArrayStrict', () => {
   it('will copy both indices and explicit properties', () => {
@@ -57,9 +56,7 @@ describe('copyObjectLoose', () => {
     expect(result).not.toBe(object);
     expect(result).toEqual(object);
 
-    expect(mockCopier).toHaveBeenCalledTimes(
-      Object.keys(object).length + Object.getOwnPropertySymbols(object).length,
-    );
+    expect(mockCopier).toHaveBeenCalledTimes(Object.keys(object).length + Object.getOwnPropertySymbols(object).length);
   });
 });
 
@@ -93,8 +90,7 @@ describe('copyObjectStrict', () => {
     expect(result).toEqual(object);
 
     expect(mockCopier).toHaveBeenCalledTimes(
-      Object.getOwnPropertyNames(object).length +
-        Object.getOwnPropertySymbols(object).length,
+      Object.getOwnPropertyNames(object).length + Object.getOwnPropertySymbols(object).length,
     );
   });
 });

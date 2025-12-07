@@ -1,8 +1,4 @@
-.idea
-.nyc_output
-.rpt2_cache
 .yarn
 coverage
 dist
 node_modules
-*.log

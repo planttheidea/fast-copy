@@ -4,7 +4,9 @@ export interface Cache {
   get: (key: any) => any;
 }
 
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const toStringFunction = Function.prototype.toString;
+// eslint-disable-next-line @typescript-eslint/unbound-method
 const toStringObject = Object.prototype.toString;
 
 /**
@@ -18,15 +20,10 @@ export function getCleanClone(prototype: any): any {
   const Constructor = prototype.constructor;
 
   if (Constructor === Object) {
-    return prototype === Object.prototype
-      ? {}
-      : Object.create(prototype as object | null);
+    return prototype === Object.prototype ? {} : Object.create(prototype as object | null);
   }
 
-  if (
-    Constructor &&
-    ~toStringFunction.call(Constructor).indexOf('[native code]')
-  ) {
+  if (Constructor && ~toStringFunction.call(Constructor).indexOf('[native code]')) {
     try {
       return new Constructor();
     } catch {

@@ -1,6 +1,5 @@
-import React from 'react';
 import cloneDeep from 'lodash/cloneDeep.js';
-
+import React from 'react';
 import { copy, copyStrict, createCopier } from '../src/index.js';
 
 // import '../benchmarks';

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { getCleanClone } from '../utils.js';
+import { getCleanClone } from '../src/utils.js';
 
 interface PlainObject {
   [key: string]: any;

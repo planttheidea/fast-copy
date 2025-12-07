@@ -1,14 +1,14 @@
 {
   "compilerOptions": {
     "allowJs": true,
-    "declaration": false,
+    "declaration": true,
     "emitDeclarationOnly": false,
     "esModuleInterop": true,
     "isolatedModules": true,
     "lib": ["ESNext", "DOM"],
-    "module": "NodeNext",
+    "module": "Node16",
     "moduleDetection": "force",
-    "moduleResolution": "NodeNext",
+    "moduleResolution": "Node16",
     "noFallthroughCasesInSwitch": true,
     "noImplicitAny": true,
     "noImplicitOverride": true,
@@ -22,10 +22,8 @@
     "target": "ES2015",
     "verbatimModuleSyntax": true,
     "types": ["node"],
-    "baseUrl": "src",
-    "outDir": "dist",
-    "rootDir": "./"
+    "outDir": "../../dist/cjs"
   },
-  "exclude": ["**/node_modules/**", "dist/**/*"],
-  "include": ["config/**/*.ts", "dev/**/*.ts", "src/**/*.ts", "__tests__/**/*.ts"]
+  "exclude": ["**/node_modules/**", "**/__tests__/**"],
+  "include": ["../../src/**/*.ts"]
 }
