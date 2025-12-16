@@ -262,9 +262,11 @@ The following object types are copied directly, as they are either primitives, c
 implementation does not expect cloning:
 
 - `AsyncFunction`
+- `AsyncGenerator`
 - `Boolean` primitives
 - `Error`
 - `Function`
+- `Generator`
 - `GeneratorFunction`
 - `Number` primitives
 - `Null`

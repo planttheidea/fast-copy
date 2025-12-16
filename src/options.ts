@@ -21,10 +21,12 @@ import type { Cache } from './utils.ts';
 export interface CopierMethods {
   array?: InternalCopier<any[]>;
   arrayBuffer?: InternalCopier<ArrayBuffer>;
+  asyncGenerator?: InternalCopier<AsyncGenerator>;
   blob?: InternalCopier<Blob>;
   dataView?: InternalCopier<DataView>;
   date?: InternalCopier<Date>;
-  error?: InternalCopier<any>;
+  error?: InternalCopier<Error>;
+  generator?: InternalCopier<Generator>;
   map?: InternalCopier<Map<any, any>>;
   object?: InternalCopier<Record<string, any>>;
   regExp?: InternalCopier<RegExp>;
@@ -37,6 +39,7 @@ interface Copiers {
   Arguments: InternalCopier<Record<string, any>>;
   Array: InternalCopier<any[]>;
   ArrayBuffer: InternalCopier<ArrayBuffer>;
+  AsyncGenerator: InternalCopier<AsyncGenerator>;
   Blob: InternalCopier<Blob>;
   // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
   Boolean: InternalCopier<Boolean>;
@@ -45,6 +48,8 @@ interface Copiers {
   Error: InternalCopier<Error>;
   Float32Array: InternalCopier<ArrayBuffer>;
   Float64Array: InternalCopier<ArrayBuffer>;
+  Generator: InternalCopier<Generator>;
+
   Int8Array: InternalCopier<ArrayBuffer>;
   Int16Array: InternalCopier<ArrayBuffer>;
   Int32Array: InternalCopier<ArrayBuffer>;
@@ -89,10 +94,12 @@ export function getOptions({
   const defaultMethods = {
     array: strict ? copyArrayStrict : copyArrayLoose,
     arrayBuffer: copyArrayBuffer,
+    asyncGenerator: copySelf,
     blob: copyBlob,
     dataView: copyDataView,
     date: copyDate,
     error: copySelf,
+    generator: copySelf,
     map: strict ? copyMapStrict : copyMapLoose,
     object: strict ? copyObjectStrict : copyObjectLoose,
     regExp: copyRegExp,
@@ -121,6 +128,7 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     Arguments: methods.object,
     Array: methods.array,
     ArrayBuffer: methods.arrayBuffer,
+    AsyncGenerator: methods.asyncGenerator,
     Blob: methods.blob,
     Boolean: copyPrimitiveWrapper,
     DataView: methods.dataView,
@@ -128,6 +136,7 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     Error: methods.error,
     Float32Array: methods.arrayBuffer,
     Float64Array: methods.arrayBuffer,
+    Generator: methods.generator,
     Int8Array: methods.arrayBuffer,
     Int16Array: methods.arrayBuffer,
     Int32Array: methods.arrayBuffer,

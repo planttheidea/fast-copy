@@ -15,10 +15,12 @@ interface State {
 interface CopierMethods {
   array?: InternalCopier<any[]>;
   arrayBuffer?: InternalCopier<ArrayBuffer>;
+  asyncGenerator?: InternalCopier<AsyncGenerator>;
   blob?: InternalCopier<Blob>;
   dataView?: InternalCopier<DataView>;
   date?: InternalCopier<Date>;
-  error?: InternalCopier<any>;
+  error?: InternalCopier<Error>;
+  generator?: InternalCopier<Generator>;
   map?: InternalCopier<Map<any, any>>;
   object?: InternalCopier<Record<string, any>>;
   regExp?: InternalCopier<RegExp>;

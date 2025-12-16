@@ -1,5 +1,10 @@
 # fast-copy CHANGELOG
 
+## 4.0.2
+
+- [#112](https://github.com/planttheidea/fast-copy/pull/112) - Prevent generators from attempting to be copied (fixes
+  [#111](https://github.com/planttheidea/fast-copy/issues/111))
+
 ## 4.0.1
 
 - [#110](https://github.com/planttheidea/fast-copy/pull/110) - Fix legacy types not aligning with types from build
