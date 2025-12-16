@@ -7,6 +7,15 @@ interface PlainObject {
   [index: number]: any;
 }
 
+function* generator() {
+  yield 'foo';
+}
+
+async function* asyncGenerator() {
+  await Promise.resolve();
+  yield 'foo';
+}
+
 const SIMPLE_TYPES: PlainObject = {
   boolean: true,
   error: new TypeError('boom'),
@@ -50,6 +59,7 @@ const COMPLEX_TYPES: PlainObject = {
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
+  asyncGenerator: asyncGenerator(),
   blob: new Blob(['<a id="a">hey!</a>'], { type: 'text/html' }),
   buffer: Buffer.from('this is a test buffer'),
   customPrototype: Object.create({
@@ -62,6 +72,7 @@ const COMPLEX_TYPES: PlainObject = {
   date: new Date(),
   float32Array: new Float32Array([1, 2]),
   float64Array: new Float64Array([3, 4]),
+  generator: generator(),
   int8Array: new Int8Array([5, 6]),
   int16Array: new Int16Array([7, 8]),
   int32Array: new Int32Array([9, 10]),
@@ -336,6 +347,8 @@ describe('copyStrict', () => {
       } else if (property === 'customPrototype') {
         expect(Object.getPrototypeOf(value)).toBe(Object.getPrototypeOf(COMPLEX_TYPES[property]));
         expect(value).toEqual(COMPLEX_TYPES[property]);
+      } else if (property === 'asyncGenerator' || property === 'generator') {
+        expect(value).toBe(COMPLEX_TYPES[property]);
       } else {
         // @ts-expect-error - Symbol not supported property type
         expect(value).toEqual(COMPLEX_TYPES[property]);
