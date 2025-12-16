@@ -26,7 +26,6 @@ A [blazing fast](#benchmarks) deep object copier
   - [Aspects of default copiers](#aspects-of-default-copiers)
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
-    - [Generator objects are copied, but still reference the original generator's state](#generator-objects-are-copied-but-still-reference-the-original-generators-state)
   - [Benchmarks](#benchmarks)
     - [Simple objects](#simple-objects)
     - [Complex objects](#complex-objects)
@@ -299,15 +298,6 @@ Starting in ES2015, native globals can be subclassed like any custom class. When
 constructor of the original object. However, the expectation is that these subclasses would have the same constructur
 signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if
 the contract differs.
-
-### Generator objects are copied, but still reference the original generator's state
-
-[Generator objects](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Generator) are
-specific types of iterators, but appear like standard objects that just have a few methods (`next`, `throw`, `return`).
-These methods are bound to the internal state of the generator, which cannot be copied effectively. Normally this would
-be treated like other "uncopiable" objects and simply pass the reference through, however the "validation" of whether it
-is a generator object or a standard object is not guaranteed (duck-typing) and there is a runtime cost associated with.
-Therefore, the simplest path of treating it like a standard object (copying methods to a new object) was taken.
 
 ## Benchmarks
 
