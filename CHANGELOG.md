@@ -1,5 +1,10 @@
 # fast-copy CHANGELOG
 
+## 4.0.3
+
+- [#130](https://github.com/planttheidea/fast-copy/pull/130) - Remove invalid `Uint64Array` in favor of `BigInt64Array`
+  / `BigUint64Array`) (fixes [#128](https://github.com/planttheidea/fast-copy/issues/128))
+
 ## 4.0.2
 
 - [#112](https://github.com/planttheidea/fast-copy/pull/112) - Prevent generators from attempting to be copied (fixes
