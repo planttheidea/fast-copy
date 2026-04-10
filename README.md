@@ -121,7 +121,7 @@ Methods used for copying specific object types. A list of the methods and which 
 
 - `array` => `Array`
 - `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`,
-  `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `Uint64Array`
+  `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `BigInt64Array`, `BigUint64Array`
 - `blob` => `Blob`
 - `dataView` => `DataView`
 - `date` => `Date`

@@ -1,5 +1,5 @@
 import React from 'react';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, test } from 'vitest';
 import { copy, copyStrict } from '../src/index.js';
 
 interface PlainObject {
@@ -393,5 +393,33 @@ describe('copyStrict', () => {
     expect(result.array[0]).toBe(cloneReusedObject);
     expect(result.array[1]).not.toBe(reusedObject);
     expect(result.array[1]).toBe(cloneReusedObject);
+  });
+});
+
+describe('issues', () => {
+  test('#128', () => {
+    const bigInt1 = BigInt('1');
+    const bigInt2 = BigInt('2');
+    const bigInt3 = BigInt('3');
+
+    const int32Array = Int32Array.of(1, 2, 3);
+    const bigInt64Array = BigInt64Array.of(bigInt1, bigInt2, bigInt3);
+    const bigUint64Array = BigUint64Array.of(bigInt1, bigInt2, bigInt3);
+
+    const int32Copy = copyStrict(int32Array);
+    const bigInt64Copy = copyStrict(bigInt64Array);
+    const bigUint64Copy = copyStrict(bigUint64Array);
+
+    expect(int32Copy).not.toBe(int32Array);
+    expect(int32Copy).toEqual(int32Array);
+    expect(int32Copy).toBeInstanceOf(Int32Array);
+
+    expect(bigInt64Copy).not.toBe(bigInt64Array);
+    expect(bigInt64Copy).toEqual(bigInt64Array);
+    expect(bigInt64Copy).toBeInstanceOf(BigInt64Array);
+
+    expect(bigUint64Copy).not.toBe(bigUint64Array);
+    expect(bigUint64Copy).toEqual(bigUint64Array);
+    expect(bigUint64Copy).toBeInstanceOf(BigUint64Array);
   });
 });

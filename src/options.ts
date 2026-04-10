@@ -40,6 +40,8 @@ interface Copiers {
   Array: InternalCopier<any[]>;
   ArrayBuffer: InternalCopier<ArrayBuffer>;
   AsyncGenerator: InternalCopier<AsyncGenerator>;
+  BigInt64Array: InternalCopier<ArrayBuffer>;
+  BigUint64Array: InternalCopier<ArrayBuffer>;
   Blob: InternalCopier<Blob>;
   // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
   Boolean: InternalCopier<Boolean>;
@@ -49,7 +51,6 @@ interface Copiers {
   Float32Array: InternalCopier<ArrayBuffer>;
   Float64Array: InternalCopier<ArrayBuffer>;
   Generator: InternalCopier<Generator>;
-
   Int8Array: InternalCopier<ArrayBuffer>;
   Int16Array: InternalCopier<ArrayBuffer>;
   Int32Array: InternalCopier<ArrayBuffer>;
@@ -68,7 +69,6 @@ interface Copiers {
   Uint8ClampedArray: InternalCopier<ArrayBuffer>;
   Uint16Array: InternalCopier<ArrayBuffer>;
   Uint32Array: InternalCopier<ArrayBuffer>;
-  Uint64Array: InternalCopier<ArrayBuffer>;
 }
 
 export interface CreateCopierOptions {
@@ -129,6 +129,8 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     Array: methods.array,
     ArrayBuffer: methods.arrayBuffer,
     AsyncGenerator: methods.asyncGenerator,
+    BigInt64Array: methods.arrayBuffer,
+    BigUint64Array: methods.arrayBuffer,
     Blob: methods.blob,
     Boolean: copyPrimitiveWrapper,
     DataView: methods.dataView,
@@ -153,6 +155,5 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     Uint8ClampedArray: methods.arrayBuffer,
     Uint16Array: methods.arrayBuffer,
     Uint32Array: methods.arrayBuffer,
-    Uint64Array: methods.arrayBuffer,
   };
 }
