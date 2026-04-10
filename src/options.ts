@@ -40,6 +40,7 @@ interface Copiers {
   Array: InternalCopier<any[]>;
   ArrayBuffer: InternalCopier<ArrayBuffer>;
   AsyncGenerator: InternalCopier<AsyncGenerator>;
+  BigInt64Array: InternalCopier<ArrayBuffer>;
   BigUint64Array: InternalCopier<ArrayBuffer>;
   Blob: InternalCopier<Blob>;
   // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
@@ -128,6 +129,7 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     Array: methods.array,
     ArrayBuffer: methods.arrayBuffer,
     AsyncGenerator: methods.asyncGenerator,
+    BigInt64Array: methods.arrayBuffer,
     BigUint64Array: methods.arrayBuffer,
     Blob: methods.blob,
     Boolean: copyPrimitiveWrapper,

@@ -27,11 +27,11 @@ A [blazing fast](#benchmarks) deep object copier
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
   - [Benchmarks](#benchmarks)
-      - [Simple objects](#simple-objects)
-      - [Complex objects](#complex-objects)
-      - [Big data](#big-data)
-      - [Circular objects](#circular-objects)
-      - [Special objects](#special-objects)
+    - [Simple objects](#simple-objects)
+    - [Complex objects](#complex-objects)
+    - [Big data](#big-data)
+    - [Circular objects](#circular-objects)
+    - [Special objects](#special-objects)
 
 ## Usage
 
@@ -121,7 +121,7 @@ Methods used for copying specific object types. A list of the methods and which 
 
 - `array` => `Array`
 - `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`,
-  `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `BigUint64Array`
+  `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `BigInt64Array`, `BigUint64Array`
 - `blob` => `Blob`
 - `dataView` => `DataView`
 - `date` => `Date`
