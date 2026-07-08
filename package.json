@@ -1,6 +1,10 @@
 {
-  "author": "tony_quetano@planttheidea.com",
-  "browser": "dist/umd/index.js",
+  "author": {
+    "email": "tony.quetano@planttheidea.com",
+    "name": "Tony Quetano",
+    "url": "https://www.planttheidea.com/"
+  },
+  "browser": "./dist/umd/index.js",
   "bugs": {
     "url": "https://github.com/planttheidea/fast-copy/issues"
   },
@@ -25,7 +29,7 @@
     "ramda": "^0.32.0",
     "react": "^19.2.7",
     "react-dom": "^19.2.7",
-    "release-it": "20.2.1",
+    "release-it": "^20.2.1",
     "rollup": "^4.62.2",
     "tinybench": "^6.0.2",
     "typescript": "^5.9.3",
@@ -50,7 +54,6 @@
   },
   "files": [
     "dist",
-    "CHANGELOG.md",
     "LICENSE",
     "README.md",
     "index.d.ts",
@@ -64,16 +67,19 @@
     "fast"
   ],
   "license": "MIT",
-  "main": "dist/cjs/index.cjs",
-  "module": "dist/es/index.mjs",
+  "main": "./dist/cjs/index.cjs",
+  "module": "./dist/es/index.mjs",
   "name": "fast-copy",
+  "publishConfig": {
+    "access": "public"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/planttheidea/fast-copy.git"
   },
   "scripts": {
     "benchmark": "npm run build && node benchmark/index.js",
-    "build": "npm run clean && npm run build:dist && npm run build:types",
+    "build": "npm run clean && npm run build:dist",
     "build:dist": "NODE_ENV=production rollup -c config/rollup.config.js",
     "build:types": "pti fix-types -l dist",
     "clean": "rm -rf dist",
@@ -81,6 +87,7 @@
     "clean:es": "rm -rf dist/es",
     "clean:esm": "rm -rf dist/esm",
     "clean:min": "rm -rf dist/min",
+    "clean:umd": "rm -rf dist/umd",
     "dev": "vite --config=config/vite.config.ts",
     "format": "prettier . --log-level=warn --write",
     "format:check": "prettier . --log-level=warn --check",

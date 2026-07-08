@@ -1,4 +1,4 @@
-import './App.ts';
+import './App.js';
 
 document.body.style.backgroundColor = '#1d1d1d';
 document.body.style.color = '#d5d5d5';

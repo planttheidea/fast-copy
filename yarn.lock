@@ -2944,7 +2944,7 @@ __metadata:
     ramda: "npm:^0.32.0"
     react: "npm:^19.2.7"
     react-dom: "npm:^19.2.7"
-    release-it: "npm:20.2.1"
+    release-it: "npm:^20.2.1"
     rollup: "npm:^4.62.2"
     tinybench: "npm:^6.0.2"
     typescript: "npm:^5.9.3"
@@ -5050,7 +5050,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"release-it@npm:20.2.1, release-it@npm:^20.2.1":
+"release-it@npm:^20.2.1":
   version: 20.2.1
   resolution: "release-it@npm:20.2.1"
   dependencies:

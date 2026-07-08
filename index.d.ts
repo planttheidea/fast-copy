@@ -1,35 +1,35 @@
 interface Cache {
-  has: (value: any) => boolean;
-  set: (key: any, value: any) => void;
-  get: (key: any) => any;
+    has: (value: any) => boolean;
+    set: (key: any, value: any) => void;
+    get: (key: any) => any;
 }
 
 type InternalCopier<Value> = (value: Value, state: State) => Value;
 interface State {
-  Constructor: any;
-  cache: Cache;
-  copier: InternalCopier<any>;
-  prototype: any;
+    Constructor: any;
+    cache: Cache;
+    copier: InternalCopier<any>;
+    prototype: any;
 }
 
 interface CopierMethods {
-  array?: InternalCopier<any[]>;
-  arrayBuffer?: InternalCopier<ArrayBuffer>;
-  asyncGenerator?: InternalCopier<AsyncGenerator>;
-  blob?: InternalCopier<Blob>;
-  dataView?: InternalCopier<DataView>;
-  date?: InternalCopier<Date>;
-  error?: InternalCopier<Error>;
-  generator?: InternalCopier<Generator>;
-  map?: InternalCopier<Map<any, any>>;
-  object?: InternalCopier<Record<string, any>>;
-  regExp?: InternalCopier<RegExp>;
-  set?: InternalCopier<Set<any>>;
+    array?: InternalCopier<any[]>;
+    arrayBuffer?: InternalCopier<ArrayBuffer>;
+    asyncGenerator?: InternalCopier<AsyncGenerator>;
+    blob?: InternalCopier<Blob>;
+    dataView?: InternalCopier<DataView>;
+    date?: InternalCopier<Date>;
+    error?: InternalCopier<Error>;
+    generator?: InternalCopier<Generator>;
+    map?: InternalCopier<Map<any, any>>;
+    object?: InternalCopier<Record<string, any>>;
+    regExp?: InternalCopier<RegExp>;
+    set?: InternalCopier<Set<any>>;
 }
 interface CreateCopierOptions {
-  createCache?: () => Cache;
-  methods?: CopierMethods;
-  strict?: boolean;
+    createCache?: () => Cache;
+    methods?: CopierMethods;
+    strict?: boolean;
 }
 
 /**
