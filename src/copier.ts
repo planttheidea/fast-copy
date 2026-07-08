@@ -11,7 +11,7 @@ export interface State {
 }
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
+const { propertyIsEnumerable } = Object.prototype;
 
 function copyOwnDescriptor<Value extends object>(
   original: Value,
