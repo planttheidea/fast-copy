@@ -11,7 +11,7 @@ export interface State {
 }
 
 // eslint-disable-next-line @typescript-eslint/unbound-method
-const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
+const { propertyIsEnumerable } = Object.prototype;
 
 function copyOwnDescriptor<Value extends object>(
   original: Value,
@@ -44,19 +44,15 @@ function copyOwnDescriptor<Value extends object>(
 }
 
 /**
- * Striclty copy all properties contained on the object.
+ * Strictly copy all properties contained on the object.
  */
 function copyOwnPropertiesStrict<Value extends object>(value: Value, clone: Value, state: State): Value {
-  const names = Object.getOwnPropertyNames(value);
-
-  for (let index = 0; index < names.length; ++index) {
-    copyOwnDescriptor(value, clone, names[index]!, state);
+  for (const name of Object.getOwnPropertyNames(value)) {
+    copyOwnDescriptor(value, clone, name, state);
   }
 
-  const symbols = Object.getOwnPropertySymbols(value);
-
-  for (let index = 0; index < symbols.length; ++index) {
-    copyOwnDescriptor(value, clone, symbols[index]!, state);
+  for (const symbol of Object.getOwnPropertySymbols(value)) {
+    copyOwnDescriptor(value, clone, symbol, state);
   }
 
   return clone;
@@ -127,9 +123,9 @@ export function copyMapLoose<Value extends Map<any, any>>(map: Value, state: Sta
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(map, clone);
 
-  map.forEach((value, key) => {
+  for (const [key, value] of map) {
     clone.set(key, state.copier(value, state));
-  });
+  }
 
   return clone;
 }
@@ -150,17 +146,11 @@ export function copyObjectLoose<Value extends Record<string, any>>(object: Value
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(object, clone);
 
-  for (const key in object) {
-    if (hasOwnProperty.call(object, key)) {
-      clone[key] = state.copier(object[key], state);
-    }
+  for (const key of Object.keys(object)) {
+    clone[key] = state.copier(object[key], state);
   }
 
-  const symbols = Object.getOwnPropertySymbols(object);
-
-  for (let index = 0; index < symbols.length; ++index) {
-    const symbol = symbols[index]!;
-
+  for (const symbol of Object.getOwnPropertySymbols(object)) {
     if (propertyIsEnumerable.call(object, symbol)) {
       clone[symbol] = state.copier((object as any)[symbol], state);
     }
@@ -223,9 +213,9 @@ export function copySetLoose<Value extends Set<any>>(set: Value, state: State): 
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(set, clone);
 
-  set.forEach((value) => {
+  for (const value of set) {
     clone.add(state.copier(value, state));
-  });
+  }
 
   return clone;
 }
