@@ -18,11 +18,10 @@
     "sourceMap": true,
     "strict": true,
     "strictNullChecks": true,
-    "inlineSources": true,
     "target": "ES2015",
     "verbatimModuleSyntax": true,
     "types": ["node"],
-    "baseUrl": "src",
+    "inlineSources": true,
     "outDir": "dist",
     "rootDir": "./"
   },
