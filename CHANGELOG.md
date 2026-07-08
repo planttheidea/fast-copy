@@ -1,5 +1,13 @@
 # fast-copy CHANGELOG
 
+## 4.0.4
+
+- [#136](https://github.com/planttheidea/fast-copy/pull/136) - Change `for...in` loop with `hasOwnProperty` check to
+  just use `Object.keys` (slight hit to small object iterations, but big win in large objects)
+- [#136](https://github.com/planttheidea/fast-copy/pull/136) - Change `for` loops to instead be `for...of` (flat or
+  improved across the board)
+- [#136](https://github.com/planttheidea/fast-copy/pull/136) - Change `.forEach()` loops to instead be `for...of`
+
 ## 4.0.3
 
 - [#130](https://github.com/planttheidea/fast-copy/pull/130) - Remove invalid `Uint64Array` in favor of `BigInt64Array`
