@@ -150,10 +150,11 @@ export function copyObjectLoose<Value extends Record<string, any>>(object: Value
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(object, clone);
 
-  for (const key in object) {
-    if (hasOwnProperty.call(object, key)) {
-      clone[key] = state.copier(object[key], state);
-    }
+  const keys = Object.keys(object);
+
+  for (let index = 0; index < keys.length; ++index) {
+    const key = keys[index]!;
+    clone[key] = state.copier(object[key], state);
   }
 
   const symbols = Object.getOwnPropertySymbols(object);

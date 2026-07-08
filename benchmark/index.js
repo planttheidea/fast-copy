@@ -2,7 +2,6 @@ import Table from 'cli-table3';
 import clone from 'clone';
 import deepclone from 'deepclone';
 import fastClone from 'fast-clone';
-import fastDeepclone from 'fast-deepclone';
 import { copy as fastCopy, copyStrict as fastCopyStrict } from '../dist/es/index.mjs';
 import lodashCloneDeep from 'lodash/cloneDeep.js';
 import orderBy from 'lodash/orderBy.js';
@@ -104,8 +103,6 @@ const methods = {
   'fast-clone': fastClone,
   'fast-copy': fastCopy,
   'fast-copy (strict)': fastCopyStrict,
-  // deactivated while it cannot build on linux
-  'fast-deepclone': fastDeepclone,
   'lodash.cloneDeep': lodashCloneDeep,
   ramda: ramdaClone,
 };
