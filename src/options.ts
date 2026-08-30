@@ -72,8 +72,41 @@ interface Copiers {
 }
 
 export interface CreateCopierOptions {
+  /**
+   * Creates the cache used to track values already copied, which is what allows circular
+   * references to resolve to their clone instead of recursing infinitely. A new cache is
+   * created for each top-level copy. Since it only needs to satisfy the `has` / `get` /
+   * `set` contract, a bounded implementation such as an LRU cache can be used to trade
+   * circular reference handling for a smaller memory footprint.
+   *
+   * @default () => new WeakMap()
+   */
   createCache?: () => Cache;
+  /**
+   * The maximum number of nested objects to traverse before throwing a
+   * `MaxDepthExceededError`. Pass `Infinity` to traverse without a limit.
+   *
+   * @default 1000
+   */
+  maxDepth?: number;
+  /**
+   * Overrides of the copiers used for specific object types, allowing custom copy
+   * semantics for those types. Any type not overridden uses its default copier. Each
+   * method receives the value to copy and the current `State`, and is responsible for
+   * populating `state.cache` and recursing via `state.copier` if it wants circular
+   * reference handling and deep copies respectively.
+   */
   methods?: CopierMethods;
+  /**
+   * Copies all own properties with their original property descriptors, including
+   * non-enumerable properties, symbols, and non-index properties on arrays.
+   *
+   * @note
+   * This is significantly slower than the default "loose" copy, so it should only be used
+   * when the exact shape of the original must be replicated.
+   *
+   * @default false
+   */
   strict?: boolean;
 }
 
@@ -82,12 +115,23 @@ export interface RequiredCreateCopierOptions extends Omit<Required<CreateCopierO
   methods: Required<CopierMethods>;
 }
 
+/**
+ * The maximum depth traversed when none is provided.
+ *
+ * @note
+ * This is deliberately below the depth at which the native call stack is exhausted
+ * (~1875 for strict copies in node), so that untrusted, deeply-nested values fail with a
+ * catchable, descriptive error instead of a raw `RangeError`.
+ */
+export const DEFAULT_MAX_DEPTH = 1000;
+
 export function createDefaultCache(): Cache {
   return new WeakMap();
 }
 
 export function getOptions({
   createCache: createCacheOverride,
+  maxDepth,
   methods: methodsOverride,
   strict,
 }: CreateCopierOptions): RequiredCreateCopierOptions {
@@ -117,7 +161,13 @@ export function getOptions({
     throw new Error('An object and array copier must be provided.');
   }
 
-  return { createCache, copiers, methods, strict: Boolean(strict) };
+  return {
+    createCache,
+    copiers,
+    maxDepth: maxDepth === undefined ? DEFAULT_MAX_DEPTH : maxDepth,
+    methods,
+    strict: Boolean(strict),
+  };
 }
 
 /**

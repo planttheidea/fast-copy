@@ -1,6 +1,6 @@
 import React from 'react';
 import { describe, expect, it, test } from 'vitest';
-import { copy, copyStrict } from '../src/index.js';
+import { copy, copyStrict, createCopier, MaxDepthExceededError } from '../src/index.js';
 
 interface PlainObject {
   [key: string]: any;
@@ -421,5 +421,66 @@ describe('issues', () => {
     expect(bigUint64Copy).not.toBe(bigUint64Array);
     expect(bigUint64Copy).toEqual(bigUint64Array);
     expect(bigUint64Copy).toBeInstanceOf(BigUint64Array);
+  });
+});
+
+describe('maxDepth', () => {
+  function nest(depth: number, createContainer: () => any) {
+    const root = createContainer();
+
+    let current = root;
+
+    for (let i = 0; i < depth; ++i) {
+      const next = createContainer();
+
+      if (Array.isArray(current)) {
+        current.push(next);
+      } else {
+        current.nested = next;
+      }
+
+      current = next;
+    }
+
+    return root;
+  }
+
+  const createObject = () => ({}) as any;
+  const createArray = () => [] as any[];
+
+  it.each([
+    ['objects', createObject],
+    ['arrays', createArray],
+  ])('should throw a `MaxDepthExceededError` for %s nested beyond the default depth', (_name, createContainer) => {
+    const deep = nest(5000, createContainer);
+
+    expect(() => copy(deep)).toThrow(MaxDepthExceededError);
+    expect(() => copyStrict(deep)).toThrow(MaxDepthExceededError);
+  });
+
+  it('should remain a `RangeError` for backwards compatibility', () => {
+    expect(() => copy(nest(5000, createObject))).toThrow(RangeError);
+  });
+
+  it('should copy values nested up to the maximum depth', () => {
+    const copyShallow = createCopier({ maxDepth: 3 });
+
+    expect(copyShallow(nest(2, createObject))).toEqual(nest(2, createObject));
+    expect(() => copyShallow(nest(3, createObject))).toThrow(MaxDepthExceededError);
+  });
+
+  it('should not count sibling or cached values toward the depth', () => {
+    const shared = { foo: 'bar' };
+    const wide = { a: shared, b: shared, c: { d: shared } };
+    const copyShallow = createCopier({ maxDepth: 2 });
+
+    expect(copyShallow(wide)).toEqual(wide);
+  });
+
+  it('should allow opting out of the limit', () => {
+    const copyUnbounded = createCopier({ maxDepth: Infinity });
+    const deep = nest(100, createObject);
+
+    expect(copyUnbounded(deep)).toEqual(deep);
   });
 });

@@ -27,6 +27,7 @@ describe('copyArrayStrict', () => {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
+      depth: 0,
       prototype,
     });
 
@@ -50,6 +51,7 @@ describe('copyObjectLoose', () => {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
+      depth: 0,
       prototype,
     });
 
@@ -83,6 +85,7 @@ describe('copyObjectStrict', () => {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
+      depth: 0,
       prototype,
     });
 
@@ -111,6 +114,7 @@ describe('copyMapStrict', () => {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
+      depth: 0,
       prototype,
     });
 
@@ -135,6 +139,7 @@ describe('copyPrimitiveWrapper', () => {
         Constructor: prototype.constructor,
         cache,
         copier: mockCopier,
+        depth: 0,
         prototype,
       });
 
@@ -157,6 +162,7 @@ describe('copySetStrict', () => {
       Constructor: prototype.constructor,
       cache,
       copier: mockCopier,
+      depth: 0,
       prototype,
     });
 

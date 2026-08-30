@@ -4,6 +4,24 @@ export interface Cache {
   get: (key: any) => any;
 }
 
+/**
+ * Error thrown when the copier traverses deeper than the configured `maxDepth`.
+ *
+ * @note
+ * Extends `RangeError` for backwards compatibility, since exceeding the maximum depth
+ * previously surfaced as a native `RangeError` from stack exhaustion.
+ */
+export class MaxDepthExceededError extends RangeError {
+  readonly maxDepth: number;
+
+  constructor(maxDepth: number) {
+    super(`Maximum copy depth of ${String(maxDepth)} exceeded; the value copied is nested too deeply.`);
+
+    this.maxDepth = maxDepth;
+    this.name = 'MaxDepthExceededError';
+  }
+}
+
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const toStringFunction = Function.prototype.toString;
 // eslint-disable-next-line @typescript-eslint/unbound-method
