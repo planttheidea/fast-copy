@@ -4,9 +4,45 @@ import type { Cache } from './utils.ts';
 export type InternalCopier<Value> = (value: Value, state: State) => Value;
 
 export interface State {
+  /**
+   * The constructor of the value currently being copied, derived from its `prototype`.
+   * Used to construct the clone for values that are not plain objects, such as subclasses
+   * of `Array` or custom classes.
+   *
+   * @note
+   * This is `undefined` for primitives and for values already present in the `cache`. It is
+   * also reassigned for every value copied, so it must be read before any recursive
+   * `copier` call is made, not after.
+   */
   Constructor: any;
+  /**
+   * The cache of values already copied, mapping each original to its clone. Copiers should
+   * populate it with the clone _before_ copying that value's contents, so that circular
+   * references resolve to the clone rather than recursing infinitely.
+   */
   cache: Cache;
+  /**
+   * The copier used for nested values. Call it as `state.copier(value, state)` to deeply
+   * copy the contents of the value being copied.
+   */
   copier: InternalCopier<any>;
+  /**
+   * The number of nested objects currently being copied, used to bound traversal of
+   * deeply-nested values before the call stack is exhausted.
+   *
+   * @note
+   * This is maintained by the copier itself; custom methods should not modify it.
+   */
+  depth: number;
+  /**
+   * The prototype of the value currently being copied, used to create a clone that
+   * maintains the original's prototype chain.
+   *
+   * @note
+   * This is `undefined` for primitives and for values already present in the `cache`. It is
+   * also reassigned for every value copied, so it must be read before any recursive
+   * `copier` call is made, not after.
+   */
   prototype: any;
 }
 

@@ -16,6 +16,7 @@ A [blazing fast](#benchmarks) deep object copier
     - [`copyStrict`](#copystrict)
     - [`createCopier`](#createcopier)
       - [`createCache`](#createcache)
+      - [`maxDepth`](#maxdepth)
       - [`methods`](#methods)
         - [Copier state](#copier-state)
           - [`cache`](#cache)
@@ -100,6 +101,7 @@ import { LRUCache } from 'lru-cache';
 
 const copyShallowStrict = createCopier({
   createCache: () => new LRUCache(),
+  maxDepth: 32,
   methods: {
     array: (array) => [...array],
     map: (map) => new Map(map.entries()),
@@ -114,6 +116,56 @@ const copyShallowStrict = createCopier({
 
 Method that creates the internal [`cache`](#cache) in the [Copier state](#copier-state). Defaults to creating a new
 `WeakMap` instance.
+
+#### `maxDepth`
+
+The maximum number of nested objects traversed before a `MaxDepthExceededError` is thrown. Defaults to `1000`.
+
+Because copying is recursive, a value nested more deeply than the JavaScript engine's call stack allows will exhaust the
+stack. The default limit sits below that threshold, so deeply-nested values fail with a descriptive, catchable error
+instead of a raw `RangeError`:
+
+```js
+import { copy, MaxDepthExceededError } from 'fast-copy';
+
+try {
+  copy(untrustedPayload);
+} catch (error) {
+  if (error instanceof MaxDepthExceededError) {
+    // `error.maxDepth` is the limit that was exceeded
+  }
+}
+```
+
+`MaxDepthExceededError` extends `RangeError`, so existing handling of the native stack-exhaustion error continues to
+work.
+
+The limit is configured when the copier is created, so [`copy`](#copy) and [`copyStrict`](#copystrict) always use the
+default. If you copy values that are legitimately nested more deeply, create a copier with the limit you need and use it
+in their place; pass `Infinity` to remove the limit entirely, in which case sufficiently-deep values will again throw a
+native `RangeError`.
+
+```js
+import { createCopier } from 'fast-copy';
+
+export const copy = createCopier({ maxDepth: 5000 });
+export const copyStrict = createCopier({ maxDepth: 5000, strict: true });
+```
+
+The default of `1000` assumes the stack available to a standard Node.js or browser main thread, where the native limit
+falls somewhere between roughly 1,800 and 4,000 levels depending on the copier used and the JIT's state. Environments
+configured with a smaller stack, such as a worker started with a reduced `stackSizeMb`, can exhaust it sooner, so lower
+the limit to suit the environment if you copy deeply-nested values in one.
+
+```js
+const copyInWorker = createCopier({ maxDepth: 250 });
+```
+
+The failure when the limit is set too high for the environment is the same native `RangeError` thrown prior to this
+option existing, so too high a limit is never worse than having none.
+
+**NOTE**: The depth counts nested objects only. Primitives and values already present in the [`cache`](#cache) (circular
+references) do not contribute to it.
 
 #### `methods`
 

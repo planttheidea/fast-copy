@@ -1,5 +1,21 @@
 # fast-copy CHANGELOG
 
+## 4.1.0
+
+- [#137](https://github.com/planttheidea/fast-copy/pull/137) - Add `maxDepth` option to `createCopier`, bounding the
+  number of nested objects traversed (defaults to `1000`, pass `Infinity` to traverse without a limit)
+- [#137](https://github.com/planttheidea/fast-copy/pull/137) - Throw the new `MaxDepthExceededError` when a value is
+  nested more deeply than `maxDepth`, instead of exhausting the call stack with a native `RangeError`; the error extends
+  `RangeError`, so existing handling continues to work
+
+Thanks to [@lenny-ts](https://github.com/lenny-ts) for identifying this.
+
+### Internal changes
+
+- The `State` object passed to custom `methods` now includes a `depth` property. This is maintained internally and
+  should not be modified, but it is a required property on the exported `State` type, so any code constructing a `State`
+  directly (such as a test mock) will need to provide it.
+
 ## 4.0.4
 
 - [#136](https://github.com/planttheidea/fast-copy/pull/136) - Change `for...in` loop with `hasOwnProperty` check to
