@@ -8,6 +8,11 @@ export interface State {
   Constructor: any;
   cache: Cache;
   copier: InternalCopier<any>;
+  /**
+   * The number of nested objects currently being copied, used to bound traversal
+   * of deeply-nested values before the call stack is exhausted.
+   */
+  depth: number;
   prototype: any;
 }
 
