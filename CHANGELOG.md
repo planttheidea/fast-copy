@@ -1,5 +1,12 @@
 # fast-copy CHANGELOG
 
+## 2.2.0
+
+- Add `maxDepth` option, bounding the number of nested objects traversed (defaults to `1000`, pass `Infinity` to traverse without a limit)
+- Throw the new `copy.MaxDepthExceededError` when a value is nested more deeply than `maxDepth`, instead of exhausting the call stack with a native `RangeError`; the error extends `RangeError`, so existing handling continues to work
+
+Backport of the fix released in [4.1.0](https://github.com/planttheidea/fast-copy/releases/tag/v4.1.0) for consumers remaining on `2.x`.
+
 ## 2.1.7
 
 - Republish of [`2.1.6`](#216), as the release process failed mid-publish

@@ -20,6 +20,13 @@ declare namespace FastCopy {
 
   export type Options = {
     isStrict?: boolean;
+    /**
+     * The maximum number of nested objects to traverse before throwing a
+     * `MaxDepthExceededError`. Pass `Infinity` to traverse without a limit.
+     *
+     * @default 1000
+     */
+    maxDepth?: number;
     realm?: Realm;
   };
 }
@@ -34,6 +41,18 @@ declare namespace copy {
     value: Value,
     options?: FastCopy.Options,
   ): Value;
+
+  /**
+   * Error thrown when the copier traverses deeper than the `maxDepth` option allows.
+   *
+   * Extends `RangeError` for backwards compatibility, since exceeding the maximum depth
+   * previously surfaced as a native `RangeError` from stack exhaustion.
+   */
+  class MaxDepthExceededError extends RangeError {
+    maxDepth: number;
+
+    constructor(maxDepth: number);
+  }
 }
 
 export default copy;

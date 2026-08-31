@@ -49,12 +49,14 @@ Object.defineProperties(SIMPLE_TYPES, {
 });
 
 const COMPLEX_TYPES: PlainObject = {
-  arguments: (function (foo, bar, baz) {
+  arguments: (function (_foo, _bar, _baz) {
+    // Specifically testing arguments object
+    // eslint-disable-next-line prefer-rest-params
     return arguments;
   })('foo', 'bar', 'baz'),
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
-  buffer: new Buffer('this is a test buffer'),
+  buffer: Buffer.from('this is a test buffer'),
   customPrototype: Object.create({
     method() {
       return 'foo';
@@ -63,22 +65,21 @@ const COMPLEX_TYPES: PlainObject = {
   }),
   dataView: new DataView(new ArrayBuffer(16)),
   date: new Date(),
-  float32Array: new Float32Array([12, 15]),
-  float64Array: new Float64Array([12, 15]),
-  hash,
-  int8Array: new Int8Array([12, 15]),
-  int16Array: new Int16Array([12, 15]),
-  int32Array: new Int32Array([12, 15]),
+  float32Array: new Float32Array([1, 2]),
+  float64Array: new Float64Array([3, 4]),
+  int8Array: new Int8Array([5, 6]),
+  int16Array: new Int16Array([7, 8]),
+  int32Array: new Int32Array([9, 10]),
   map: new Map().set('foo', { bar: { baz: 'quz' } }),
   object: { foo: { bar: 'baz' } },
   regexp: /foo/,
   set: new Set().add('foo').add({ bar: { baz: 'quz' } }),
   // Disabling, as jest fails intermittently with blob construction.
   // blob: new Blob(['<a id="a">hey!</a>'], {type : 'text/html'}),
-  uint8Array: new Uint8Array([12, 15]),
-  uint8ClampedArray: new Uint8ClampedArray([12, 15]),
-  uint16Array: new Uint16Array([12, 15]),
-  uint32Array: new Uint32Array([12, 15]),
+  uint8Array: new Uint8Array([11, 12]),
+  uint8ClampedArray: new Uint8ClampedArray([13, 14]),
+  uint16Array: new Uint16Array([15, 16]),
+  uint32Array: new Uint32Array([17, 18]),
 };
 
 Object.defineProperties(COMPLEX_TYPES, {
@@ -494,5 +495,91 @@ describe('copy.strict', () => {
 
   it('will have a version of itself as the `default` property to support ESM-to-CommonJS', () => {
     expect(copy.default).toBe(copy);
+  });
+});
+
+describe('maxDepth', () => {
+  const nest = (depth: number, createContainer: () => any) => {
+    const root = createContainer();
+
+    let current = root;
+
+    for (let index = 0; index < depth; ++index) {
+      const next = createContainer();
+
+      if (Array.isArray(current)) {
+        current.push(next);
+      } else {
+        current.nested = next;
+      }
+
+      current = next;
+    }
+
+    return root;
+  };
+
+  const createObject = () => ({} as any);
+  const createArray = () => [] as any[];
+
+  it('will throw a MaxDepthExceededError for objects nested beyond the default depth', () => {
+    const deep = nest(5000, createObject);
+
+    expect(() => copy(deep)).toThrow(copy.MaxDepthExceededError);
+    expect(() => copy.strict(deep)).toThrow(copy.MaxDepthExceededError);
+  });
+
+  it('will throw a MaxDepthExceededError for arrays nested beyond the default depth', () => {
+    const deep = nest(5000, createArray);
+
+    expect(() => copy(deep)).toThrow(copy.MaxDepthExceededError);
+    expect(() => copy.strict(deep)).toThrow(copy.MaxDepthExceededError);
+  });
+
+  it('will remain a RangeError for backwards compatibility', () => {
+    expect(() => copy(nest(5000, createObject))).toThrow(RangeError);
+  });
+
+  it('will expose the limit exceeded on the error', () => {
+    try {
+      copy(nest(5000, createObject));
+
+      throw new Error('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(copy.MaxDepthExceededError);
+      expect(error.maxDepth).toBe(1000);
+      expect(error.name).toBe('MaxDepthExceededError');
+    }
+  });
+
+  it('will copy values nested up to the maximum depth', () => {
+    expect(copy(nest(2, createObject), { maxDepth: 3 })).toEqual(
+      nest(2, createObject),
+    );
+    expect(() => copy(nest(3, createObject), { maxDepth: 3 })).toThrow(
+      copy.MaxDepthExceededError,
+    );
+  });
+
+  it('will honor the option when copying strictly', () => {
+    expect(() => copy.strict(nest(3, createObject), { maxDepth: 3 })).toThrow(
+      copy.MaxDepthExceededError,
+    );
+    expect(copy.strict(nest(2, createObject), { maxDepth: 3 })).toEqual(
+      nest(2, createObject),
+    );
+  });
+
+  it('will not count sibling or cached values toward the depth', () => {
+    const reused = { foo: 'bar' };
+    const wide = { a: reused, b: reused, c: { d: reused } };
+
+    expect(copy(wide, { maxDepth: 2 })).toEqual(wide);
+  });
+
+  it('will allow opting out of the limit', () => {
+    const deep = nest(100, createObject);
+
+    expect(copy(deep, { maxDepth: Infinity })).toEqual(deep);
   });
 });
