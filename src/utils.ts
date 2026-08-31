@@ -7,6 +7,39 @@ export interface Cache {
 const { create } = Object;
 const toStringFunction = Function.prototype.toString;
 const toStringObject = Object.prototype.toString;
+// Captured as possibly-undefined, since legacy environments may not provide it.
+const setPrototypeOf: ((target: any, prototype: any) => any) | undefined =
+  Object.setPrototypeOf;
+
+/**
+ * Error thrown when the copier traverses deeper than the configured `maxDepth`.
+ *
+ * @note
+ * Extends `RangeError` for backwards compatibility, since exceeding the maximum depth
+ * previously surfaced as a native `RangeError` from stack exhaustion.
+ */
+export class MaxDepthExceededError extends RangeError {
+  readonly maxDepth: number;
+
+  constructor(maxDepth: number) {
+    super(
+      'Maximum copy depth of ' +
+        String(maxDepth) +
+        ' exceeded; the value copied is nested too deeply.',
+    );
+
+    // When compiled to ES5, extending a native error leaves the instance with the
+    // prototype of the base error, so `instanceof` fails without restoring it. Legacy
+    // environments without `setPrototypeOf` fall back to `instanceof RangeError`.
+    if (setPrototypeOf) {
+      setPrototypeOf(this, MaxDepthExceededError.prototype);
+    }
+
+    this.maxDepth = maxDepth;
+    this.name = 'MaxDepthExceededError';
+  }
+}
+
 
 /**
  * @classdesc Fallback cache for when WeakMap is not natively supported
