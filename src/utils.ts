@@ -11,6 +11,38 @@ const { hasOwnProperty, propertyIsEnumerable } = Object.prototype;
 
 const SYMBOL_PROPERTIES = typeof getOwnPropertySymbols === 'function';
 const WEAK_MAP = typeof WeakMap === 'function';
+// Captured as possibly-undefined, since legacy environments may not provide it.
+const setPrototypeOf: ((target: any, prototype: any) => any) | undefined =
+  Object.setPrototypeOf;
+
+/**
+ * @classdesc
+ * Error thrown when the copier traverses deeper than the `maxDepth` option allows.
+ *
+ * Extends `RangeError` for backwards compatibility, since exceeding the maximum depth
+ * previously surfaced as a native `RangeError` from stack exhaustion.
+ */
+export class MaxDepthExceededError extends RangeError {
+  maxDepth: number;
+
+  constructor(maxDepth: number) {
+    super(
+      'Maximum copy depth of ' +
+        String(maxDepth) +
+        ' exceeded; the value copied is nested too deeply.',
+    );
+
+    // When compiled to ES5, extending a native error leaves the instance with the
+    // prototype of the base error, so `instanceof` fails without restoring it. Legacy
+    // environments without `setPrototypeOf` fall back to `instanceof RangeError`.
+    if (setPrototypeOf) {
+      setPrototypeOf(this, MaxDepthExceededError.prototype);
+    }
+
+    this.maxDepth = maxDepth;
+    this.name = 'MaxDepthExceededError';
+  }
+}
 
 /**
  * @function createCache

@@ -20,6 +20,7 @@ declare namespace FastCopy {
 
   export type Options = {
     isStrict?: boolean;
+    maxDepth?: number;
     realm?: Realm;
   };
 }

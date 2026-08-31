@@ -497,3 +497,89 @@ describe('copy.strict', () => {
     expect(copy.default).toBe(copy);
   });
 });
+
+describe('maxDepth', () => {
+  const nest = (depth: number, createContainer: () => any) => {
+    const root = createContainer();
+
+    let current = root;
+
+    for (let index = 0; index < depth; ++index) {
+      const next = createContainer();
+
+      if (Array.isArray(current)) {
+        current.push(next);
+      } else {
+        current.nested = next;
+      }
+
+      current = next;
+    }
+
+    return root;
+  };
+
+  const createObject = () => ({} as any);
+  const createArray = () => [] as any[];
+
+  it('will throw a MaxDepthExceededError for objects nested beyond the default depth', () => {
+    const deep = nest(5000, createObject);
+
+    expect(() => copy(deep)).toThrow(copy.MaxDepthExceededError);
+    expect(() => copy.strict(deep)).toThrow(copy.MaxDepthExceededError);
+  });
+
+  it('will throw a MaxDepthExceededError for arrays nested beyond the default depth', () => {
+    const deep = nest(5000, createArray);
+
+    expect(() => copy(deep)).toThrow(copy.MaxDepthExceededError);
+    expect(() => copy.strict(deep)).toThrow(copy.MaxDepthExceededError);
+  });
+
+  it('will remain a RangeError for backwards compatibility', () => {
+    expect(() => copy(nest(5000, createObject))).toThrow(RangeError);
+  });
+
+  it('will expose the limit exceeded on the error', () => {
+    try {
+      copy(nest(5000, createObject));
+
+      throw new Error('should have thrown');
+    } catch (error) {
+      expect(error).toBeInstanceOf(copy.MaxDepthExceededError);
+      expect(error.maxDepth).toBe(1000);
+      expect(error.name).toBe('MaxDepthExceededError');
+    }
+  });
+
+  it('will copy values nested up to the maximum depth', () => {
+    expect(copy(nest(2, createObject), { maxDepth: 3 })).toEqual(
+      nest(2, createObject),
+    );
+    expect(() => copy(nest(3, createObject), { maxDepth: 3 })).toThrow(
+      copy.MaxDepthExceededError,
+    );
+  });
+
+  it('will honor the option when copying strictly', () => {
+    expect(() => copy.strict(nest(3, createObject), { maxDepth: 3 })).toThrow(
+      copy.MaxDepthExceededError,
+    );
+    expect(copy.strict(nest(2, createObject), { maxDepth: 3 })).toEqual(
+      nest(2, createObject),
+    );
+  });
+
+  it('will not count sibling or cached values toward the depth', () => {
+    const reused = { foo: 'bar' };
+    const wide = { a: reused, b: reused, c: { d: reused } };
+
+    expect(copy(wide, { maxDepth: 2 })).toEqual(wide);
+  });
+
+  it('will allow opting out of the limit', () => {
+    const deep = nest(100, createObject);
+
+    expect(copy(deep, { maxDepth: Infinity })).toEqual(deep);
+  });
+});

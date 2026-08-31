@@ -13,6 +13,7 @@ A [blazing fast](#benchmarks) deep object copier
   - [Usage](#usage)
   - [Options](#options)
       - [isStrict](#isstrict)
+      - [maxDepth](#maxdepth)
       - [realm](#realm)
   - [Types supported](#types-supported)
   - [Benchmarks](#benchmarks)
@@ -61,6 +62,32 @@ console.log(copy(object, { isStrict: true }));
 ```javascript
 console.log(copy.strict(object));
 ```
+
+#### maxDepth
+
+The maximum number of nested objects traversed before a `MaxDepthExceededError` is thrown. Defaults to `1000`.
+
+Because copying is recursive, a value nested more deeply than the JavaScript engine's call stack allows will exhaust the stack. The default limit sits below that threshold, so deeply-nested values fail with a descriptive, catchable error instead of a raw `RangeError`.
+
+```js
+try {
+  copy(untrustedPayload);
+} catch (error) {
+  if (error instanceof copy.MaxDepthExceededError) {
+    // `error.maxDepth` is the limit that was exceeded
+  }
+}
+```
+
+`MaxDepthExceededError` extends `RangeError`, so existing handling of the native stack-exhaustion error continues to work. In legacy environments without `Object.setPrototypeOf`, `instanceof copy.MaxDepthExceededError` cannot be supported; check `error.name === 'MaxDepthExceededError'` or `error instanceof RangeError` instead.
+
+If you copy values that are legitimately nested more deeply, raise the limit; pass `Infinity` to remove it entirely, in which case sufficiently-deep values will again throw a native `RangeError`.
+
+```js
+console.log(copy(deeplyNestedObject, { maxDepth: 2000 }));
+```
+
+**NOTE**: The depth counts nested objects only. Primitives and values already copied (circular references) do not contribute to it.
 
 #### realm
 
