@@ -164,7 +164,7 @@ export function getOptions({
   return {
     createCache,
     copiers,
-    maxDepth: maxDepth === undefined ? DEFAULT_MAX_DEPTH : maxDepth,
+    maxDepth: maxDepth == null ? DEFAULT_MAX_DEPTH : maxDepth,
     methods,
     strict: Boolean(strict),
   };
