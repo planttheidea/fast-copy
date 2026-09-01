@@ -23,7 +23,8 @@
     "types": ["node"],
     "inlineSources": true,
     "declarationDir": "../../dist/umd/types",
-    "outDir": "../../dist/umd"
+    "outDir": "../../dist/umd",
+    "rootDir": "../../src"
   },
   "exclude": ["**/node_modules/**", "**/__tests__/**"],
   "include": ["../../src/**/*.ts"]
