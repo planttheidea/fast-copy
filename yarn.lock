@@ -864,9 +864,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@planttheidea/build-tools@npm:^2.0.6":
-  version: 2.0.6
-  resolution: "@planttheidea/build-tools@npm:2.0.6"
+"@planttheidea/build-tools@npm:^2.0.8":
+  version: 2.0.8
+  resolution: "@planttheidea/build-tools@npm:2.0.8"
   dependencies:
     "@eslint/js": "npm:^9.39.5"
     "@rollup/plugin-terser": "npm:^1.0.0"
@@ -896,7 +896,7 @@ __metadata:
     yargs: "npm:^18.1.0"
   bin:
     pti: bin/index.js
-  checksum: 10/f3c2689a4e0eaa4c9ad29015544cdd250f4634f816999f00264f6fed77eb65f00672d5e7441dd2a09a9fd379e079070e78dbb8e5d67d6c12cbaf512bb0a59b2d
+  checksum: 10/35f33d8390ecd179f6dc4dbb69dc2cd528c307054717bdc94d34ea6d8c6dcc3a2f25763f8fa0cb2052e553b4f3448f71cc29fce03d1422fa209faedc3b229c70
   languageName: node
   linkType: hard
 
@@ -3041,7 +3041,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "fast-copy@workspace:."
   dependencies:
-    "@planttheidea/build-tools": "npm:^2.0.6"
+    "@planttheidea/build-tools": "npm:^2.0.8"
     "@types/lodash": "npm:^4.17.25"
     "@types/node": "npm:^24.13.3"
     "@types/ramda": "npm:^0.32.0"

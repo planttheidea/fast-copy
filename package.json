@@ -13,7 +13,7 @@
   ],
   "description": "A blazing fast deep object copier",
   "devDependencies": {
-    "@planttheidea/build-tools": "^2.0.6",
+    "@planttheidea/build-tools": "^2.0.8",
     "@types/lodash": "^4.17.25",
     "@types/node": "^24.13.3",
     "@types/ramda": "^0.32.0",
