@@ -23,7 +23,8 @@
     "types": ["node"],
     "inlineSources": true,
     "declarationDir": "../../dist/cjs/types",
-    "outDir": "../../dist/cjs"
+    "outDir": "../../dist/cjs",
+    "rootDir": "../../src"
   },
   "exclude": ["**/node_modules/**", "**/__tests__/**"],
   "include": ["../../src/**/*.ts"]
