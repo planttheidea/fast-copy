@@ -328,8 +328,9 @@ implementation does not expect cloning:
 - `WeakMap`
 - `WeakSet`
 
-Circular objects are supported out of the box. By default, a cache based on `WeakSet` is used, but if `WeakSet` is not
-available then a fallback is used. The benchmarks quoted below are based on use of `WeakSet`.
+Circular objects are supported out of the box. By default, the cache used to track values already copied is a `WeakMap`,
+which can be replaced with any object satisfying the same `has` / `get` / `set` contract via
+[`createCache`](#createcache). The benchmarks quoted below are based on the default.
 
 ## Aspects of default copiers
 

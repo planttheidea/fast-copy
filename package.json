@@ -50,7 +50,8 @@
         "types": "./dist/umd/index.d.ts",
         "default": "./dist/umd/index.js"
       }
-    }
+    },
+    "./package.json": "./package.json"
   },
   "files": [
     "dist",

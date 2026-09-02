@@ -424,6 +424,106 @@ describe('issues', () => {
   });
 });
 
+describe('tag-specific copiers', () => {
+  // `Symbol.toStringTag` is user-controlled, so a tag naming an `Object.prototype` member
+  // must not resolve to that inherited member as the copier for the value.
+  it.each(['toString', 'valueOf', 'hasOwnProperty', 'constructor', 'propertyIsEnumerable'])(
+    'will not treat the inherited `%s` as a copier when it is used as the tag',
+    (tag) => {
+      class Tagged {
+        value = 'foo';
+
+        get [Symbol.toStringTag]() {
+          return tag;
+        }
+      }
+
+      const tagged = new Tagged();
+      const result = copy(tagged);
+
+      expect(result).not.toBe(tagged);
+      expect(result).toBeInstanceOf(Tagged);
+      expect(result.value).toBe('foo');
+    },
+  );
+
+  it('will still use the copier for a tag that is a legitimate own property of the map', () => {
+    class TaggedDate extends Date {
+      readonly [Symbol.toStringTag] = 'Date';
+    }
+
+    const date = new TaggedDate(1234);
+    const result = copy(date);
+
+    expect(result).not.toBe(date);
+    expect(result).toBeInstanceOf(TaggedDate);
+    expect(result.getTime()).toBe(1234);
+  });
+});
+
+describe('typed arrays', () => {
+  it('will copy the contents of a typed array into memory it owns', () => {
+    const typedArray = Uint8Array.of(1, 2, 3);
+    const result = copy(typedArray);
+
+    result[0] = 99;
+
+    expect(result).toBeInstanceOf(Uint8Array);
+    expect(typedArray[0]).toBe(1);
+    expect(result.buffer).not.toBe(typedArray.buffer);
+  });
+
+  // `Buffer` overrides `slice` with one that returns a view over the same memory, so
+  // copying through it would alias the original rather than copy it.
+  it('will copy the contents of a Buffer into memory it owns', () => {
+    const buffer = Buffer.from('hello world');
+    const result = copy(buffer);
+
+    result[0] = 88;
+
+    expect(Buffer.isBuffer(result)).toBe(true);
+    expect(buffer.toString()).toBe('hello world');
+    expect(result.toString()).toBe('Xello world');
+    expect(result.buffer).not.toBe(buffer.buffer);
+  });
+
+  it('will copy a Buffer nested in an object into memory it owns', () => {
+    const object = { buffer: Buffer.from('nested') };
+    const result = copy(object);
+
+    result.buffer[0] = 88;
+
+    expect(object.buffer.toString()).toBe('nested');
+  });
+
+  it('will copy a typed array subclass as the subclass', () => {
+    class CustomArray extends Uint8Array {}
+
+    const customArray = CustomArray.of(1, 2, 3);
+    const result = copy(customArray);
+
+    result[0] = 99;
+
+    expect(result).toBeInstanceOf(CustomArray);
+    expect(customArray[0]).toBe(1);
+    expect([...result]).toEqual([99, 2, 3]);
+  });
+
+  it('will copy the buffer backing a DataView into memory it owns', () => {
+    const dataView = new DataView(new ArrayBuffer(8));
+
+    dataView.setUint8(0, 1);
+
+    const result = copy(dataView);
+
+    result.setUint8(0, 99);
+
+    expect(result).toBeInstanceOf(DataView);
+    expect(dataView.getUint8(0)).toBe(1);
+    expect(result.buffer).not.toBe(dataView.buffer);
+  });
+});
+
 describe('maxDepth', () => {
   function nest(depth: number, createContainer: () => any) {
     const root = createContainer();
