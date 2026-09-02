@@ -142,7 +142,9 @@ export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>
   arrayBuffer: Value,
   _state: State,
 ): Value {
-  return ArrayBuffer.isView(arrayBuffer) ? sliceTypedArray.call(arrayBuffer, 0) as Value : arrayBuffer.slice(0) as Value;
+  return ArrayBuffer.isView(arrayBuffer)
+    ? (sliceTypedArray.call(arrayBuffer, 0) as Value)
+    : (arrayBuffer.slice(0) as Value);
 }
 
 /**
