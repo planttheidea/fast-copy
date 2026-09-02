@@ -49,6 +49,19 @@ export interface State {
 // eslint-disable-next-line @typescript-eslint/unbound-method
 const { propertyIsEnumerable } = Object.prototype;
 
+/**
+ * The shared `%TypedArray%.prototype.slice`, which every typed array inherits.
+ *
+ * @note
+ * This is used instead of the `slice` found on the value itself because subclasses can
+ * override it with one that does not copy. `Buffer` is the notable case: its `slice`
+ * returns a view over the same memory, so copying through it would alias the original.
+ */
+const sliceTypedArray = Object.getPrototypeOf(Int8Array.prototype).slice as (
+  this: ArrayBufferView,
+  start: number,
+) => ArrayBufferView;
+
 function copyOwnDescriptor<Value extends object>(
   original: Value,
   clone: Value,
@@ -123,9 +136,16 @@ export function copyArrayStrict<Value extends any[]>(array: Value, state: State)
 }
 
 /**
- * Copy the contents of the ArrayBuffer.
+ * Copy the contents of the ArrayBuffer, or of the typed array viewing one.
  */
-export function copyArrayBuffer<Value extends ArrayBufferLike>(arrayBuffer: Value, _state: State): Value {
+export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>(
+  arrayBuffer: Value,
+  _state: State,
+): Value {
+  if (ArrayBuffer.isView(arrayBuffer)) {
+    return sliceTypedArray.call(arrayBuffer, 0) as Value;
+  }
+
   return arrayBuffer.slice(0) as Value;
 }
 

@@ -174,7 +174,11 @@ export function getOptions({
  * Get the copiers used for each specific object tag.
  */
 export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers {
-  return {
+  // A `null` prototype is used so that a value carrying a custom `Symbol.toStringTag`
+  // cannot resolve to an inherited `Object.prototype` member as its copier. Without it,
+  // a tag such as `toString` or `valueOf` finds a function on the prototype chain and
+  // that function is invoked in place of a real copier.
+  return Object.assign(Object.create(null) as Copiers, {
     Arguments: methods.object,
     Array: methods.array,
     ArrayBuffer: methods.arrayBuffer,
@@ -205,5 +209,5 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     Uint8ClampedArray: methods.arrayBuffer,
     Uint16Array: methods.arrayBuffer,
     Uint32Array: methods.arrayBuffer,
-  };
+  });
 }

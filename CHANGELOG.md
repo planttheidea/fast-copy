@@ -1,5 +1,13 @@
 # fast-copy CHANGELOG
 
+## 4.1.1
+
+- Copy the contents of a `Buffer` into memory it owns, instead of returning a view over the original's memory. `Buffer`
+  overrides `slice` with one that does not copy, so mutating the copy previously mutated the original.
+- Use a `null` prototype for the internal map of tag-specific copiers, so that a value carrying a custom
+  `Symbol.toStringTag` cannot resolve to an inherited `Object.prototype` member as its copier. Tags such as `toString`,
+  `valueOf`, or `hasOwnProperty` previously produced a garbage copy or threw.
+
 ## 4.1.0
 
 - [#137](https://github.com/planttheidea/fast-copy/pull/137) - Add `maxDepth` option to `createCopier`, bounding the
