@@ -78,12 +78,12 @@ Deeply copy the object passed, but with additional strictness when replicating t
 import { copyStrict } from 'fast-copy';
 
 const object = { foo: 'bar' };
-object.nonEnumerable = Object.defineProperty(object, 'bar', {
+Object.defineProperty(object, 'bar', {
   enumerable: false,
   value: 'baz',
 });
 
-const copied = copy(object);
+const copied = copyStrict(object);
 ```
 
 **NOTE**: This method is significantly slower than [`copy`](#copy), so it is recommended to only use this when you have
@@ -230,7 +230,7 @@ function deeplyCloneArray<Value extends any[]>(
 
   state.cache.set(value, clone);
 
-  value.forEach((item) => state.copier(item, state));
+  value.forEach((item) => clone.push(state.copier(item, state)));
 
   return clone;
 }
@@ -241,8 +241,9 @@ in [`cache`](#cache) eagerly when deeply copying, so that nested circular refere
 
 ###### `Constructor` / `prototype`
 
-Both `Constructor` and `prototype` properties are only populated with complex objects that are not standard objects or
-arrays. This is mainly useful for custom subclasses of these globals, or maintaining custom prototypes of objects.
+`Constructor` and `prototype` describe the object currently being copied, including standard objects and arrays.
+They are reassigned for each recursive call to `state.copier`, so read them before copying nested values. These
+properties are useful for custom subclasses of globals, or maintaining custom prototypes of objects.
 
 ```js
 function deeplyCloneSubclassArray<Value extends CustomArray>(
@@ -253,7 +254,7 @@ function deeplyCloneSubclassArray<Value extends CustomArray>(
 
   state.cache.set(value, clone);
 
-  value.forEach((item) => clone.push(item));
+  value.forEach((item) => clone.push(state.copier(item, state)));
 
   return clone;
 }
@@ -266,7 +267,7 @@ function deeplyCloneCustomObject<Value extends CustomObject>(
 
   state.cache.set(value, clone);
 
-  Object.entries(value).forEach(([k, v]) => (clone[k] = v));
+  Object.entries(value).forEach(([k, v]) => (clone[k] = state.copier(v, state)));
 
   return clone;
 }
