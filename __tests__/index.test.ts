@@ -524,6 +524,51 @@ describe('typed arrays', () => {
   });
 });
 
+describe.each([
+  { name: 'copy', copier: copy },
+  { name: 'copyStrict', copier: copyStrict },
+])('$name DataViews', ({ copier }) => {
+  it.each([
+    { byteOffset: 0, byteLength: 2 },
+    { byteOffset: 1, byteLength: 2 },
+    { byteOffset: 4, byteLength: 0 },
+  ])('will preserve a view with offset $byteOffset and length $byteLength', ({ byteOffset, byteLength }) => {
+    const dataView = new DataView(Uint8Array.of(10, 20, 30, 40).buffer, byteOffset, byteLength);
+    const result = copier(dataView);
+
+    expect(result).not.toBe(dataView);
+    expect(result.buffer).not.toBe(dataView.buffer);
+    expect(result.byteOffset).toBe(byteOffset);
+    expect(result.byteLength).toBe(byteLength);
+    expect(() => result.getUint8(byteLength)).toThrow(RangeError);
+
+    for (let index = 0; index < byteLength; ++index) {
+      expect(result.getUint8(index)).toBe(dataView.getUint8(index));
+    }
+
+    if (byteLength) {
+      const original = dataView.getUint8(0);
+
+      result.setUint8(0, 99);
+
+      expect(dataView.getUint8(0)).toBe(original);
+    }
+  });
+
+  it('will preserve the bounds and constructor of a DataView subclass', () => {
+    class CustomDataView extends DataView<ArrayBuffer> {}
+
+    const dataView = new CustomDataView(Uint8Array.of(10, 20, 30, 40).buffer, 1, 2);
+    const result = copier(dataView);
+
+    expect(result).toBeInstanceOf(CustomDataView);
+    expect(result.byteOffset).toBe(1);
+    expect(result.byteLength).toBe(2);
+    expect(result.getUint8(0)).toBe(20);
+    expect(result.getUint8(1)).toBe(30);
+  });
+});
+
 describe('maxDepth', () => {
   function nest(depth: number, createContainer: () => any) {
     const root = createContainer();
