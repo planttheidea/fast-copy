@@ -1,5 +1,13 @@
 # fast-copy CHANGELOG
 
+## 4.1.2
+
+- [#143](https://github.com/planttheidea/fast-copy/pull/143) - Preserve the `byteOffset` and `byteLength` of a copied
+  `DataView`. The copy previously covered the entire backing buffer, so a view over part of a buffer read from the wrong
+  position, and reads beyond its original bounds no longer threw.
+
+Thanks to [@pralav-25](https://github.com/pralav-25) for identifying and fixing this.
+
 ## 4.1.1
 
 - [#141](https://github.com/planttheidea/fast-copy/pull/141) - Copy the contents of a `Buffer` into memory it owns,

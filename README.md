@@ -241,9 +241,9 @@ in [`cache`](#cache) eagerly when deeply copying, so that nested circular refere
 
 ###### `Constructor` / `prototype`
 
-`Constructor` and `prototype` describe the object currently being copied, including standard objects and arrays.
-They are reassigned for each recursive call to `state.copier`, so read them before copying nested values. These
-properties are useful for custom subclasses of globals, or maintaining custom prototypes of objects.
+`Constructor` and `prototype` describe the object currently being copied, including standard objects and arrays. They
+are reassigned for each recursive call to `state.copier`, so read them before copying nested values. These properties
+are useful for custom subclasses of globals, or maintaining custom prototypes of objects.
 
 ```js
 function deeplyCloneSubclassArray<Value extends CustomArray>(
