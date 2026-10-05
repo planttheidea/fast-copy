@@ -158,7 +158,7 @@ export function copyBlob<Value extends Blob>(blob: Value, _state: State): Value 
  * Create a new DataView with the contents of the original.
  */
 export function copyDataView<Value extends DataView>(dataView: Value, state: State): Value {
-  return new state.Constructor(copyArrayBuffer(dataView.buffer, state));
+  return new state.Constructor(copyArrayBuffer(dataView.buffer, state), dataView.byteOffset, dataView.byteLength);
 }
 
 /**
