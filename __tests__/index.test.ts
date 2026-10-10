@@ -279,6 +279,34 @@ describe('copy', () => {
     expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(bar));
   });
 
+  it('will preserve sparse array holes and explicit undefined values', () => {
+    const array = new Array<{ value: number } | undefined>(4);
+    array[1] = { value: 1 };
+    array[2] = undefined;
+
+    const result = copy(array);
+
+    expect(result).not.toBe(array);
+    expect(result.length).toBe(4);
+    expect(Object.keys(result)).toEqual(['1', '2']);
+    expect(0 in result).toBe(false);
+    expect(3 in result).toBe(false);
+    expect(result[1]).toEqual(array[1]);
+    expect(result[1]).not.toBe(array[1]);
+    expect(2 in result).toBe(true);
+  });
+
+  it('will preserve the length of an array containing only holes', () => {
+    class SparseArray extends Array {}
+
+    const array = new SparseArray(3);
+    const result = copy(array);
+
+    expect(result).toBeInstanceOf(SparseArray);
+    expect(result.length).toBe(3);
+    expect(Object.keys(result)).toEqual([]);
+  });
+
   it('will copy an array with a constructor property', () => {
     const data = ['foo'];
 
