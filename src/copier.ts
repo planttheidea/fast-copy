@@ -112,12 +112,15 @@ function copyOwnPropertiesStrict<Value extends object>(value: Value, clone: Valu
  */
 export function copyArrayLoose(array: any[], state: State) {
   const clone = new state.Constructor();
+  clone.length = array.length;
 
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(array, clone);
 
   for (let index = 0; index < array.length; ++index) {
-    clone[index] = state.copier(array[index], state);
+    if (index in array) {
+      clone[index] = state.copier(array[index], state);
+    }
   }
 
   return clone;
