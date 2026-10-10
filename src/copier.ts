@@ -201,7 +201,16 @@ export function copyObjectLoose<Value extends Record<string, any>>(object: Value
   state.cache.set(object, clone);
 
   for (const key of Object.keys(object)) {
-    clone[key] = state.copier(object[key], state);
+    if (key === '__proto__') {
+      Object.defineProperty(clone, key, {
+        configurable: true,
+        enumerable: true,
+        value: state.copier(object[key], state),
+        writable: true,
+      });
+    } else {
+      clone[key] = state.copier(object[key], state);
+    }
   }
 
   for (const symbol of Object.getOwnPropertySymbols(object)) {

@@ -157,6 +157,42 @@ const SPECIAL_TYPES: PlainObject = {
 };
 
 describe('copy', () => {
+  it('will preserve an own __proto__ property without changing the prototype', () => {
+    const object: Record<string, unknown> = JSON.parse('{"__proto__":{"label":"value"}}');
+    const result = copy(object);
+
+    expect(Object.hasOwn(result, '__proto__')).toBe(true);
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect(result.__proto__).toEqual(object.__proto__);
+    expect(result.__proto__).not.toBe(object.__proto__);
+  });
+
+  it('will copy a circular own __proto__ property', () => {
+    const object: Record<string, unknown> = {};
+    Object.defineProperty(object, '__proto__', { enumerable: true, value: object });
+    const result = copy(object);
+
+    expect(Object.hasOwn(result, '__proto__')).toBe(true);
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect(result.__proto__).toBe(result);
+  });
+
+  it('will resolve an enumerable __proto__ getter like other loose properties', () => {
+    const value = { label: 'value' };
+    const object: Record<string, unknown> = {};
+    Object.defineProperty(object, '__proto__', { enumerable: true, get: () => value });
+    const result = copy(object);
+
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect(Object.getOwnPropertyDescriptor(result, '__proto__')).toEqual({
+      configurable: true,
+      enumerable: true,
+      value: { label: 'value' },
+      writable: true,
+    });
+    expect(result.__proto__).not.toBe(value);
+  });
+
   it('will copy an empty object', () => {
     const object = {};
 
