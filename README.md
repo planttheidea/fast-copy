@@ -72,7 +72,7 @@ Deeply copy the object passed, but with additional strictness when replicating t
 
 - Properties retain their original property descriptor
 - Non-enumerable keys are copied
-- Non-standard properties (e.g., keys on arrays / maps / sets) are copied
+- Non-standard properties (e.g., keys on arrays / dates / maps / sets) are copied
 
 ```js
 import { copyStrict } from 'fast-copy';
