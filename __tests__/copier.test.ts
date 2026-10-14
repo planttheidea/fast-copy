@@ -1,13 +1,14 @@
 import { describe, expect, it, vi } from 'vitest';
 import {
   copyArrayStrict,
+  copyDateStrict,
   copyMapStrict,
   copyObjectLoose,
   copyObjectStrict,
   copyPrimitiveWrapper,
   copySetStrict,
 } from '../src/copier.js';
-import { copy, copyStrict, createCopier } from '../src/index.js';
+import { copyStrict } from '../src/index.js';
 import { createDefaultCache } from '../src/options.js';
 
 interface PlainObject {
@@ -43,7 +44,17 @@ describe('copyDateStrict', () => {
 
   it.each([new Date(1234), new CustomDate(NaN)])('will strictly copy metadata on %s', (date) => {
     const original = Object.assign(date, { metadata: { source: 'api' } });
-    const result = copyStrict(original);
+
+    const cache = createDefaultCache();
+    const prototype = Object.getPrototypeOf(original);
+
+    const result = copyDateStrict(original, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: copyStrict,
+      depth: 0,
+      prototype,
+    });
 
     expect(result).not.toBe(original);
     expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(original));
@@ -59,13 +70,22 @@ describe('copyDateStrict', () => {
       throw new Error('Getter must not be called');
     };
 
+    const cache = createDefaultCache();
+    const prototype = Object.getPrototypeOf(original);
+
     Object.defineProperties(original, {
       hidden: { value: { source: 'api' } },
       [symbol]: { configurable: true, enumerable: true, value: 'symbol', writable: true },
       accessor: { configurable: true, get: getter },
     });
 
-    const result = copyStrict(original);
+    const result = copyDateStrict(original, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: copyStrict,
+      depth: 0,
+      prototype,
+    });
     const originalHidden = Object.getOwnPropertyDescriptor(original, 'hidden')!;
     const resultHidden = Object.getOwnPropertyDescriptor(result, 'hidden')!;
 
@@ -75,32 +95,6 @@ describe('copyDateStrict', () => {
     expect(Object.getOwnPropertyDescriptor(result, 'accessor')).toEqual(
       Object.getOwnPropertyDescriptor(original, 'accessor'),
     );
-  });
-
-  it('will reuse the strict Date clone for circular and repeated references', () => {
-    const date = new Date(0) as Date & { self: Date; metadata: { date: Date } };
-
-    date.self = date;
-    date.metadata = { date };
-
-    const result = copyStrict({ first: date, second: date });
-
-    expect(result.first).not.toBe(date);
-    expect(result.first).toBe(result.second);
-    expect(result.first.self).toBe(result.first);
-    expect(result.first.metadata).not.toBe(date.metadata);
-    expect(result.first.metadata.date).toBe(result.first);
-  });
-
-  it('will retain loose Date copying and explicit method overrides', () => {
-    const original = Object.assign(new Date(1234), { metadata: { source: 'api' } });
-    const result = copy(original);
-    const customCopy = createCopier({ methods: { date: (date) => date }, strict: true });
-
-    expect(result).not.toBe(original);
-    expect(result.getTime()).toBe(1234);
-    expect(Object.hasOwn(result, 'metadata')).toBe(false);
-    expect(customCopy(original)).toBe(original);
   });
 });
 

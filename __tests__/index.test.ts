@@ -394,6 +394,32 @@ describe('copyStrict', () => {
     expect(result.array[1]).not.toBe(reusedObject);
     expect(result.array[1]).toBe(cloneReusedObject);
   });
+
+  it('will reuse the strict Date clone for circular and repeated references', () => {
+    const date = new Date(0) as Date & { self: Date; metadata: { date: Date } };
+
+    date.self = date;
+    date.metadata = { date };
+
+    const result = copyStrict({ first: date, second: date });
+
+    expect(result.first).not.toBe(date);
+    expect(result.first).toBe(result.second);
+    expect(result.first.self).toBe(result.first);
+    expect(result.first.metadata).not.toBe(date.metadata);
+    expect(result.first.metadata.date).toBe(result.first);
+  });
+
+  it('will retain loose Date copying and explicit method overrides', () => {
+    const original = Object.assign(new Date(1234), { metadata: { source: 'api' } });
+    const result = copy(original);
+    const customCopy = createCopier({ methods: { date: (date) => date }, strict: true });
+
+    expect(result).not.toBe(original);
+    expect(result.getTime()).toBe(1234);
+    expect(Object.hasOwn(result, 'metadata')).toBe(false);
+    expect(customCopy(original)).toBe(original);
+  });
 });
 
 describe('issues', () => {
