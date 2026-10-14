@@ -41,7 +41,8 @@ export function getCleanClone(prototype: any): any {
     return prototype === Object.prototype ? {} : Object.create(prototype as object | null);
   }
 
-  if (Constructor && ~toStringFunction.call(Constructor).indexOf('[native code]')) {
+  // 2026-10-10: Prototype constructor properties may contain ordinary data.
+  if (typeof Constructor === 'function' && ~toStringFunction.call(Constructor).indexOf('[native code]')) {
     try {
       return new Constructor();
     } catch {

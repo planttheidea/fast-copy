@@ -424,6 +424,23 @@ describe('issues', () => {
   });
 });
 
+// 2026-10-10: A prototype can store ordinary data in its constructor property.
+describe.each([
+  { name: 'copy', copier: copy },
+  { name: 'copyStrict', copier: copyStrict },
+])('$name with a non-callable prototype constructor', ({ copier }) => {
+  it.each(['data', 42, true, Symbol('constructor'), {}])('will copy when constructor is %s', (constructor) => {
+    const prototype = { constructor };
+    const object = Object.assign(Object.create(prototype), { nested: { value: 'copied' } });
+    const result = copier(object);
+
+    expect(result).not.toBe(object);
+    expect(Object.getPrototypeOf(result)).toBe(prototype);
+    expect(result.nested).toEqual(object.nested);
+    expect(result.nested).not.toBe(object.nested);
+  });
+});
+
 describe('tag-specific copiers', () => {
   // `Symbol.toStringTag` is user-controlled, so a tag naming an `Object.prototype` member
   // must not resolve to that inherited member as the copier for the value.
