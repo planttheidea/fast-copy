@@ -4,12 +4,15 @@
 
 ### Enhancements
 
-- [#150](https://github.com/planttheidea/fast-copy/pull/150) - Preserve own `Date` properties in `strict` mode (thanks [@xiehuanyi](https://github.com/xiehuanyi))
+- [#150](https://github.com/planttheidea/fast-copy/pull/150) - Preserve own `Date` properties in `strict` mode (thanks
+  [@xiehuanyi](https://github.com/xiehuanyi))
 
 ### Bug fixes
 
-- [#146](https://github.com/planttheidea/fast-copy/pull/146) - Ensure `Constructor` is a function before performing native code check, preventing edge case throw condition (thanks [@fhgffy](https://github.com/fhgffy))
-- [#147](https://github.com/planttheidea/fast-copy/pull/147) - Preserve own `__proto__` properties when copying objects (thanks [@feritcemkahraman](https://github.com/feritcemkahraman))
+- [#146](https://github.com/planttheidea/fast-copy/pull/146) - Ensure `Constructor` is a function before performing
+  native code check, preventing edge case throw condition (thanks [@fhgffy](https://github.com/fhgffy))
+- [#147](https://github.com/planttheidea/fast-copy/pull/147) - Preserve own `__proto__` properties when copying objects
+  (thanks [@feritcemkahraman](https://github.com/feritcemkahraman))
 
 ## 4.1.2
 

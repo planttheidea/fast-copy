@@ -193,6 +193,28 @@ describe('copy', () => {
     expect(result.__proto__).not.toBe(value);
   });
 
+  it('will preserve an own null __proto__ property without removing the prototype', () => {
+    const object: Record<string, unknown> = JSON.parse('{"__proto__":null}');
+    const result = copy(object);
+
+    expect(Object.hasOwn(result, '__proto__')).toBe(true);
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect(result.__proto__).toBe(null);
+  });
+
+  it('will preserve a nested own __proto__ property without changing the prototype', () => {
+    const object: { data: Record<string, unknown> } = {
+      data: JSON.parse('{"__proto__":{"isAdmin":true}}'),
+    };
+    const result = copy(object);
+
+    expect(Object.hasOwn(result.data, '__proto__')).toBe(true);
+    expect(Object.getPrototypeOf(result.data)).toBe(Object.prototype);
+    expect(result.data.isAdmin).toBeUndefined();
+    expect(result.data.__proto__).toEqual(object.data.__proto__);
+    expect(result.data.__proto__).not.toBe(object.data.__proto__);
+  });
+
   it('will copy an empty object', () => {
     const object = {};
 
