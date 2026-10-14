@@ -169,6 +169,18 @@ export function copyDate<Value extends Date>(date: Value, state: State): Value {
 }
 
 /**
+ * Copy the time of the original Date, as well as any custom properties.
+ */
+export function copyDateStrict<Value extends Date>(date: Value, state: State): Value {
+  const clone = copyDate(date, state);
+
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(date, clone);
+
+  return copyOwnPropertiesStrict(date, clone, state);
+}
+
+/**
  * Deeply copy the keys and values of the original.
  */
 export function copyMapLoose<Value extends Map<any, any>>(map: Value, state: State): Value {
