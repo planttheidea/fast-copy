@@ -27,6 +27,7 @@ A [blazing fast](#benchmarks) deep object copier
   - [Aspects of default copiers](#aspects-of-default-copiers)
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
+    - [Sparse arrays are copied densely, unless using `copyStrict`](#sparse-arrays-are-copied-densely-unless-using-copystrict)
   - [Benchmarks](#benchmarks)
     - [Simple objects](#simple-objects)
     - [Complex objects](#complex-objects)
@@ -73,6 +74,7 @@ Deeply copy the object passed, but with additional strictness when replicating t
 - Properties retain their original property descriptor
 - Non-enumerable keys are copied
 - Non-standard properties (e.g., keys on arrays / dates / maps / sets) are copied
+- Holes in sparse arrays are preserved
 
 ```js
 import { copyStrict } from 'fast-copy';
@@ -352,6 +354,11 @@ Starting in ES2015, native globals can be subclassed like any custom class. When
 constructor of the original object. However, the expectation is that these subclasses would have the same constructur
 signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if
 the contract differs.
+
+### Sparse arrays are copied densely, unless using `copyStrict`
+
+For performance, [`copy`](#copy) copies every index up to `length`, so holes in sparse arrays become explicit
+`undefined` values (e.g., `copy([, 1])` has the key `0`). [`copyStrict`](#copystrict) preserves holes.
 
 ## Benchmarks
 
