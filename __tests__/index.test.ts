@@ -453,6 +453,32 @@ describe('copyStrict', () => {
     expect(result.array[1]).toBe(cloneReusedObject);
   });
 
+  it('will reuse the strict RegExp clone for circular and repeated references', () => {
+    const regExp = /test/gi;
+    const original = Object.assign(regExp, { self: regExp, metadata: { regExp } });
+
+    const result = copyStrict({ first: original, second: original });
+
+    expect(result.first).not.toBe(original);
+    expect(result.first).toBe(result.second);
+    expect(result.first.self).toBe(result.first);
+    expect(result.first.metadata).not.toBe(original.metadata);
+    expect(result.first.metadata.regExp).toBe(result.first);
+  });
+
+  it('will retain loose RegExp copying and explicit method overrides', () => {
+    const original = Object.assign(/test/gi, { lastIndex: 3, metadata: { source: 'api' } });
+    const result = copy(original);
+    const customCopy = createCopier({ methods: { regExp: (regExp) => regExp }, strict: true });
+
+    expect(result).not.toBe(original);
+    expect(result.source).toBe(original.source);
+    expect(result.flags).toBe(original.flags);
+    expect(result.lastIndex).toBe(3);
+    expect(Object.hasOwn(result, 'metadata')).toBe(false);
+    expect(customCopy(original)).toBe(original);
+  });
+
   it('will reuse the strict Date clone for circular and repeated references', () => {
     const date = new Date(0) as Date & { self: Date; metadata: { date: Date } };
 
