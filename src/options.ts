@@ -12,6 +12,7 @@ import {
   copyObjectStrict,
   copyPrimitiveWrapper,
   copyRegExp,
+  copyRegExpStrict,
   copySelf,
   copySetLoose,
   copySetStrict,
@@ -147,7 +148,7 @@ export function getOptions({
     generator: copySelf,
     map: strict ? copyMapStrict : copyMapLoose,
     object: strict ? copyObjectStrict : copyObjectLoose,
-    regExp: copyRegExp,
+    regExp: strict ? copyRegExpStrict : copyRegExp,
     set: strict ? copySetStrict : copySetLoose,
   };
 
