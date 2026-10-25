@@ -6,6 +6,7 @@ import {
   copyObjectLoose,
   copyObjectStrict,
   copyPrimitiveWrapper,
+  copyRegExpStrict,
   copySetStrict,
 } from '../src/copier.js';
 import { copyStrict } from '../src/index.js';
@@ -91,6 +92,70 @@ describe('copyDateStrict', () => {
 
     expect(resultHidden).toEqual(originalHidden);
     expect(resultHidden.value).not.toBe(originalHidden.value);
+    expect(Object.getOwnPropertyDescriptor(result, symbol)).toEqual(Object.getOwnPropertyDescriptor(original, symbol));
+    expect(Object.getOwnPropertyDescriptor(result, 'accessor')).toEqual(
+      Object.getOwnPropertyDescriptor(original, 'accessor'),
+    );
+  });
+});
+
+describe('copyRegExpStrict', () => {
+  class CustomRegExp extends RegExp {}
+
+  it.each([/test/gi, new CustomRegExp('test', 'gy')])('will strictly copy metadata on %s', (regExp) => {
+    const original = Object.assign(regExp, { lastIndex: 3, metadata: { source: 'api' } });
+    const cache = createDefaultCache();
+    const prototype = Object.getPrototypeOf(original);
+
+    const result = copyRegExpStrict(original, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: copyStrict,
+      depth: 0,
+      prototype,
+    });
+
+    expect(result).not.toBe(original);
+    expect(Object.getPrototypeOf(result)).toBe(prototype);
+    expect(result.source).toBe(original.source);
+    expect(result.flags).toBe(original.flags);
+    expect(result.lastIndex).toBe(3);
+    expect(result.metadata).toEqual(original.metadata);
+    expect(result.metadata).not.toBe(original.metadata);
+    expect(cache.get(original)).toBe(result);
+  });
+
+  it('will preserve lastIndex, hidden, symbol and accessor descriptors without reading getters', () => {
+    const symbol = Symbol('metadata');
+    const original = /test/g;
+    const getter = () => {
+      throw new Error('Getter must not be called');
+    };
+    const cache = createDefaultCache();
+    const prototype = Object.getPrototypeOf(original);
+
+    Object.defineProperties(original, {
+      lastIndex: { value: 3, writable: false },
+      hidden: { value: { source: 'api' } },
+      [symbol]: { configurable: true, enumerable: true, value: 'symbol', writable: true },
+      accessor: { configurable: true, get: getter },
+    });
+
+    const result = copyRegExpStrict(original, {
+      Constructor: prototype.constructor,
+      cache,
+      copier: copyStrict,
+      depth: 0,
+      prototype,
+    });
+    const originalHidden = Object.getOwnPropertyDescriptor(original, 'hidden')!;
+    const resultHidden = Object.getOwnPropertyDescriptor(result, 'hidden')!;
+
+    expect(resultHidden).toEqual(originalHidden);
+    expect(resultHidden.value).not.toBe(originalHidden.value);
+    expect(Object.getOwnPropertyDescriptor(result, 'lastIndex')).toEqual(
+      Object.getOwnPropertyDescriptor(original, 'lastIndex'),
+    );
     expect(Object.getOwnPropertyDescriptor(result, symbol)).toEqual(Object.getOwnPropertyDescriptor(original, symbol));
     expect(Object.getOwnPropertyDescriptor(result, 'accessor')).toEqual(
       Object.getOwnPropertyDescriptor(original, 'accessor'),

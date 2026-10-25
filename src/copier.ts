@@ -270,6 +270,18 @@ export function copyRegExp<Value extends RegExp>(regExp: Value, state: State): V
 }
 
 /**
+ * Copy the original RegExp, as well as any custom properties.
+ */
+export function copyRegExpStrict<Value extends RegExp>(regExp: Value, state: State): Value {
+  const clone = copyRegExp(regExp, state);
+
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(regExp, clone);
+
+  return copyOwnPropertiesStrict(regExp, clone, state);
+}
+
+/**
  * Return the original value (an identity function).
  *
  * @note
