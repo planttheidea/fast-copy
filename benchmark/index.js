@@ -38,6 +38,8 @@ const simpleObject = {
 const complexObject = Object.assign({}, simpleObject, {
   array: ['foo', { bar: 'baz' }],
   arrayBuffer: new ArrayBuffer(8),
+  blob: new Blob(['foo'], { type: 'text/plain' }),
+  booleanObject: new Boolean(true),
   buffer: Buffer.from('this is a test buffer'),
   dataView: new DataView(new ArrayBuffer(16)),
   date: new Date(),
@@ -47,10 +49,12 @@ const complexObject = Object.assign({}, simpleObject, {
   },
   map: new Map().set('foo', { bar: { baz: 'quz' } }),
   nan: NaN,
+  numberObject: new Number(123),
   object: { foo: { bar: 'baz' } },
   promise: Promise.resolve('foo'),
   regexp: /foo/,
   set: new Set().add('foo').add({ bar: { baz: 'quz' } }),
+  stringObject: new String('foo'),
   typedArray: new Uint8Array([12, 15]),
   undef: undefined,
   weakmap: new WeakMap([

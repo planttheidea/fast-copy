@@ -1,21 +1,26 @@
 import {
   copyArrayBuffer,
-  copyArrayLoose,
+  copyArrayBufferStrict,
+  copyArray,
   copyArrayStrict,
   copyBlob,
+  copyBlobStrict,
   copyDataView,
+  copyDataViewStrict,
   copyDate,
   copyDateStrict,
-  copyMapLoose,
+  copyMap,
   copyMapStrict,
-  copyObjectLoose,
+  copyObject,
   copyObjectStrict,
   copyPrimitiveWrapper,
+  copyPrimitiveWrapperStrict,
   copyRegExp,
   copyRegExpStrict,
   copySelf,
-  copySetLoose,
+  copySet,
   copySetStrict,
+  copyStringStrict,
 } from './copier.js';
 import type { InternalCopier } from './copier.ts';
 import type { Cache } from './utils.ts';
@@ -138,22 +143,22 @@ export function getOptions({
   strict,
 }: CreateCopierOptions): RequiredCreateCopierOptions {
   const defaultMethods = {
-    array: strict ? copyArrayStrict : copyArrayLoose,
-    arrayBuffer: copyArrayBuffer,
+    array: strict ? copyArrayStrict : copyArray,
+    arrayBuffer: strict ? copyArrayBufferStrict : copyArrayBuffer,
     asyncGenerator: copySelf,
-    blob: copyBlob,
-    dataView: copyDataView,
+    blob: strict ? copyBlobStrict : copyBlob,
+    dataView: strict ? copyDataViewStrict : copyDataView,
     date: strict ? copyDateStrict : copyDate,
     error: copySelf,
     generator: copySelf,
-    map: strict ? copyMapStrict : copyMapLoose,
-    object: strict ? copyObjectStrict : copyObjectLoose,
+    map: strict ? copyMapStrict : copyMap,
+    object: strict ? copyObjectStrict : copyObject,
     regExp: strict ? copyRegExpStrict : copyRegExp,
-    set: strict ? copySetStrict : copySetLoose,
+    set: strict ? copySetStrict : copySet,
   };
 
   const methods = methodsOverride ? Object.assign(defaultMethods, methodsOverride) : defaultMethods;
-  const copiers = getTagSpecificCopiers(methods);
+  const copiers = getTagSpecificCopiers(methods, strict);
   const createCache = createCacheOverride || createDefaultCache;
 
   // Extra safety check to ensure that object and array copiers are always provided,
@@ -175,7 +180,9 @@ export function getOptions({
 /**
  * Get the copiers used for each specific object tag.
  */
-export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers {
+export function getTagSpecificCopiers(methods: Required<CopierMethods>, strict: boolean | undefined): Copiers {
+  const copyPrimitive = strict ? copyPrimitiveWrapperStrict : copyPrimitiveWrapper;
+
   // A `null` prototype is used so that a value carrying a custom `Symbol.toStringTag`
   // cannot resolve to an inherited `Object.prototype` member as its copier. Without it,
   // a tag such as `toString` or `valueOf` finds a function on the prototype chain and
@@ -188,7 +195,7 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     BigInt64Array: methods.arrayBuffer,
     BigUint64Array: methods.arrayBuffer,
     Blob: methods.blob,
-    Boolean: copyPrimitiveWrapper,
+    Boolean: copyPrimitive,
     DataView: methods.dataView,
     Date: methods.date,
     Error: methods.error,
@@ -199,12 +206,12 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>): Copiers
     Int16Array: methods.arrayBuffer,
     Int32Array: methods.arrayBuffer,
     Map: methods.map,
-    Number: copyPrimitiveWrapper,
+    Number: copyPrimitive,
     Object: methods.object,
     Promise: copySelf,
     RegExp: methods.regExp,
     Set: methods.set,
-    String: copyPrimitiveWrapper,
+    String: strict ? copyStringStrict : copyPrimitiveWrapper,
     WeakMap: copySelf,
     WeakSet: copySelf,
     Uint8Array: methods.arrayBuffer,

@@ -28,6 +28,8 @@ A [blazing fast](#benchmarks) deep object copier
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
     - [Sparse arrays are copied densely, unless using `copyStrict`](#sparse-arrays-are-copied-densely-unless-using-copystrict)
+    - [References are shared when circular references are possible](#references-are-shared-when-circular-references-are-possible)
+    - [Typed arrays copy only the memory they view](#typed-arrays-copy-only-the-memory-they-view)
   - [Benchmarks](#benchmarks)
     - [Simple objects](#simple-objects)
     - [Complex objects](#complex-objects)
@@ -360,6 +362,24 @@ the contract differs.
 For performance, [`copy`](#copy) copies every index up to `length`, so holes in sparse arrays become explicit
 `undefined` values (e.g., `copy([, 1])` has the key `0`). [`copyStrict`](#copystrict) preserves holes.
 
+### References are shared when circular references are possible
+
+Values with nested contents (objects, arrays, `Map`s, and `Set`s) can contain circular references, so they are tracked
+in the [`cache`](#cache), and every reference to the same instance shares one copy. [`copyStrict`](#copystrict) also
+copies custom properties on every other value (`ArrayBuffer`, typed arrays, `Blob`, `DataView`, `Date`, `RegExp`, and
+primitive wrappers such as `new String()`), which makes circular references possible for those too, so they are tracked
+and shared as well. This includes a `DataView` and the buffer it views, which share the copied buffer.
+
+[`copy`](#copy) skips the cache for those other values for performance, so each reference gets its own copy (e.g.,
+`copy({ a: date, b: date })` produces two separate `Date` objects).
+
+### Typed arrays copy only the memory they view
+
+Each typed array is copied into a new buffer containing only the range it views, so the copy has a `byteOffset` of `0`,
+and typed arrays that shared a buffer in the original do not share one in the copy. Copying the full underlying buffer
+would preserve that sharing, but can be very costly: small Node `Buffer`s are slices of a shared 8KB pool, so each would
+copy the entire pool. A `DataView`, by contrast, copies its full buffer and keeps its `byteOffset`.
+
 ## Benchmarks
 
 #### Simple objects
@@ -370,19 +390,19 @@ _Small number of properties, all values are primitives_
 ┌────────────────────┬────────────────┐
 │ Name               │ Ops / sec      │
 ├────────────────────┼────────────────┤
-│ fast-copy          │ 4516637.948706 │
+│ fast-copy          │ 4703763.632489 │
 ├────────────────────┼────────────────┤
-│ lodash.cloneDeep   │ 2726908.524823 │
+│ lodash.cloneDeep   │ 2900386.981967 │
 ├────────────────────┼────────────────┤
-│ clone              │ 2292947.082887 │
+│ clone              │ 2463600.840365 │
 ├────────────────────┼────────────────┤
-│ ramda              │ 1919887.358374 │
+│ ramda              │ 2028306.417736 │
 ├────────────────────┼────────────────┤
-│ fast-clone         │ 1445623.172658 │
+│ fast-clone         │ 1664860.767121 │
 ├────────────────────┼────────────────┤
-│ deepclone          │ 1172068.638112 │
+│ deepclone          │ 1250640.565482 │
 ├────────────────────┼────────────────┤
-│ fast-copy (strict) │ 1029920.368064 │
+│ fast-copy (strict) │ 1183583.933015 │
 └────────────────────┴────────────────┘
 Fastest was "fast-copy".
 ```
@@ -395,19 +415,19 @@ _Large number of properties, values are a combination of primitives and complex 
 ┌────────────────────┬───────────────┐
 │ Name               │ Ops / sec     │
 ├────────────────────┼───────────────┤
-│ fast-copy          │ 202418.444691 │
+│ fast-copy          │ 177138.851917 │
 ├────────────────────┼───────────────┤
-│ deepclone          │ 139120.811183 │
+│ deepclone          │ 130207.533019 │
 ├────────────────────┼───────────────┤
-│ clone              │ 122191.364796 │
+│ ramda              │ 110970.833493 │
 ├────────────────────┼───────────────┤
-│ ramda              │ 106986.690081 │
+│ fast-clone         │ 101175.588811 │
 ├────────────────────┼───────────────┤
-│ fast-clone         │ 102390.033243 │
+│ clone              │ 85344.001401  │
 ├────────────────────┼───────────────┤
-│ fast-copy (strict) │ 72306.017635  │
+│ lodash.cloneDeep   │ 61029.915045  │
 ├────────────────────┼───────────────┤
-│ lodash.cloneDeep   │ 68706.681189  │
+│ fast-copy (strict) │ 54327.779721  │
 └────────────────────┴───────────────┘
 Fastest was "fast-copy".
 ```
@@ -420,19 +440,19 @@ _Very large number of properties with high amount of nesting, mainly objects and
 ┌────────────────────┬────────────┐
 │ Name               │ Ops / sec  │
 ├────────────────────┼────────────┤
-│ fast-copy          │ 564.726583 │
+│ fast-copy          │ 604.504457 │
 ├────────────────────┼────────────┤
-│ fast-clone         │ 265.243854 │
+│ fast-clone         │ 282.651482 │
 ├────────────────────┼────────────┤
-│ lodash.cloneDeep   │ 160.972258 │
+│ lodash.cloneDeep   │ 176.367952 │
 ├────────────────────┼────────────┤
-│ deepclone          │ 158.201556 │
+│ deepclone          │ 169.510853 │
 ├────────────────────┼────────────┤
-│ fast-copy (strict) │ 135.031983 │
+│ fast-copy (strict) │ 149.42194  │
 ├────────────────────┼────────────┤
-│ clone              │ 122.876256 │
+│ clone              │ 129.962388 │
 ├────────────────────┼────────────┤
-│ ramda              │ 35.226104  │
+│ ramda              │ 45.381864  │
 └────────────────────┴────────────┘
 Fastest was "fast-copy".
 ```
@@ -445,17 +465,17 @@ _Simple object with a deeply nested reference to itself_
 ┌────────────────────┬────────────────┐
 │ Name               │ Ops / sec      │
 ├────────────────────┼────────────────┤
-│ fast-copy          │ 2265437.452915 │
+│ fast-copy          │ 2505272.461365 │
 ├────────────────────┼────────────────┤
-│ deepclone          │ 1078459.808203 │
+│ deepclone          │ 1234807.813458 │
 ├────────────────────┼────────────────┤
-│ lodash.cloneDeep   │ 989211.772997  │
+│ lodash.cloneDeep   │ 1083042.324925 │
 ├────────────────────┼────────────────┤
-│ fast-copy (strict) │ 865453.141899  │
+│ fast-copy (strict) │ 1061135.134507 │
 ├────────────────────┼────────────────┤
-│ clone              │ 748230.731936  │
+│ clone              │ 1047767.775975 │
 ├────────────────────┼────────────────┤
-│ ramda              │ 564490.882674  │
+│ ramda              │ 643152.529276  │
 ├────────────────────┼────────────────┤
 │ fast-clone         │ 0              │
 └────────────────────┴────────────────┘
@@ -470,19 +490,19 @@ _Custom constructors, React components, etc_
 ┌────────────────────┬───────────────┐
 │ Name               │ Ops / sec     │
 ├────────────────────┼───────────────┤
-│ fast-copy          │ 134318.379975 │
+│ fast-copy          │ 152207.403222 │
 ├────────────────────┼───────────────┤
-│ lodash.cloneDeep   │ 62990.463065  │
+│ clone              │ 80839.604199  │
 ├────────────────────┼───────────────┤
-│ clone              │ 59386.329843  │
+│ lodash.cloneDeep   │ 71106.679803  │
 ├────────────────────┼───────────────┤
-│ fast-clone         │ 53886.995853  │
+│ fast-clone         │ 60054.451033  │
 ├────────────────────┼───────────────┤
-│ ramda              │ 27974.450157  │
+│ ramda              │ 34209.696554  │
 ├────────────────────┼───────────────┤
-│ deepclone          │ 23498.796755  │
+│ deepclone          │ 27853.483761  │
 ├────────────────────┼───────────────┤
-│ fast-copy (strict) │ 18955.802659  │
+│ fast-copy (strict) │ 22485.213946  │
 └────────────────────┴───────────────┘
 Fastest was "fast-copy".
 ```

@@ -46,9 +46,6 @@ export interface State {
   prototype: any;
 }
 
-// eslint-disable-next-line @typescript-eslint/unbound-method
-const { propertyIsEnumerable } = Object.prototype;
-
 /**
  * The shared `%TypedArray%.prototype.slice`, which every typed array inherits.
  *
@@ -62,6 +59,9 @@ const sliceTypedArray = Object.getPrototypeOf(Int8Array.prototype).slice as (
   start: number,
 ) => ArrayBufferView;
 
+/**
+ * Copy the descriptor from the original value to the clone.
+ */
 function copyOwnDescriptor<Value extends object>(
   original: Value,
   clone: Value,
@@ -93,11 +93,21 @@ function copyOwnDescriptor<Value extends object>(
 }
 
 /**
- * Strictly copy all properties contained on the object.
+ * Strictly copy all properties contained on the object, starting with the name at the `start` index.
+ *
+ * @note
+ * `Object.getOwnPropertyNames` lists integer keys first in ascending order, so array-like values
+ * whose indices are already copied can pass their count as `start` to skip them.
  */
-function copyOwnPropertiesStrict<Value extends object>(value: Value, clone: Value, state: State): Value {
-  for (const name of Object.getOwnPropertyNames(value)) {
-    copyOwnDescriptor(value, clone, name, state);
+function copyOwnPropertiesStrict<Value extends object>(
+  value: Value,
+  clone: Value,
+  state: State,
+  names: string[],
+  start: number,
+): Value {
+  for (let index = start; index < names.length; ++index) {
+    copyOwnDescriptor(value, clone, names[index]!, state);
   }
 
   for (const symbol of Object.getOwnPropertySymbols(value)) {
@@ -110,7 +120,7 @@ function copyOwnPropertiesStrict<Value extends object>(value: Value, clone: Valu
 /**
  * Deeply copy the indexed values in the array.
  */
-export function copyArrayLoose(array: any[], state: State) {
+export function copyArray<Value extends any[]>(array: Value, state: State): Value {
   const clone = new state.Constructor();
 
   // set in the cache immediately to be able to reuse the object recursively
@@ -126,25 +136,67 @@ export function copyArrayLoose(array: any[], state: State) {
 /**
  * Deeply copy the indexed values in the array, as well as any custom properties.
  */
-export function copyArrayStrict<Value extends any[]>(array: Value, state: State) {
+export function copyArrayStrict<Value extends any[]>(array: Value, state: State): Value {
   const clone = new state.Constructor() as Value;
 
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(array, clone);
 
-  return copyOwnPropertiesStrict(array, clone, state);
+  // Indices are copied by descriptor rather than by assignment, unlike typed arrays and strings,
+  // because array indices can be holes, accessors, or non-writable / non-enumerable values.
+  return copyOwnPropertiesStrict(array, clone, state, Object.getOwnPropertyNames(array), 0);
 }
 
 /**
  * Copy the contents of the ArrayBuffer, or of the typed array viewing one.
+ *
+ * @note
+ * `slice` always returns a fixed-length buffer, so a resizable or growable buffer that can change
+ * size is instead constructed with the same `maxByteLength` and has its contents copied in.
  */
 export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>(
   arrayBuffer: Value,
   _state: State,
 ): Value {
-  return ArrayBuffer.isView(arrayBuffer)
-    ? (sliceTypedArray.call(arrayBuffer, 0) as Value)
-    : (arrayBuffer.slice(0) as Value);
+  if (ArrayBuffer.isView(arrayBuffer)) {
+    return sliceTypedArray.call(arrayBuffer, 0) as Value;
+  }
+
+  if ((arrayBuffer as ArrayBuffer).resizable || (arrayBuffer as SharedArrayBuffer).growable) {
+    const maxByteLength = (arrayBuffer as ArrayBuffer).maxByteLength;
+    const clone = (arrayBuffer as ArrayBuffer).resizable
+      ? new ArrayBuffer(arrayBuffer.byteLength, { maxByteLength })
+      : new SharedArrayBuffer(arrayBuffer.byteLength, { maxByteLength });
+
+    // The new buffer is zero-filled, and buffers can only be read or written through a view, so
+    // copy the original's bytes into it through byte-level views of both. Without this, the clone
+    // would have the right size but be all zeros.
+    new Uint8Array(clone).set(new Uint8Array(arrayBuffer));
+
+    return clone as Value;
+  }
+
+  return arrayBuffer.slice(0) as Value;
+}
+
+/**
+ * Copy the contents of the ArrayBuffer, or of the typed array viewing one, as well as
+ * any custom properties.
+ */
+export function copyArrayBufferStrict<Value extends ArrayBufferLike | ArrayBufferView>(
+  arrayBuffer: Value,
+  state: State,
+): Value {
+  const clone = copyArrayBuffer(arrayBuffer, state);
+
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(arrayBuffer, clone);
+
+  // Typed arrays list their indices first, but unlike arrays have no own `length` to skip. The
+  // fresh clone is read, since the original may have an own `length` that shadows the real one.
+  const start = ArrayBuffer.isView(clone) ? (clone as unknown as ArrayLike<unknown>).length || 0 : 0;
+
+  return copyOwnPropertiesStrict(arrayBuffer, clone, state, Object.getOwnPropertyNames(arrayBuffer), start);
 }
 
 /**
@@ -155,10 +207,40 @@ export function copyBlob<Value extends Blob>(blob: Value, _state: State): Value 
 }
 
 /**
+ * Create a new Blob with the contents of the original, and copy any custom properties.
+ */
+export const copyBlobStrict = createStrictHandler(copyBlob);
+
+/**
  * Create a new DataView with the contents of the original.
  */
 export function copyDataView<Value extends DataView>(dataView: Value, state: State): Value {
   return new state.Constructor(copyArrayBuffer(dataView.buffer, state), dataView.byteOffset, dataView.byteLength);
+}
+
+/**
+ * Create a new DataView with the contents of the original, and copy any custom properties.
+ *
+ * @note
+ * The buffer is shared with any other reference to it in the value being copied, and has
+ * its own custom properties copied, the same as if it were reached directly.
+ */
+export function copyDataViewStrict<Value extends DataView>(dataView: Value, state: State): Value {
+  const { buffer } = dataView;
+  const bufferCopied = state.cache.has(buffer);
+  const bufferClone = bufferCopied ? state.cache.get(buffer) : copyArrayBuffer(buffer, state);
+  const clone = new state.Constructor(bufferClone, dataView.byteOffset, dataView.byteLength) as Value;
+
+  // set in the cache immediately to be able to reuse the object recursively. Both are cached
+  // before any custom properties are copied, since the buffer's may reference the DataView.
+  state.cache.set(dataView, clone);
+
+  if (!bufferCopied) {
+    state.cache.set(buffer, bufferClone);
+    copyOwnPropertiesStrict(buffer, bufferClone, state, Object.getOwnPropertyNames(buffer), 0);
+  }
+
+  return copyOwnPropertiesStrict(dataView, clone, state, Object.getOwnPropertyNames(dataView), 0);
 }
 
 /**
@@ -169,21 +251,14 @@ export function copyDate<Value extends Date>(date: Value, state: State): Value {
 }
 
 /**
- * Copy the time of the original Date, as well as any custom properties.
+ * Create a new Date based on the time of the original, and copy any custom properties.
  */
-export function copyDateStrict<Value extends Date>(date: Value, state: State): Value {
-  const clone = copyDate(date, state);
-
-  // set in the cache immediately to be able to reuse the object recursively
-  state.cache.set(date, clone);
-
-  return copyOwnPropertiesStrict(date, clone, state);
-}
+export const copyDateStrict = createStrictHandler(copyDate);
 
 /**
  * Deeply copy the keys and values of the original.
  */
-export function copyMapLoose<Value extends Map<any, any>>(map: Value, state: State): Value {
+export function copyMap<Value extends Map<any, any>>(map: Value, state: State): Value {
   const clone = new state.Constructor() as Value;
 
   // set in the cache immediately to be able to reuse the object recursively
@@ -199,14 +274,14 @@ export function copyMapLoose<Value extends Map<any, any>>(map: Value, state: Sta
 /**
  * Deeply copy the keys and values of the original, as well as any custom properties.
  */
-export function copyMapStrict<Value extends Map<any, any>>(map: Value, state: State) {
-  return copyOwnPropertiesStrict(map, copyMapLoose(map, state), state);
+export function copyMapStrict<Value extends Map<any, any>>(map: Value, state: State): Value {
+  return copyOwnPropertiesStrict(map, copyMap(map, state), state, Object.getOwnPropertyNames(map), 0);
 }
 
 /**
  * Deeply copy the properties (keys and symbols) and values of the original.
  */
-export function copyObjectLoose<Value extends Record<string, any>>(object: Value, state: State): Value {
+export function copyObject<Value extends Record<string, any>>(object: Value, state: State): Value {
   const clone = getCleanClone(state.prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
@@ -214,6 +289,9 @@ export function copyObjectLoose<Value extends Record<string, any>>(object: Value
 
   for (const key of Object.keys(object)) {
     if (key === '__proto__') {
+      // Native assignment would attempt to use `Object.setPropertyOf` under the hood, when this
+      // property has been explicitly set as a standard property. Using `defineProperty` ensures
+      // its treatment in the clone is unchanged from the source.
       Object.defineProperty(clone, key, {
         configurable: true,
         enumerable: true,
@@ -226,7 +304,8 @@ export function copyObjectLoose<Value extends Record<string, any>>(object: Value
   }
 
   for (const symbol of Object.getOwnPropertySymbols(object)) {
-    if (propertyIsEnumerable.call(object, symbol)) {
+    // Only copy enumerable symbols in loose mode, to align with handling of `keys`.
+    if (Object.prototype.propertyIsEnumerable.call(object, symbol)) {
       clone[symbol] = state.copier((object as any)[symbol], state);
     }
   }
@@ -244,7 +323,7 @@ export function copyObjectStrict<Value extends Record<string, any>>(object: Valu
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(object, clone);
 
-  return copyOwnPropertiesStrict(object, clone, state);
+  return copyOwnPropertiesStrict(object, clone, state, Object.getOwnPropertyNames(object), 0);
 }
 
 /**
@@ -259,11 +338,18 @@ export function copyPrimitiveWrapper<
 }
 
 /**
+ * Create a new primitive wrapper from the value of the original, and copy any
+ * custom properties.
+ */
+export const copyPrimitiveWrapperStrict = createStrictHandler(copyPrimitiveWrapper);
+
+/**
  * Create a new RegExp based on the value and flags of the original.
  */
 export function copyRegExp<Value extends RegExp>(regExp: Value, state: State): Value {
   const clone = new state.Constructor(regExp.source, regExp.flags) as Value;
 
+  // `lastIndex` is not retained when constructing anew, so manually copy it.
   clone.lastIndex = regExp.lastIndex;
 
   return clone;
@@ -272,14 +358,7 @@ export function copyRegExp<Value extends RegExp>(regExp: Value, state: State): V
 /**
  * Copy the original RegExp, as well as any custom properties.
  */
-export function copyRegExpStrict<Value extends RegExp>(regExp: Value, state: State): Value {
-  const clone = copyRegExp(regExp, state);
-
-  // set in the cache immediately to be able to reuse the object recursively
-  state.cache.set(regExp, clone);
-
-  return copyOwnPropertiesStrict(regExp, clone, state);
-}
+export const copyRegExpStrict = createStrictHandler(copyRegExp);
 
 /**
  * Return the original value (an identity function).
@@ -294,7 +373,7 @@ export function copySelf<Value>(value: Value, _state: State): Value {
 /**
  * Deeply copy the values of the original.
  */
-export function copySetLoose<Value extends Set<any>>(set: Value, state: State): Value {
+export function copySet<Value extends Set<any>>(set: Value, state: State): Value {
   const clone = new state.Constructor() as Value;
 
   // set in the cache immediately to be able to reuse the object recursively
@@ -311,5 +390,44 @@ export function copySetLoose<Value extends Set<any>>(set: Value, state: State): 
  * Deeply copy the values of the original, as well as any custom properties.
  */
 export function copySetStrict<Value extends Set<any>>(set: Value, state: State): Value {
-  return copyOwnPropertiesStrict(set, copySetLoose(set, state), state);
+  return copyOwnPropertiesStrict(set, copySet(set, state), state, Object.getOwnPropertyNames(set), 0);
+}
+
+/**
+ * Copy the original value based on the handler passed, and also copy custom properties.
+ *
+ * @note
+ * The handlers used here have no nested values to copy, so they skip the cache to keep loose
+ * copies fast. Custom properties can reference the value itself, so the clone is cached here
+ * before they are copied.
+ */
+function createStrictHandler<Value extends object>(handler: (value: Value, state: State) => Value) {
+  return (value: Value, state: State): Value => {
+    const clone = handler(value, state);
+
+    // set in the cache immediately to be able to reuse the object recursively
+    state.cache.set(value, clone);
+
+    return copyOwnPropertiesStrict(value, clone, state, Object.getOwnPropertyNames(value), 0);
+  };
+}
+
+/**
+ * Create a new String wrapper from the value of the original, and copy custom properties.
+ */
+// `String` primitive constructor is intentional.
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+export function copyStringStrict<Value extends String>(string: Value, state: State): Value {
+  const clone = copyPrimitiveWrapper(string, state);
+
+  // set in the cache immediately to be able to reuse the object recursively
+  state.cache.set(string, clone);
+
+  const { length } = string;
+  const names = Object.getOwnPropertyNames(string);
+  // Custom integer keys beyond the string's length are listed before `length`, so only skip
+  // `length` when it directly follows the characters.
+  const start = names[length] === 'length' ? length + 1 : length;
+
+  return copyOwnPropertiesStrict(string, clone, state, names, start);
 }
