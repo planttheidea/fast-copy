@@ -168,6 +168,9 @@ export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>
       ? new ArrayBuffer(arrayBuffer.byteLength, { maxByteLength })
       : new SharedArrayBuffer(arrayBuffer.byteLength, { maxByteLength });
 
+    // The new buffer is zero-filled, and buffers can only be read or written through a view, so
+    // copy the original's bytes into it through byte-level views of both. Without this, the clone
+    // would have the right size but be all zeros.
     new Uint8Array(clone).set(new Uint8Array(arrayBuffer));
 
     return clone as Value;
