@@ -504,6 +504,89 @@ describe('copyStrict', () => {
     expect(Object.hasOwn(result, 'metadata')).toBe(false);
     expect(customCopy(original)).toBe(original);
   });
+
+  describe.each([
+    { name: 'Array', method: 'array', create: () => ['foo'] },
+    { name: 'ArrayBuffer', method: 'arrayBuffer', create: () => new ArrayBuffer(4) },
+    { name: 'Uint8Array', method: 'arrayBuffer', create: () => new Uint8Array([1, 2]) },
+    { name: 'Blob', method: 'blob', create: () => new Blob(['blob']) },
+    { name: 'DataView', method: 'dataView', create: () => new DataView(new ArrayBuffer(4)) },
+    { name: 'Map', method: 'map', create: () => new Map([['foo', 'bar']]) },
+    { name: 'Set', method: 'set', create: () => new Set(['foo']) },
+    { name: 'Boolean', method: undefined, create: () => new Boolean(true) },
+    { name: 'Number', method: undefined, create: () => new Number(123) },
+    { name: 'String', method: undefined, create: () => new String('foo') },
+  ] as const)('$name custom properties', ({ create, method }) => {
+    it('will reuse the strict clone for circular and repeated references', () => {
+      const original: any = create();
+
+      original.self = original;
+      original.metadata = { original };
+
+      const result = copyStrict({ first: original, second: original });
+
+      expect(result.first).not.toBe(original);
+      expect(result.first).toBe(result.second);
+      expect(result.first.self).toBe(result.first);
+      expect(result.first.metadata).not.toBe(original.metadata);
+      expect(result.first.metadata.original).toBe(result.first);
+    });
+
+    it('will not copy custom properties when loose', () => {
+      const original = Object.assign(create(), { metadata: { source: 'api' } });
+      const result = copy(original);
+
+      expect(result).not.toBe(original);
+      expect(Object.hasOwn(result, 'metadata')).toBe(false);
+    });
+
+    if (method) {
+      it('will use explicit method overrides', () => {
+        const original = Object.assign(create(), { metadata: { source: 'api' } });
+        const customCopy = createCopier({ methods: { [method]: (value: any) => value }, strict: true });
+
+        expect(customCopy(original)).toBe(original);
+      });
+    }
+  });
+
+  it('will copy custom properties on the buffer of a DataView', () => {
+    const buffer = Object.assign(new ArrayBuffer(4), { metadata: { source: 'api' } });
+    const dataView = new DataView(buffer);
+
+    const viewOnly = copyStrict(dataView);
+    const dataViewFirst = copyStrict({ dataView, buffer });
+
+    expect(viewOnly.buffer.metadata).toEqual(buffer.metadata);
+    expect(viewOnly.buffer.metadata).not.toBe(buffer.metadata);
+    expect(dataViewFirst.buffer.metadata).toEqual(buffer.metadata);
+    expect(dataViewFirst.dataView.buffer).toBe(dataViewFirst.buffer);
+  });
+
+  it('will resolve a buffer property that references the DataView viewing it', () => {
+    const buffer: ArrayBuffer & { view?: DataView } = new ArrayBuffer(4);
+    const dataView = new DataView(buffer);
+
+    buffer.view = dataView;
+
+    const result = copyStrict(dataView);
+
+    expect(result).not.toBe(dataView);
+    expect(result.buffer.view).toBe(result);
+  });
+
+  it('will share the copied buffer between a DataView and the buffer it views', () => {
+    const buffer = new ArrayBuffer(4);
+    const dataView = new DataView(buffer);
+
+    const bufferFirst = copyStrict({ buffer, dataView });
+    const dataViewFirst = copyStrict({ dataView, buffer });
+
+    expect(bufferFirst.buffer).not.toBe(buffer);
+    expect(bufferFirst.dataView.buffer).toBe(bufferFirst.buffer);
+    expect(dataViewFirst.buffer).not.toBe(buffer);
+    expect(dataViewFirst.dataView.buffer).toBe(dataViewFirst.buffer);
+  });
 });
 
 describe('issues', () => {

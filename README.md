@@ -28,6 +28,8 @@ A [blazing fast](#benchmarks) deep object copier
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
     - [Sparse arrays are copied densely, unless using `copyStrict`](#sparse-arrays-are-copied-densely-unless-using-copystrict)
+    - [References are shared when circular references are possible](#references-are-shared-when-circular-references-are-possible)
+    - [Typed arrays copy only the memory they view](#typed-arrays-copy-only-the-memory-they-view)
   - [Benchmarks](#benchmarks)
     - [Simple objects](#simple-objects)
     - [Complex objects](#complex-objects)
@@ -359,6 +361,24 @@ the contract differs.
 
 For performance, [`copy`](#copy) copies every index up to `length`, so holes in sparse arrays become explicit
 `undefined` values (e.g., `copy([, 1])` has the key `0`). [`copyStrict`](#copystrict) preserves holes.
+
+### References are shared when circular references are possible
+
+Values with nested contents (objects, arrays, `Map`s, and `Set`s) can contain circular references, so they are tracked
+in the [`cache`](#cache), and every reference to the same instance shares one copy. [`copyStrict`](#copystrict) also
+copies custom properties on every other value (`ArrayBuffer`, typed arrays, `Blob`, `DataView`, `Date`, `RegExp`, and
+primitive wrappers such as `new String()`), which makes circular references possible for those too, so they are tracked
+and shared as well. This includes a `DataView` and the buffer it views, which share the copied buffer.
+
+[`copy`](#copy) skips the cache for those other values for performance, so each reference gets its own copy (e.g.,
+`copy({ a: date, b: date })` produces two separate `Date` objects).
+
+### Typed arrays copy only the memory they view
+
+Each typed array is copied into a new buffer containing only the range it views, so the copy has a `byteOffset` of `0`,
+and typed arrays that shared a buffer in the original do not share one in the copy. Copying the full underlying buffer
+would preserve that sharing, but can be very costly: small Node `Buffer`s are slices of a shared 8KB pool, so each would
+copy the entire pool. A `DataView`, by contrast, copies its full buffer and keeps its `byteOffset`.
 
 ## Benchmarks
 
