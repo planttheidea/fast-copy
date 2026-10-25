@@ -164,9 +164,9 @@ export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>
 
   if ((arrayBuffer as ArrayBuffer).resizable || (arrayBuffer as SharedArrayBuffer).growable) {
     const maxByteLength = (arrayBuffer as ArrayBuffer).maxByteLength;
-    const clone = (arrayBuffer as ArrayBuffer).resizable
-      ? new ArrayBuffer(arrayBuffer.byteLength, { maxByteLength })
-      : new SharedArrayBuffer(arrayBuffer.byteLength, { maxByteLength });
+    // This also runs inside DataView copiers, whose state constructor belongs to the view.
+    const Constructor = Object.getPrototypeOf(arrayBuffer).constructor as typeof ArrayBuffer;
+    const clone = new Constructor(arrayBuffer.byteLength, { maxByteLength });
 
     // The new buffer is zero-filled, and buffers can only be read or written through a view, so
     // copy the original's bytes into it through byte-level views of both. Without this, the clone
