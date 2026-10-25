@@ -1,5 +1,22 @@
 # fast-copy CHANGELOG
 
+## 4.3.0
+
+### Enhancements
+
+- [#155](https://github.com/planttheidea/fast-copy/pull/155) - Preserve own `RegExp` properties in `strict` mode (thanks
+  [@blueDaydreaming725](https://github.com/blueDaydreaming725))
+- [#156](https://github.com/planttheidea/fast-copy/pull/156) - Preserve own properties in `strict` mode for all
+  remaining copied types: `ArrayBuffer`, typed arrays (including `Buffer`), `Blob`, `DataView`, and primitive wrappers
+  (`Boolean`, `Number`, and `String`)
+- [#156](https://github.com/planttheidea/fast-copy/pull/156) - In `strict` mode, circular and repeated references to any
+  of these types now resolve to a single copy, including a `DataView` and the buffer it views
+
+### Bug fixes
+
+- [#156](https://github.com/planttheidea/fast-copy/pull/156) - Keep copies of resizable `ArrayBuffer`s and growable
+  `SharedArrayBuffer`s resizable, with the same `maxByteLength`; copies were previously fixed-length
+
 ## 4.2.0
 
 ### Enhancements
