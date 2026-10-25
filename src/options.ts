@@ -211,7 +211,7 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>, strict: 
     Promise: copySelf,
     RegExp: methods.regExp,
     Set: methods.set,
-    String: strict ? copyStringStrict : copyPrimitive,
+    String: strict ? copyStringStrict : copyPrimitiveWrapper,
     WeakMap: copySelf,
     WeakSet: copySelf,
     Uint8Array: methods.arrayBuffer,

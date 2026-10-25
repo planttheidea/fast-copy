@@ -31,11 +31,11 @@ A [blazing fast](#benchmarks) deep object copier
     - [References are shared when circular references are possible](#references-are-shared-when-circular-references-are-possible)
     - [Typed arrays copy only the memory they view](#typed-arrays-copy-only-the-memory-they-view)
   - [Benchmarks](#benchmarks)
-      - [Simple objects](#simple-objects)
-      - [Complex objects](#complex-objects)
-      - [Big data](#big-data)
-      - [Circular objects](#circular-objects)
-      - [Special objects](#special-objects)
+    - [Simple objects](#simple-objects)
+    - [Complex objects](#complex-objects)
+    - [Big data](#big-data)
+    - [Circular objects](#circular-objects)
+    - [Special objects](#special-objects)
 
 ## Usage
 
