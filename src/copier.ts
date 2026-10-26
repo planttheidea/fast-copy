@@ -1,4 +1,4 @@
-import { getCleanClone } from './utils.js';
+import { getCleanClone, getTag } from './utils.js';
 import type { Cache } from './utils.ts';
 
 export type InternalCopier<Value> = (value: Value, state: State) => Value;
@@ -176,78 +176,12 @@ export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>
     return clone as Value;
   }
 
-  // The native slice can reject a fixed zero-byte SharedArrayBuffer because both
-  // backing stores have the same empty data pointer. Check the intrinsic size:
-  // an own byteLength property must not hide a populated buffer.
-  if (
-    typeof SharedArrayBuffer !== 'undefined'
-    && !Object.prototype.isPrototypeOf.call(ArrayBuffer.prototype, arrayBuffer)
-  ) {
-    // Captured for explicit Reflect.apply, rather than invocation without a receiver.
-    // eslint-disable-next-line @typescript-eslint/unbound-method
-    const getByteLength = Object.getOwnPropertyDescriptor(SharedArrayBuffer.prototype, 'byteLength')!.get!;
-    let byteLength: number | undefined;
-
-    // This catch only checks the built-in brand, not user constructors or hooks.
-    try {
-      byteLength = Reflect.apply(getByteLength, arrayBuffer, []);
-    } catch {
-      // Non-shared buffers from another realm continue through native slice.
-    }
-
-    if (byteLength === 0) {
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const slice = arrayBuffer.slice;
-      // eslint-disable-next-line @typescript-eslint/unbound-method
-      const nativeSlice = SharedArrayBuffer.prototype.slice;
-      const nativeSource = Function.prototype.toString.call(nativeSlice);
-
-      // Keep explicit slice overrides, including their exceptions, observable.
-      if (
-        /^function\s+slice\(\)\s*\{\s*\[native code\]\s*\}$/.test(nativeSource)
-        && (slice === nativeSlice
-          || (!Object.prototype.hasOwnProperty.call(arrayBuffer, 'slice')
-            && Function.prototype.toString.call(slice) === nativeSource))
-      ) {
-        return copyEmptySharedArrayBuffer(arrayBuffer as SharedArrayBuffer, getByteLength) as Value;
-      }
-
-      return Reflect.apply(slice, arrayBuffer, [0]) as Value;
-    }
+  // V8 throws when slicing an empty, fixed-length SharedArrayBuffer.
+  if (!arrayBuffer.byteLength && getTag(arrayBuffer) === 'SharedArrayBuffer') {
+    return new SharedArrayBuffer(0) as Value;
   }
 
   return arrayBuffer.slice(0) as Value;
-}
-
-/**
- * Construct a distinct empty shared buffer without the native zero-size slice.
- * Resolve species normally so user getters and constructors can still throw.
- */
-function copyEmptySharedArrayBuffer(
-  original: SharedArrayBuffer,
-  getByteLength: (this: SharedArrayBuffer) => number,
-): SharedArrayBuffer {
-  const Constructor: unknown = original.constructor;
-
-  if (
-    Constructor !== undefined
-    && (Constructor === null || (typeof Constructor !== 'object' && typeof Constructor !== 'function'))
-  ) {
-    throw new TypeError('SharedArrayBuffer constructor must be an object');
-  }
-
-  const Species =
-    (Constructor as { [Symbol.species]?: typeof SharedArrayBuffer } | undefined)?.[Symbol.species] ?? SharedArrayBuffer;
-  const clone = new Species(0);
-
-  // The intrinsic getter validates the returned buffer, including across realms.
-  Reflect.apply(getByteLength, clone, []);
-
-  if (clone === original) {
-    throw new TypeError('SharedArrayBuffer species must return a distinct buffer');
-  }
-
-  return clone;
 }
 
 /**
