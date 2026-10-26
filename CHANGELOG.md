@@ -1,5 +1,16 @@
 # fast-copy CHANGELOG
 
+## 4.3.1
+
+### Bug fixes
+
+- [#157](https://github.com/planttheidea/fast-copy/pull/157) - Copy `SharedArrayBuffer`s with the `arrayBuffer` method,
+  preserving their contents; they previously fell through to the object copier, so copies were empty, and a `strict`
+  copy of an object containing both a `SharedArrayBuffer` and a `DataView` over it could throw (thanks
+  [@mayankdhingra02](https://github.com/mayankdhingra02))
+- [#159](https://github.com/planttheidea/fast-copy/pull/159) - Copy the buffer of a `DataView` with the `arrayBuffer`
+  method, so that a custom `arrayBuffer` override is honored; the default copier was previously always used
+
 ## 4.3.0
 
 ### Enhancements
