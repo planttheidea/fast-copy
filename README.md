@@ -168,18 +168,18 @@ const copyInWorker = createCopier({ maxDepth: 250 });
 The failure when the limit is set too high for the environment is the same native `RangeError` thrown prior to this
 option existing, so too high a limit is never worse than having none.
 
-**NOTE**: The depth counts nested objects only. Primitives and values already present in the [`cache`](#cache) (circular
-references) do not contribute to it.
+**NOTE**: The depth counts nested objects only, including the buffer viewed by a `DataView`. Primitives and values
+already present in the [`cache`](#cache) (circular references) do not contribute to it.
 
 #### `methods`
 
 Methods used for copying specific object types. A list of the methods and which object types they handle:
 
 - `array` => `Array`
-- `arrayBuffer`=> `ArrayBuffer`, `SharedArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`,
+- `arrayBuffer` => `ArrayBuffer`, `SharedArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`,
   `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `BigInt64Array`, `BigUint64Array`
 - `blob` => `Blob`
-- `dataView` => `DataView`
+- `dataView` => `DataView` (the buffer it views is copied with the `arrayBuffer` method)
 - `date` => `Date`
 - `error` => `Error`, `AggregateError`, `EvalError`, `RangeError`, `ReferenceError`, `SyntaxError`, `TypeError`,
   `URIError`
@@ -193,10 +193,17 @@ Each method has the following contract:
 ```js
 type InternalCopier<Value> = (value: Value, state: State) => Value;
 
+interface Cache {
+  has: (value: any) => boolean;
+  set: (key: any, value: any) => void;
+  get: (key: any) => any;
+}
+
 interface State {
   Constructor: any;
-  cache: WeakMap;
+  cache: Cache;
   copier: InternalCopier<any>;
+  depth: number;
   prototype: any;
 }
 ```
@@ -354,7 +361,7 @@ original reference is copied.
 ### The constructor of the original object is used, instead of using known globals
 
 Starting in ES2015, native globals can be subclassed like any custom class. When copying, we explicitly reuse the
-constructor of the original object. However, the expectation is that these subclasses would have the same constructur
+constructor of the original object. However, the expectation is that these subclasses would have the same constructor
 signature as their native base class. This is a common community practice, but there is the possibility of inaccuracy if
 the contract differs.
 
