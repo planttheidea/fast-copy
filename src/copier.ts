@@ -230,16 +230,20 @@ export function copyDataView<Value extends DataView>(dataView: Value, state: Sta
  * its own custom properties copied, the same as if it were reached directly.
  */
 export function copyDataViewStrict<Value extends DataView>(dataView: Value, state: State): Value {
-  const { Constructor } = state;
-  const bufferClone = state.copier(dataView.buffer, state);
+  const { buffer } = dataView;
+  const { cache, Constructor } = state;
+  const bufferCopied = cache.has(buffer);
+  const bufferClone = bufferCopied ? cache.get(buffer) : state.copier(buffer, state);
 
-  // Copying the buffer may already create this view through a circular reference.
-  if (state.cache.has(dataView)) {
-    return state.cache.get(dataView);
+  // The buffer's custom properties may reference this DataView, in which case copying the buffer
+  // already created and cached its clone. Reuse it so that every reference resolves to one clone.
+  if (!bufferCopied && cache.has(dataView)) {
+    return cache.get(dataView);
   }
 
   const clone = new Constructor(bufferClone, dataView.byteOffset, dataView.byteLength) as Value;
 
+  // set in the cache immediately to be able to reuse the object recursively.
   state.cache.set(dataView, clone);
 
   return copyOwnPropertiesStrict(dataView, clone, state, Object.getOwnPropertyNames(dataView), 0);
