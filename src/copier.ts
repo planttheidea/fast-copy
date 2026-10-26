@@ -164,8 +164,7 @@ export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>
 
   if ((arrayBuffer as ArrayBuffer).resizable || (arrayBuffer as SharedArrayBuffer).growable) {
     const maxByteLength = (arrayBuffer as ArrayBuffer).maxByteLength;
-    const { Constructor } = state;
-    const clone = new Constructor(arrayBuffer.byteLength, { maxByteLength });
+    const clone = new state.Constructor(arrayBuffer.byteLength, { maxByteLength });
 
     // The new buffer is zero-filled, and buffers can only be read or written through a view, so
     // copy the original's bytes into it through byte-level views of both. Without this, the clone
@@ -177,7 +176,7 @@ export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>
 
   // V8 throws when slicing an empty, fixed-length SharedArrayBuffer.
   if (!arrayBuffer.byteLength && getTag(arrayBuffer) === 'SharedArrayBuffer') {
-    return new SharedArrayBuffer(0) as Value;
+    return new state.Constructor(0) as Value;
   }
 
   return arrayBuffer.slice(0) as Value;

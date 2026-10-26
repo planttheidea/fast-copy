@@ -1001,6 +1001,38 @@ describe.each([false, true])('zero-byte SharedArrayBuffer (growable: %s)', (grow
     expect(result.view.byteLength).toBe(0);
     expect(result.buffer.growable).toBe(growable);
   });
+
+  describe.each([
+    { name: 'copy', copier: copy },
+    { name: 'copyStrict', copier: copyStrict },
+  ])('$name subclasses', ({ copier }) => {
+    class CustomSharedArrayBuffer extends SharedArrayBuffer {}
+
+    function createSubclassBuffer() {
+      return growable ? new CustomSharedArrayBuffer(0, { maxByteLength: 8 }) : new CustomSharedArrayBuffer(0);
+    }
+
+    it('will preserve the subclass of the buffer', () => {
+      const original = createSubclassBuffer();
+      const result = copier(original);
+
+      expect(result).not.toBe(original);
+      expect(result).toBeInstanceOf(CustomSharedArrayBuffer);
+      expect(result.byteLength).toBe(0);
+      expect(result.growable).toBe(growable);
+      expect(result.maxByteLength).toBe(original.maxByteLength);
+    });
+
+    it('will preserve the subclass of the buffer viewed by a DataView', () => {
+      const original = createSubclassBuffer();
+      const result = copier(new DataView(original));
+
+      expect(result.buffer).not.toBe(original);
+      expect(result.buffer).toBeInstanceOf(CustomSharedArrayBuffer);
+      expect(result.byteLength).toBe(0);
+      expect(result.buffer.growable).toBe(growable);
+    });
+  });
 });
 
 describe('maxDepth', () => {
