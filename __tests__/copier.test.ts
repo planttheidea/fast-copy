@@ -564,8 +564,11 @@ describe('copyArrayStrict for sparse arrays', () => {
 });
 
 describe('copyArrayBuffer', () => {
+  class CustomArrayBuffer extends ArrayBuffer {}
+
   it.each([
     ['ArrayBuffer', () => new ArrayBuffer(4, { maxByteLength: 16 }), 'resizable'],
+    ['ArrayBuffer subclass', () => new CustomArrayBuffer(4, { maxByteLength: 16 }), 'resizable'],
     ['SharedArrayBuffer', () => new SharedArrayBuffer(4, { maxByteLength: 16 }), 'growable'],
   ] as const)('will keep a resizable %s resizable', (_name, create, flag) => {
     const original = create();

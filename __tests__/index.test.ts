@@ -765,17 +765,30 @@ describe.each([
     }
   });
 
-  it('will preserve the bounds and constructor of a DataView subclass', () => {
+  it('will preserve the bounds and constructors of a DataView and its resizable buffer subclasses', () => {
+    class CustomArrayBuffer extends ArrayBuffer {}
     class CustomDataView extends DataView<ArrayBuffer> {}
 
-    const dataView = new CustomDataView(Uint8Array.of(10, 20, 30, 40).buffer, 1, 2);
+    const buffer = new CustomArrayBuffer(4, { maxByteLength: 16 });
+
+    new Uint8Array(buffer).set([10, 20, 30, 40]);
+
+    const dataView = new CustomDataView(buffer, 1, 2);
     const result = copier(dataView);
 
     expect(result).toBeInstanceOf(CustomDataView);
+    expect(result.buffer).toBeInstanceOf(CustomArrayBuffer);
+    expect(result.buffer).not.toBe(buffer);
+    expect(result.buffer.resizable).toBe(true);
+    expect(result.buffer.maxByteLength).toBe(16);
     expect(result.byteOffset).toBe(1);
     expect(result.byteLength).toBe(2);
     expect(result.getUint8(0)).toBe(20);
     expect(result.getUint8(1)).toBe(30);
+
+    result.setUint8(0, 99);
+
+    expect(dataView.getUint8(0)).toBe(20);
   });
 });
 
