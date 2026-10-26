@@ -1,5 +1,6 @@
 import React from 'react';
 import { describe, expect, it, test, vi } from 'vitest';
+import type { State } from '../src/index.js';
 import { copy, copyStrict, createCopier, MaxDepthExceededError } from '../src/index.js';
 
 interface PlainObject {
@@ -586,6 +587,65 @@ describe('copyStrict', () => {
     expect(bufferFirst.dataView.buffer).toBe(bufferFirst.buffer);
     expect(dataViewFirst.buffer).not.toBe(buffer);
     expect(dataViewFirst.dataView.buffer).toBe(dataViewFirst.buffer);
+  });
+
+  it('will resolve a nested buffer property that references the DataView viewing it', () => {
+    const buffer = Object.assign(new ArrayBuffer(4), { metadata: { view: null as DataView | null } });
+    const dataView = new DataView(buffer);
+
+    buffer.metadata.view = dataView;
+
+    const result = copyStrict(dataView);
+
+    expect(result).not.toBe(dataView);
+    expect(result.buffer.metadata).not.toBe(buffer.metadata);
+    expect(result.buffer.metadata.view).toBe(result);
+  });
+
+  it('will copy the buffer of a strict DataView once when its properties reference the DataView', () => {
+    const buffer: ArrayBuffer & { view?: DataView } = new ArrayBuffer(4);
+    const dataView = new DataView(buffer);
+
+    buffer.view = dataView;
+
+    const arrayBuffer = vi.fn((value: ArrayBuffer, state: State) => {
+      const clone = value.slice(0);
+
+      state.cache.set(value, clone);
+
+      return clone;
+    });
+    const result = createCopier({ methods: { arrayBuffer }, strict: true })(dataView);
+
+    expect(arrayBuffer).toHaveBeenCalledTimes(1);
+    expect(result.buffer).toBe(arrayBuffer.mock.results[0]!.value);
+    expect(result.buffer).not.toBe(buffer);
+  });
+});
+
+describe.each([false, true])('DataView buffers (strict: %s)', (strict) => {
+  it('will copy the buffer with an arrayBuffer method override', () => {
+    const buffer = Uint8Array.of(1, 2, 3, 4).buffer;
+    const dataView = new DataView(buffer, 1, 2);
+    const arrayBuffer = vi.fn((value: ArrayBuffer) => value);
+    const result = createCopier({ methods: { arrayBuffer }, strict })(dataView);
+
+    expect(arrayBuffer).toHaveBeenCalledTimes(1);
+    expect(arrayBuffer).toHaveBeenCalledWith(buffer, expect.any(Object));
+    expect(result).not.toBe(dataView);
+    expect(result).toBeInstanceOf(DataView);
+    expect(result.buffer).toBe(buffer);
+    expect(result.byteOffset).toBe(1);
+    expect(result.byteLength).toBe(2);
+  });
+
+  it('will use the clone returned by an arrayBuffer method override', () => {
+    const dataView = new DataView(Uint8Array.of(1, 2, 3, 4).buffer);
+    const replacement = Uint8Array.of(9, 9, 9, 9).buffer;
+    const result = createCopier({ methods: { arrayBuffer: () => replacement }, strict })(dataView);
+
+    expect(result.buffer).toBe(replacement);
+    expect(result.getUint8(0)).toBe(9);
   });
 });
 
