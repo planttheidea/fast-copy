@@ -1,4 +1,4 @@
-import { getCleanClone } from './utils.js';
+import { getCleanClone, getTag } from './utils.js';
 import type { Cache } from './utils.ts';
 
 export type InternalCopier<Value> = (value: Value, state: State) => Value;
@@ -174,6 +174,11 @@ export function copyArrayBuffer<Value extends ArrayBufferLike | ArrayBufferView>
     new Uint8Array(clone).set(new Uint8Array(arrayBuffer));
 
     return clone as Value;
+  }
+
+  // V8 throws when slicing an empty, fixed-length SharedArrayBuffer.
+  if (!arrayBuffer.byteLength && getTag(arrayBuffer) === 'SharedArrayBuffer') {
+    return new SharedArrayBuffer(0) as Value;
   }
 
   return arrayBuffer.slice(0) as Value;

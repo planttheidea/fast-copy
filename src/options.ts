@@ -68,6 +68,7 @@ interface Copiers {
   Promise: InternalCopier<Promise<any>>;
   RegExp: InternalCopier<RegExp>;
   Set: InternalCopier<Set<any>>;
+  SharedArrayBuffer: InternalCopier<SharedArrayBuffer>;
   // eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
   String: InternalCopier<String>;
   WeakMap: InternalCopier<WeakMap<any, any>>;
@@ -211,6 +212,7 @@ export function getTagSpecificCopiers(methods: Required<CopierMethods>, strict: 
     Promise: copySelf,
     RegExp: methods.regExp,
     Set: methods.set,
+    SharedArrayBuffer: methods.arrayBuffer,
     String: strict ? copyStringStrict : copyPrimitiveWrapper,
     WeakMap: copySelf,
     WeakSet: copySelf,

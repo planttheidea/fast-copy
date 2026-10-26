@@ -176,8 +176,8 @@ references) do not contribute to it.
 Methods used for copying specific object types. A list of the methods and which object types they handle:
 
 - `array` => `Array`
-- `arrayBuffer`=> `ArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`, `Int32Array`, `Uint8Array`,
-  `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `BigInt64Array`, `BigUint64Array`
+- `arrayBuffer`=> `ArrayBuffer`, `SharedArrayBuffer`, `Float32Array`, `Float64Array`, `Int8Array`, `Int16Array`,
+  `Int32Array`, `Uint8Array`, `Uint8ClampedArray`, `Uint16Array`, `Uint32Array`, `BigInt64Array`, `BigUint64Array`
 - `blob` => `Blob`
 - `dataView` => `DataView`
 - `date` => `Date`
@@ -306,6 +306,7 @@ The following object types are deeply cloned when they are either properties on 
 - `Object`
 - `RegExp`
 - `Set`
+- `SharedArrayBuffer`
 - `String` primitive wrappers (e.g., `new String('foo')`)
 - `Uint8Array`
 - `Uint8ClampedArray`
