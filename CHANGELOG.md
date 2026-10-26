@@ -10,6 +10,11 @@
   [@mayankdhingra02](https://github.com/mayankdhingra02))
 - [#159](https://github.com/planttheidea/fast-copy/pull/159) - Copy the buffer of a `DataView` with the `arrayBuffer`
   method, so that a custom `arrayBuffer` override is honored; the default copier was previously always used
+- [#158](https://github.com/planttheidea/fast-copy/pull/158) - Preserve the subclass of copied resizable `ArrayBuffer`s
+  and growable `SharedArrayBuffer`s; copies were previously instances of the base class (thanks
+  [@umtong](https://github.com/umtong))
+- [#160](https://github.com/planttheidea/fast-copy/pull/160) - Preserve the subclass of copied empty, fixed-length
+  `SharedArrayBuffer`s; copies were previously instances of the base class
 
 ## 4.3.0
 
