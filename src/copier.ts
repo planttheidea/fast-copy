@@ -270,7 +270,7 @@ export function copyMap<Value extends Map<any, any>>(map: Value, state: State): 
   state.cache.set(map, clone);
 
   for (const [key, value] of map) {
-    clone.set(key, state.copier(value, state));
+    clone.set(state.copier(key, state), state.copier(value, state));
   }
 
   return clone;
