@@ -93,6 +93,18 @@ function copyOwnDescriptor<Value extends object>(
 }
 
 /**
+ * Define the value as a standard (configurable, enumerable, writable) own property of the clone.
+ */
+function defineOwnValue(clone: object, property: string | symbol, value: unknown): void {
+  Object.defineProperty(clone, property, {
+    configurable: true,
+    enumerable: true,
+    value,
+    writable: true,
+  });
+}
+
+/**
  * Strictly copy all properties contained on the object, starting with the name at the `start` index.
  *
  * @note
@@ -285,37 +297,51 @@ export function copyMapStrict<Value extends Map<any, any>>(map: Value, state: St
 
 /**
  * Deeply copy the properties (keys and symbols) and values of the original.
+ *
+ * @note
+ * Values are assigned for performance, but assignment respects the prototype chain, so it throws
+ * when the key shadows an inherited read-only or getter-only property. In that case the value is
+ * defined directly, still producing the standard own property expected in loose mode. This relies
+ * on the source running in strict mode, where a failed assignment throws instead of being silently
+ * ignored.
  */
 export function copyObject<Value extends Record<string, any>>(object: Value, state: State): Value {
-  const clone = getCleanClone(state.prototype);
+  const clone: Record<string | symbol, unknown> = getCleanClone(state.prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(object, clone);
 
   for (const key of Object.keys(object)) {
+    const value = state.copier(object[key], state);
+
     if (key === '__proto__') {
       // Native assignment would attempt to use `Object.setPropertyOf` under the hood, when this
       // property has been explicitly set as a standard property. Using `defineProperty` ensures
       // its treatment in the clone is unchanged from the source.
-      Object.defineProperty(clone, key, {
-        configurable: true,
-        enumerable: true,
-        value: state.copier(object[key], state),
-        writable: true,
-      });
+      defineOwnValue(clone, key, value);
     } else {
-      clone[key] = state.copier(object[key], state);
+      try {
+        clone[key] = value;
+      } catch {
+        defineOwnValue(clone, key, value);
+      }
     }
   }
 
   for (const symbol of Object.getOwnPropertySymbols(object)) {
     // Only copy enumerable symbols in loose mode, to align with handling of `keys`.
     if (Object.prototype.propertyIsEnumerable.call(object, symbol)) {
-      clone[symbol] = state.copier((object as any)[symbol], state);
+      const value = state.copier((object as any)[symbol], state);
+
+      try {
+        clone[symbol] = value;
+      } catch {
+        defineOwnValue(clone, symbol, value);
+      }
     }
   }
 
-  return clone;
+  return clone as Value;
 }
 
 /**

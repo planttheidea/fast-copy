@@ -216,6 +216,108 @@ describe('copy', () => {
     expect(result.data.__proto__).not.toBe(object.data.__proto__);
   });
 
+  describe.each([
+    ['string', 'id'],
+    ['symbol', Symbol('id')],
+  ] as const)('own %s keys shadowing inherited properties', (_type, key) => {
+    function createShadowingObject(inherited: PropertyDescriptor, depth = 1): Record<PropertyKey, any> {
+      let prototype: object = Object.create(Object.prototype, { [key]: inherited }) as object;
+
+      for (let index = 1; index < depth; ++index) {
+        prototype = Object.create(prototype) as object;
+      }
+
+      return Object.create(prototype, {
+        [key]: { configurable: true, enumerable: true, value: { nested: 1 }, writable: true },
+      });
+    }
+
+    function expectOwnCopy(result: Record<PropertyKey, any>, object: Record<PropertyKey, any>) {
+      expect(Object.getPrototypeOf(result)).toBe(Object.getPrototypeOf(object));
+      expect(Object.getOwnPropertyDescriptor(result, key)).toEqual({
+        configurable: true,
+        enumerable: true,
+        value: { nested: 1 },
+        writable: true,
+      });
+      expect(result[key]).not.toBe(object[key]);
+    }
+
+    it('will copy a property shadowing an inherited read-only property', () => {
+      const object = createShadowingObject({ configurable: true, value: 0, writable: false });
+
+      expectOwnCopy(copy(object), object);
+    });
+
+    it('will copy a property shadowing an inherited getter-only property', () => {
+      const object = createShadowingObject({ configurable: true, get: () => 0 });
+
+      expectOwnCopy(copy(object), object);
+    });
+
+    it('will copy a property shadowing a read-only property deeper in the prototype chain', () => {
+      const object = createShadowingObject({ configurable: true, value: 0, writable: false }, 3);
+
+      expectOwnCopy(copy(object), object);
+    });
+
+    it('will copy a circular property shadowing an inherited read-only property', () => {
+      const object = createShadowingObject({ configurable: true, value: 0, writable: false });
+      object[key] = object;
+
+      const result = copy(object);
+
+      expect(Object.hasOwn(result, key)).toBe(true);
+      expect(result[key]).toBe(result);
+    });
+
+    it('will pass the copied value to an inherited setter, instead of defining an own property', () => {
+      const set = vi.fn();
+      const object = createShadowingObject({ configurable: true, get: () => 0, set });
+
+      const result = copy(object);
+
+      expect(Object.hasOwn(result, key)).toBe(false);
+      expect(set).toHaveBeenCalledTimes(1);
+      expect(set.mock.calls[0]![0]).toEqual({ nested: 1 });
+      expect(set.mock.calls[0]![0]).not.toBe(object[key]);
+    });
+
+    it('will copy the own property when using copyStrict', () => {
+      const set = vi.fn();
+      const object = createShadowingObject({ configurable: true, get: () => 0, set });
+
+      expectOwnCopy(copyStrict(object), object);
+      expect(set).not.toHaveBeenCalled();
+    });
+  });
+
+  it('will copy the current value of own getters as standard properties', () => {
+    let count = 0;
+    const object = {};
+    Object.defineProperty(object, 'count', {
+      configurable: true,
+      enumerable: true,
+      get: () => ++count,
+      set: (value: number) => {
+        count = value;
+      },
+    });
+
+    const result = copy(object);
+
+    expect(Object.getOwnPropertyDescriptor(result, 'count')).toEqual({
+      configurable: true,
+      enumerable: true,
+      value: 1,
+      writable: true,
+    });
+
+    (result as { count: number }).count = 10;
+
+    expect(count).toBe(1);
+  });
+
   it('will copy an empty object', () => {
     const object = {};
 
