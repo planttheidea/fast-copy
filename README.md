@@ -28,6 +28,7 @@ A [blazing fast](#benchmarks) deep object copier
     - [Error references are copied directly, instead of creating a new `*Error` object](#error-references-are-copied-directly-instead-of-creating-a-new-error-object)
     - [The constructor of the original object is used, instead of using known globals](#the-constructor-of-the-original-object-is-used-instead-of-using-known-globals)
     - [Sparse arrays are copied densely, unless using `copyStrict`](#sparse-arrays-are-copied-densely-unless-using-copystrict)
+    - [Properties are copied as a snapshot of their values, unless using `copyStrict`](#properties-are-copied-as-a-snapshot-of-their-values-unless-using-copystrict)
     - [References are shared when circular references are possible](#references-are-shared-when-circular-references-are-possible)
     - [Typed arrays copy only the memory they view](#typed-arrays-copy-only-the-memory-they-view)
   - [Benchmarks](#benchmarks)
@@ -369,6 +370,20 @@ the contract differs.
 
 For performance, [`copy`](#copy) copies every index up to `length`, so holes in sparse arrays become explicit
 `undefined` values (e.g., `copy([, 1])` has the key `0`). [`copyStrict`](#copystrict) preserves holes.
+
+### Properties are copied as a snapshot of their values, unless using `copyStrict`
+
+[`copy`](#copy) reads each enumerable own property once and stores the copied value on the clone as a standard property
+(configurable, enumerable, and writable), regardless of how it was defined on the original. The result is a static
+snapshot of the original at the time of copying:
+
+- Getters are called, and the value they return is copied in place of the getter
+- Setters are dropped, so writing to the copy only changes its stored value
+- Read-only and non-configurable properties become writable and configurable
+
+Because values are assigned to the clone, a setter inherited from the clone's prototype for the same key receives the
+copied value instead of an own property being created. [`copyStrict`](#copystrict) preserves the original property
+descriptors, including getters and setters, if you need them retained.
 
 ### References are shared when circular references are possible
 

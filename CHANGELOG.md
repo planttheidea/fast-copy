@@ -1,5 +1,13 @@
 # fast-copy CHANGELOG
 
+## 4.3.2
+
+### Bug fixes
+
+- [#166](https://github.com/planttheidea/fast-copy/pull/166) - Copy own properties that shadow an inherited read-only or
+  getter-only property in loose mode; `copy` previously threw a `TypeError` for these (reported in
+  [#165](https://github.com/planttheidea/fast-copy/issues/165))
+
 ## 4.3.1
 
 ### Bug fixes
