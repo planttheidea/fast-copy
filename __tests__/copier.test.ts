@@ -6,6 +6,7 @@ import {
   copyBlobStrict,
   copyDataViewStrict,
   copyDateStrict,
+  copyMap,
   copyMapStrict,
   copyObject,
   copyObjectStrict,
@@ -228,6 +229,31 @@ describe('copyObjectStrict', () => {
     expect(mockCopier).toHaveBeenCalledTimes(
       Object.getOwnPropertyNames(object).length + Object.getOwnPropertySymbols(object).length,
     );
+  });
+});
+
+describe.each([
+  ['copyMap', copyMap],
+  ['copyMapStrict', copyMapStrict],
+] as const)('%s', (_name, clone) => {
+  it('only passes object keys and entry values to the copier', () => {
+    const objectKey = { id: 1 };
+    const copiedObjectKey = { id: 1 };
+    const keys = [undefined, null, false, 0, NaN, BigInt(1), 'name', Symbol('key'), () => 'key', objectKey];
+    const original = new Map(keys.map((key, index) => [key, index] as const));
+    const mockCopier = vi.fn((arg: unknown, _state: State) => (arg === objectKey ? copiedObjectKey : arg));
+    const cache = createDefaultCache();
+    const prototype = Object.getPrototypeOf(original);
+    const state = { Constructor: Map, cache, copier: mockCopier, depth: 0, prototype };
+
+    const result = clone(original, state);
+
+    expect(result).not.toBe(original);
+    expect([...result.keys()]).toEqual([...keys.slice(0, -1), copiedObjectKey]);
+    expect(result.get(copiedObjectKey)).toBe(9);
+    expect(cache.get(original)).toBe(result);
+    expect(mockCopier.mock.calls.map(([arg]) => arg)).toEqual([0, 1, 2, 3, 4, 5, 6, 7, 8, objectKey, 9]);
+    expect(mockCopier.mock.calls.every(([, passedState]) => passedState === state)).toBe(true);
   });
 });
 
