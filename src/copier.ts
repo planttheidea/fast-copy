@@ -96,6 +96,18 @@ function copyOwnDescriptor<Value extends object>(
     return;
   }
 
+  // A standard array clone already has a writable `length`, which matches the original's once
+  // its indices are copied unless the original ends with holes, so redefining it can be skipped.
+  if (
+    assignable
+    && property === 'length'
+    && descriptor.writable
+    && Array.isArray(clone)
+    && clone.length === descriptor.value
+  ) {
+    return;
+  }
+
   try {
     Object.defineProperty(clone, property, descriptor);
   } catch {
