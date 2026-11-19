@@ -464,6 +464,27 @@ describe('copyStrict', () => {
     expect(result).toEqual(object);
   });
 
+  it('will preserve an own __proto__ property without changing the prototype', () => {
+    const object: Record<string, unknown> = JSON.parse('{"__proto__":{"label":"value"}}');
+    const result = copyStrict(object);
+
+    expect(Object.hasOwn(result, '__proto__')).toBe(true);
+    expect(Object.getPrototypeOf(result)).toBe(Object.prototype);
+    expect(result.__proto__).toEqual(object.__proto__);
+    expect(result.__proto__).not.toBe(object.__proto__);
+  });
+
+  it('will preserve the length of an array that ends with holes', () => {
+    const array = [1, 2];
+
+    array.length = 5;
+
+    const result = copyStrict(array);
+
+    expect(result.length).toBe(5);
+    expect(Object.keys(result)).toEqual(['0', '1']);
+  });
+
   it('will copy the simple types', () => {
     const result = copyStrict(SIMPLE_TYPES);
 
