@@ -61,12 +61,18 @@ const sliceTypedArray = Object.getPrototypeOf(Int8Array.prototype).slice as (
 
 /**
  * Copy the descriptor from the original value to the clone.
+ *
+ * @note
+ * When `assignable`, the clone's prototype is a standard one, so a standard (configurable,
+ * enumerable, writable) value whose property is not found on the clone is assigned, which is
+ * faster than `Object.defineProperty` and produces the same own property.
  */
 function copyOwnDescriptor<Value extends object>(
   original: Value,
   clone: Value,
   property: string | symbol,
   state: State,
+  assignable: boolean,
 ): void {
   const ownDescriptor = Object.getOwnPropertyDescriptor(original, property) || {
     configurable: true,
@@ -83,6 +89,12 @@ function copyOwnDescriptor<Value extends object>(
           value: state.copier(ownDescriptor.value, state),
           writable: ownDescriptor.writable,
         };
+
+  if (assignable && descriptor.configurable && descriptor.enumerable && descriptor.writable && !(property in clone)) {
+    clone[property as keyof Value] = descriptor.value;
+
+    return;
+  }
 
   try {
     Object.defineProperty(clone, property, descriptor);
@@ -118,12 +130,16 @@ function copyOwnPropertiesStrict<Value extends object>(
   names: string[],
   start: number,
 ): Value {
+  const prototype = Object.getPrototypeOf(clone);
+  // Only standard prototypes are trusted to have no side effects when checking for a property.
+  const assignable = prototype === Object.prototype || prototype === Array.prototype || prototype === null;
+
   for (let index = start; index < names.length; ++index) {
-    copyOwnDescriptor(value, clone, names[index]!, state);
+    copyOwnDescriptor(value, clone, names[index]!, state, assignable);
   }
 
   for (const symbol of Object.getOwnPropertySymbols(value)) {
-    copyOwnDescriptor(value, clone, symbol, state);
+    copyOwnDescriptor(value, clone, symbol, state, assignable);
   }
 
   return clone;
