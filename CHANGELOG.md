@@ -1,5 +1,14 @@
 # fast-copy CHANGELOG
 
+## 4.3.3
+
+### Bug fixes
+
+- [#164](https://github.com/planttheidea/fast-copy/pull/164) - Deep copy `Map` keys in addition to values; object keys
+  were previously reused by reference, so the copy was not a true deep copy and retained references to the original
+  objects, potentially leaking them (reported in [#163](https://github.com/planttheidea/fast-copy/issues/163), thanks
+  [@mayankdhingra02](https://github.com/mayankdhingra02))
+
 ## 4.3.2
 
 ### Bug fixes
