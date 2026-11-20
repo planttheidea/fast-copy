@@ -2,6 +2,13 @@
 
 ## 4.3.3
 
+### Enhancements
+
+- [#167](https://github.com/planttheidea/fast-copy/pull/167) - Improve `copyStrict` performance by assigning standard
+  (configurable, enumerable, and writable) properties of plain objects and arrays instead of defining them with
+  `Object.defineProperty`, and by not redefining an array `length` that already matches; copies are unchanged (thanks
+  [@g4lb](https://github.com/g4lb))
+
 ### Bug fixes
 
 - [#164](https://github.com/planttheidea/fast-copy/pull/164) - Deep copy `Map` keys in addition to values; object keys

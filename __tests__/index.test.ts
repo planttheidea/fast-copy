@@ -485,6 +485,74 @@ describe('copyStrict', () => {
     expect(Object.keys(result)).toEqual(['0', '1']);
   });
 
+  it('will preserve an own __proto__ property of a null-prototype object without setting the prototype', () => {
+    const object: Record<string, unknown> = Object.create(null);
+
+    object.__proto__ = { label: 'value' };
+
+    const result = copyStrict(object);
+
+    expect(Object.getPrototypeOf(result)).toBe(null);
+    expect(Object.hasOwn(result, '__proto__')).toBe(true);
+    expect(result.__proto__).toEqual(object.__proto__);
+    expect(result.__proto__).not.toBe(object.__proto__);
+  });
+
+  it('will preserve an own __proto__ property of an array without changing the prototype', () => {
+    const array = [1, 2] as number[] & Record<string, unknown>;
+    const value = { label: 'value' };
+
+    Object.defineProperty(array, '__proto__', { configurable: true, enumerable: true, value, writable: true });
+
+    const result = copyStrict(array);
+
+    expect(Object.getPrototypeOf(result)).toBe(Array.prototype);
+    expect(Object.hasOwn(result, '__proto__')).toBe(true);
+    expect(result.__proto__).toEqual(value);
+    expect(result.__proto__).not.toBe(value);
+    expect([...result]).toEqual([1, 2]);
+  });
+
+  it('will not check for properties on a custom prototype, which may have side effects', () => {
+    const has = vi.fn(Reflect.has);
+    const prototype = new Proxy({}, { has });
+    const object: Record<string, unknown> = Object.create(prototype);
+
+    object.nested = { label: 'value' };
+
+    const result = copyStrict(object);
+
+    expect(has).not.toHaveBeenCalled();
+    expect(Object.getPrototypeOf(result)).toBe(prototype);
+    expect(Object.hasOwn(result, 'nested')).toBe(true);
+    expect(result.nested).toEqual(object.nested);
+    expect(result.nested).not.toBe(object.nested);
+  });
+
+  it('will not check for properties on an array subclass prototype, which may have side effects', () => {
+    class Subclass extends Array<number> {
+      declare nested?: unknown;
+    }
+
+    const has = vi.fn(Reflect.has);
+
+    Object.setPrototypeOf(Subclass.prototype, new Proxy(Array.prototype, { has }));
+
+    const array = new Subclass();
+
+    array.push(1, 2);
+    array.nested = { label: 'value' };
+
+    const result = copyStrict(array);
+
+    expect(has).not.toHaveBeenCalled();
+    expect(result).toBeInstanceOf(Subclass);
+    expect([...result]).toEqual([1, 2]);
+    expect(Object.hasOwn(result, 'nested')).toBe(true);
+    expect(result.nested).toEqual(array.nested);
+    expect(result.nested).not.toBe(array.nested);
+  });
+
   it('will copy the simple types', () => {
     const result = copyStrict(SIMPLE_TYPES);
 
