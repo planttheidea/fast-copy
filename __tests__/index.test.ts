@@ -455,6 +455,18 @@ describe('copy', () => {
 });
 
 describe('copyStrict', () => {
+  /**
+   * A `set` trap that swallows assignments of the `swallowed` property, which must be defined on a
+   * clone rather than assigned to it whenever its prototype chain may contain a `Proxy`.
+   */
+  function swallow(target: object, property: string | symbol, value: unknown, receiver: unknown): boolean {
+    return property === 'swallowed' || Reflect.set(target, property, value, receiver);
+  }
+
+  function defineSwallowed(object: object): void {
+    Object.defineProperty(object, 'swallowed', { configurable: true, enumerable: true, value: 'own', writable: true });
+  }
+
   it('will copy an empty object', () => {
     const object = {};
 
@@ -513,45 +525,151 @@ describe('copyStrict', () => {
     expect([...result]).toEqual([1, 2]);
   });
 
-  it('will not check for properties on a custom prototype, which may have side effects', () => {
-    const has = vi.fn(Reflect.has);
-    const prototype = new Proxy({}, { has });
+  it('will define own properties shadowing inherited accessors of a class instance', () => {
+    const set = vi.fn();
+
+    class Model {
+      declare count: number;
+
+      get label(): unknown {
+        return 'inherited';
+      }
+
+      set label(value: unknown) {
+        set(value);
+      }
+    }
+
+    const model = new Model();
+    const label = { text: 'own' };
+
+    model.count = 1;
+    Object.defineProperty(model, 'label', { configurable: true, enumerable: true, value: label, writable: true });
+
+    const result = copyStrict(model);
+
+    expect(set).not.toHaveBeenCalled();
+    expect(result).toBeInstanceOf(Model);
+    expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(model));
+    expect(result.label).not.toBe(label);
+  });
+
+  it('will define own properties shadowing inherited accessors of an array subclass', () => {
+    const set = vi.fn();
+
+    class Subclass extends Array<number> {
+      get nested(): unknown {
+        return undefined;
+      }
+
+      set nested(value: unknown) {
+        set(value);
+      }
+    }
+
+    const array = new Subclass();
+    const nested = { label: 'value' };
+
+    array.push(1, 2);
+    Object.defineProperty(array, 'nested', { configurable: true, enumerable: true, value: nested, writable: true });
+
+    const result = copyStrict(array);
+
+    expect(set).not.toHaveBeenCalled();
+    expect(result).toBeInstanceOf(Subclass);
+    expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(array));
+    expect(result.nested).not.toBe(nested);
+  });
+
+  it('will define own properties of a Map shadowing its inherited accessors', () => {
+    const map = new Map([['key', { label: 'value' }]]) as Map<string, unknown> & Record<string, unknown>;
+
+    Object.defineProperty(map, 'size', { configurable: true, enumerable: true, value: 'own', writable: true });
+    map.label = { text: 'own' };
+
+    const result = copyStrict(map);
+
+    expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(map));
+    expect(result.label).not.toBe(map.label);
+    expect(Map.prototype.entries.call(result).next().value).toEqual(['key', { label: 'value' }]);
+  });
+
+  it('will define own properties of an object with a Proxy prototype', () => {
+    const prototype = new Proxy({}, { set: swallow });
     const object: Record<string, unknown> = Object.create(prototype);
 
+    defineSwallowed(object);
     object.nested = { label: 'value' };
 
     const result = copyStrict(object);
 
-    expect(has).not.toHaveBeenCalled();
     expect(Object.getPrototypeOf(result)).toBe(prototype);
-    expect(Object.hasOwn(result, 'nested')).toBe(true);
-    expect(result.nested).toEqual(object.nested);
+    expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(object));
     expect(result.nested).not.toBe(object.nested);
   });
 
-  it('will not check for properties on an array subclass prototype, which may have side effects', () => {
-    class Subclass extends Array<number> {
-      declare nested?: unknown;
-    }
+  it('will define own properties of an array subclass with a Proxy in its prototype chain', () => {
+    class Subclass extends Array<number> {}
 
-    const has = vi.fn(Reflect.has);
-
-    Object.setPrototypeOf(Subclass.prototype, new Proxy(Array.prototype, { has }));
+    Object.setPrototypeOf(Subclass.prototype, new Proxy(Array.prototype, { set: swallow }));
 
     const array = new Subclass();
 
     array.push(1, 2);
-    array.nested = { label: 'value' };
+    defineSwallowed(array);
 
     const result = copyStrict(array);
 
-    expect(has).not.toHaveBeenCalled();
     expect(result).toBeInstanceOf(Subclass);
-    expect([...result]).toEqual([1, 2]);
-    expect(Object.hasOwn(result, 'nested')).toBe(true);
-    expect(result.nested).toEqual(array.nested);
-    expect(result.nested).not.toBe(array.nested);
+    expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(array));
   });
+
+  it('will define own properties of an array when its prototype chain was modified on load', async () => {
+    Object.setPrototypeOf(Array.prototype, new Proxy(Object.prototype, { set: swallow }));
+
+    try {
+      vi.resetModules();
+
+      const { copyStrict: copyStrictOnModifiedLoad } = await import('../src/index.js');
+      const array: unknown[] = [1];
+
+      defineSwallowed(array);
+
+      const result = copyStrictOnModifiedLoad(array);
+
+      expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(array));
+    } finally {
+      Object.setPrototypeOf(Array.prototype, Object.prototype);
+      vi.resetModules();
+    }
+  });
+
+  it.each([
+    ['Boolean', Boolean, [true]],
+    ['DataView', DataView, [new ArrayBuffer(4)]],
+    ['Date', Date, [0]],
+    ['Map', Map, [[['key', 'value']]]],
+    ['Number', Number, [1]],
+    ['RegExp', RegExp, ['foo', 'g']],
+    ['Set', Set, [['value']]],
+    ['String', String, ['foo']],
+  ] as Array<[string, new (...args: any[]) => object, unknown[]]>)(
+    'will define own properties of a %s subclass with a Proxy in its prototype chain',
+    (_name, Base, args) => {
+      class Subclass extends Base {}
+
+      Object.setPrototypeOf(Subclass.prototype, new Proxy(Base.prototype as object, { set: swallow }));
+
+      const value = new Subclass(...args);
+
+      defineSwallowed(value);
+
+      const result = copyStrict(value);
+
+      expect(result).toBeInstanceOf(Subclass);
+      expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(value));
+    },
+  );
 
   it('will copy the simple types', () => {
     const result = copyStrict(SIMPLE_TYPES);

@@ -6,8 +6,9 @@
 
 - [#167](https://github.com/planttheidea/fast-copy/pull/167) - Improve `copyStrict` performance by assigning standard
   (configurable, enumerable, and writable) properties of plain objects and arrays instead of defining them with
-  `Object.defineProperty`, and by not redefining an array `length` that already matches; copies are unchanged (thanks
-  [@g4lb](https://github.com/g4lb))
+  `Object.defineProperty`, and by not redefining an array `length` that already matches; copies are unchanged, and
+  properties are still defined whenever the prototype chain may contain a `Proxy`, such as for custom prototypes or when
+  the chain of `Array.prototype` was modified before `fast-copy` loaded (thanks [@g4lb](https://github.com/g4lb))
 
 ### Bug fixes
 

@@ -60,6 +60,18 @@ const sliceTypedArray = Object.getPrototypeOf(Int8Array.prototype).slice as (
 ) => ArrayBufferView;
 
 /**
+ * Whether the prototype chain of a standard array, `Array.prototype` -> `Object.prototype` -> `null`,
+ * was unmodified when this module loaded.
+ *
+ * @note
+ * The `[[Prototype]]` of `Object.prototype` cannot be changed, but that of `Array.prototype` can,
+ * such as to a `Proxy` whose `set` trap would intercept the assignment of a property on an array
+ * clone. This is checked once rather than for every copy, so it does not detect a change made after
+ * this module loaded.
+ */
+const IS_ARRAY_PROTOTYPE_STANDARD = Object.getPrototypeOf(Array.prototype) === Object.prototype;
+
+/**
  * Copy the descriptor from the original value to the clone.
  *
  * @note
@@ -131,8 +143,9 @@ function defineOwnValue(clone: object, property: string | symbol, value: unknown
  * `Object.getOwnPropertyNames` lists integer keys first in ascending order, so array-like values
  * whose indices are already copied can pass their count as `start` to skip them.
  *
- * Pass `assignable` only when the prototype of the clone is `Object.prototype`, `Array.prototype`
- * or `null`, since only these are trusted to have no side effects when checking for a property.
+ * Pass `assignable` only when the prototype of the clone is `Object.prototype`, `null`, or
+ * `Array.prototype` when {@link IS_ARRAY_PROTOTYPE_STANDARD}, since only these are trusted to have no
+ * side effects when checking for and assigning a property.
  */
 function copyOwnPropertiesStrict<Value extends object>(
   value: Value,
@@ -186,7 +199,7 @@ export function copyArrayStrict<Value extends any[]>(array: Value, state: State)
     state,
     Object.getOwnPropertyNames(array),
     0,
-    state.Constructor === Array,
+    IS_ARRAY_PROTOTYPE_STANDARD && state.Constructor === Array,
   );
 }
 
