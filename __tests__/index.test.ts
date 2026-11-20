@@ -594,6 +594,35 @@ describe('copyStrict', () => {
     expect(Map.prototype.entries.call(result).next().value).toEqual(['key', { label: 'value' }]);
   });
 
+  it('will preserve accessors when `value` and `writable` are inherited from a polluted Object.prototype', () => {
+    const get = () => 'from getter';
+    const object = {};
+    const array: unknown[] = [1];
+
+    Object.defineProperty(object, 'accessor', { configurable: true, enumerable: true, get });
+    Object.defineProperty(array, 'accessor', { configurable: true, enumerable: true, get });
+
+    Object.defineProperty(Object.prototype, 'value', { configurable: true, value: 'polluted', writable: true });
+    Object.defineProperty(Object.prototype, 'writable', { configurable: true, value: true, writable: true });
+
+    try {
+      const objectResult = copyStrict(object);
+      const arrayResult = copyStrict(array);
+
+      expect(Object.getOwnPropertyDescriptor(objectResult, 'accessor')).toEqual(
+        Object.getOwnPropertyDescriptor(object, 'accessor'),
+      );
+      expect(Object.getOwnPropertyDescriptor(arrayResult, 'accessor')).toEqual(
+        Object.getOwnPropertyDescriptor(array, 'accessor'),
+      );
+    } finally {
+      // @ts-expect-error - removing the pollution added above
+      delete Object.prototype.value;
+      // @ts-expect-error - removing the pollution added above
+      delete Object.prototype.writable;
+    }
+  });
+
   it('will define own properties of an object with a Proxy prototype', () => {
     const prototype = new Proxy({}, { set: swallow });
     const object: Record<string, unknown> = Object.create(prototype);
