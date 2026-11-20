@@ -23,6 +23,8 @@ jobs:
         uses: actions/setup-node@v5
         with:
           node-version: 24
+          # Auto-caching invokes `yarn` before corepack is enabled, which resolves to Yarn 1 and fails.
+          package-manager-cache: false
 
       - name: Setup Yarn
         run: corepack enable
