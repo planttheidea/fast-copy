@@ -61,12 +61,18 @@ const sliceTypedArray = Object.getPrototypeOf(Int8Array.prototype).slice as (
 
 /**
  * Copy the descriptor from the original value to the clone.
+ *
+ * @note
+ * When `assignable`, the clone's prototype is a standard one, so a standard (configurable,
+ * enumerable, writable) value whose property is not found on the clone is assigned, which is
+ * faster than `Object.defineProperty` and produces the same own property.
  */
 function copyOwnDescriptor<Value extends object>(
   original: Value,
   clone: Value,
   property: string | symbol,
   state: State,
+  assignable: boolean,
 ): void {
   const ownDescriptor = Object.getOwnPropertyDescriptor(original, property) || {
     configurable: true,
@@ -83,6 +89,20 @@ function copyOwnDescriptor<Value extends object>(
           value: state.copier(ownDescriptor.value, state),
           writable: ownDescriptor.writable,
         };
+
+  if (assignable) {
+    if (descriptor.configurable && descriptor.enumerable && descriptor.writable && !(property in clone)) {
+      clone[property as keyof Value] = descriptor.value;
+
+      return;
+    }
+
+    // A standard array clone already has a writable `length`, which matches the original's once
+    // its indices are copied unless the original ends with holes, so redefining it can be skipped.
+    if (property === 'length' && descriptor.writable && Array.isArray(clone) && clone.length === descriptor.value) {
+      return;
+    }
+  }
 
   try {
     Object.defineProperty(clone, property, descriptor);
@@ -110,6 +130,9 @@ function defineOwnValue(clone: object, property: string | symbol, value: unknown
  * @note
  * `Object.getOwnPropertyNames` lists integer keys first in ascending order, so array-like values
  * whose indices are already copied can pass their count as `start` to skip them.
+ *
+ * Pass `assignable` only when the prototype of the clone is `Object.prototype`, `Array.prototype`
+ * or `null`, since only these are trusted to have no side effects when checking for a property.
  */
 function copyOwnPropertiesStrict<Value extends object>(
   value: Value,
@@ -117,13 +140,14 @@ function copyOwnPropertiesStrict<Value extends object>(
   state: State,
   names: string[],
   start: number,
+  assignable: boolean,
 ): Value {
   for (let index = start; index < names.length; ++index) {
-    copyOwnDescriptor(value, clone, names[index]!, state);
+    copyOwnDescriptor(value, clone, names[index]!, state, assignable);
   }
 
   for (const symbol of Object.getOwnPropertySymbols(value)) {
-    copyOwnDescriptor(value, clone, symbol, state);
+    copyOwnDescriptor(value, clone, symbol, state, assignable);
   }
 
   return clone;
@@ -156,7 +180,14 @@ export function copyArrayStrict<Value extends any[]>(array: Value, state: State)
 
   // Indices are copied by descriptor rather than by assignment, unlike typed arrays and strings,
   // because array indices can be holes, accessors, or non-writable / non-enumerable values.
-  return copyOwnPropertiesStrict(array, clone, state, Object.getOwnPropertyNames(array), 0);
+  return copyOwnPropertiesStrict(
+    array,
+    clone,
+    state,
+    Object.getOwnPropertyNames(array),
+    0,
+    state.Constructor === Array,
+  );
 }
 
 /**
@@ -211,7 +242,7 @@ export function copyArrayBufferStrict<Value extends ArrayBufferLike | ArrayBuffe
   // fresh clone is read, since the original may have an own `length` that shadows the real one.
   const start = ArrayBuffer.isView(clone) ? (clone as unknown as ArrayLike<unknown>).length || 0 : 0;
 
-  return copyOwnPropertiesStrict(arrayBuffer, clone, state, Object.getOwnPropertyNames(arrayBuffer), start);
+  return copyOwnPropertiesStrict(arrayBuffer, clone, state, Object.getOwnPropertyNames(arrayBuffer), start, false);
 }
 
 /**
@@ -257,7 +288,7 @@ export function copyDataViewStrict<Value extends DataView>(dataView: Value, stat
   // set in the cache immediately to be able to reuse the object recursively.
   state.cache.set(dataView, clone);
 
-  return copyOwnPropertiesStrict(dataView, clone, state, Object.getOwnPropertyNames(dataView), 0);
+  return copyOwnPropertiesStrict(dataView, clone, state, Object.getOwnPropertyNames(dataView), 0, false);
 }
 
 /**
@@ -292,7 +323,7 @@ export function copyMap<Value extends Map<any, any>>(map: Value, state: State): 
  * Deeply copy the keys and values of the original, as well as any custom properties.
  */
 export function copyMapStrict<Value extends Map<any, any>>(map: Value, state: State): Value {
-  return copyOwnPropertiesStrict(map, copyMap(map, state), state, Object.getOwnPropertyNames(map), 0);
+  return copyOwnPropertiesStrict(map, copyMap(map, state), state, Object.getOwnPropertyNames(map), 0, false);
 }
 
 /**
@@ -349,12 +380,21 @@ export function copyObject<Value extends Record<string, any>>(object: Value, sta
  * as any hidden or non-enumerable properties.
  */
 export function copyObjectStrict<Value extends Record<string, any>>(object: Value, state: State): Value {
-  const clone = getCleanClone(state.prototype);
+  // captured before copying nested values, which change `state.prototype`
+  const { prototype } = state;
+  const clone = getCleanClone(prototype);
 
   // set in the cache immediately to be able to reuse the object recursively
   state.cache.set(object, clone);
 
-  return copyOwnPropertiesStrict(object, clone, state, Object.getOwnPropertyNames(object), 0);
+  return copyOwnPropertiesStrict(
+    object,
+    clone,
+    state,
+    Object.getOwnPropertyNames(object),
+    0,
+    prototype === Object.prototype || prototype === null,
+  );
 }
 
 /**
@@ -421,7 +461,7 @@ export function copySet<Value extends Set<any>>(set: Value, state: State): Value
  * Deeply copy the values of the original, as well as any custom properties.
  */
 export function copySetStrict<Value extends Set<any>>(set: Value, state: State): Value {
-  return copyOwnPropertiesStrict(set, copySet(set, state), state, Object.getOwnPropertyNames(set), 0);
+  return copyOwnPropertiesStrict(set, copySet(set, state), state, Object.getOwnPropertyNames(set), 0, false);
 }
 
 /**
@@ -439,7 +479,7 @@ function createStrictHandler<Value extends object>(handler: (value: Value, state
     // set in the cache immediately to be able to reuse the object recursively
     state.cache.set(value, clone);
 
-    return copyOwnPropertiesStrict(value, clone, state, Object.getOwnPropertyNames(value), 0);
+    return copyOwnPropertiesStrict(value, clone, state, Object.getOwnPropertyNames(value), 0, false);
   };
 }
 
@@ -460,5 +500,5 @@ export function copyStringStrict<Value extends String>(string: Value, state: Sta
   // `length` when it directly follows the characters.
   const start = names[length] === 'length' ? length + 1 : length;
 
-  return copyOwnPropertiesStrict(string, clone, state, names, start);
+  return copyOwnPropertiesStrict(string, clone, state, names, start, false);
 }
