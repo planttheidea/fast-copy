@@ -51,7 +51,7 @@ describe('copyArrayStrict', () => {
 describe('copyDateStrict', () => {
   class CustomDate extends Date {}
 
-  it.each([new Date(1234), new CustomDate(NaN)])('will strictly copy metadata on %s', (date) => {
+  it.each([new Date(1234), new CustomDate(NaN)] as const)('will strictly copy metadata on %s', (date) => {
     const original = Object.assign(date, { metadata: { source: 'api' } });
 
     const cache = createDefaultCache();
