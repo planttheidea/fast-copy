@@ -2,8 +2,19 @@
 
 ## 4.3.3
 
+### Enhancements
+
+- [#167](https://github.com/planttheidea/fast-copy/pull/167) - Improve `copyStrict` performance by assigning standard
+  (configurable, enumerable, and writable) properties of plain objects and arrays instead of defining them with
+  `Object.defineProperty`, and by not redefining an array `length` that already matches; copies are unchanged, and
+  properties are still defined whenever the prototype chain may contain a `Proxy`, such as for custom prototypes or when
+  the chain of `Array.prototype` was modified before `fast-copy` loaded (thanks [@g4lb](https://github.com/g4lb))
+
 ### Bug fixes
 
+- [#169](https://github.com/planttheidea/fast-copy/pull/169) - Preserve accessor properties in `strict` mode when
+  `value` or `writable` is defined on `Object.prototype`; these were previously copied as data properties with the
+  getter's current value, since `Object.defineProperty` also reads inherited fields of the descriptor
 - [#164](https://github.com/planttheidea/fast-copy/pull/164) - Deep copy `Map` keys in addition to values; object keys
   were previously reused by reference, so the copy was not a true deep copy and retained references to the original
   objects, potentially leaking them (reported in [#163](https://github.com/planttheidea/fast-copy/issues/163), thanks
