@@ -12,9 +12,9 @@
 
 ### Bug fixes
 
-- Preserve accessor properties in `strict` mode when `value` or `writable` is defined on `Object.prototype`; these were
-  previously copied as data properties with the getter's current value, since `Object.defineProperty` also reads
-  inherited fields of the descriptor
+- [#169](https://github.com/planttheidea/fast-copy/pull/169) - Preserve accessor properties in `strict` mode when
+  `value` or `writable` is defined on `Object.prototype`; these were previously copied as data properties with the
+  getter's current value, since `Object.defineProperty` also reads inherited fields of the descriptor
 - [#164](https://github.com/planttheidea/fast-copy/pull/164) - Deep copy `Map` keys in addition to values; object keys
   were previously reused by reference, so the copy was not a true deep copy and retained references to the original
   objects, potentially leaking them (reported in [#163](https://github.com/planttheidea/fast-copy/issues/163), thanks
