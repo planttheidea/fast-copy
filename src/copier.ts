@@ -99,7 +99,7 @@ function copyOwnDescriptor<Value extends object>(
   };
   let descriptor: PropertyDescriptor;
 
-  if (ownDescriptor.get || ownDescriptor.set) {
+  if (Object.prototype.hasOwnProperty.call(ownDescriptor, 'get')) {
     descriptor = ownDescriptor;
   } else {
     const { configurable, enumerable, writable } = ownDescriptor;
