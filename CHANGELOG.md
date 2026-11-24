@@ -1,5 +1,13 @@
 # fast-copy CHANGELOG
 
+## 4.3.4
+
+### Bug fixes
+
+- [#171](https://github.com/planttheidea/fast-copy/pull/171) - Preserve accessor descriptors with neither a getter nor a
+  setter in strict copies; they were previously changed to non-writable data properties (thanks
+  [@fbirds5230](https://github.com/fbirds5230))
+
 ## 4.3.3
 
 ### Enhancements

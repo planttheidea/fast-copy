@@ -594,6 +594,38 @@ describe('copyStrict', () => {
     expect(Map.prototype.entries.call(result).next().value).toEqual(['key', { label: 'value' }]);
   });
 
+  it.each([
+    { name: 'an object', original: {}, property: 'disabled' },
+    { name: 'an array index', original: [], property: '0' },
+    { name: 'a symbol on a Date', original: new Date(0), property: Symbol('disabled') },
+  ])('will preserve an accessor with no getter or setter on $name', ({ original, property }) => {
+    Object.defineProperty(original, property, { enumerable: true, get: undefined, set: undefined });
+
+    const result = copyStrict(original);
+
+    expect(result).not.toBe(original);
+    expect(Object.getOwnPropertyDescriptor(result, property)).toEqual(
+      Object.getOwnPropertyDescriptor(original, property),
+    );
+    // Reapplying the same non-configurable accessor is valid, but converting a data property to one is not.
+    expect(() => Object.defineProperty(result, property, { get: undefined })).not.toThrow();
+  });
+
+  it('will preserve a setter-only accessor without invoking it', () => {
+    const set = vi.fn();
+    const original = {};
+
+    Object.defineProperty(original, 'writeOnly', { enumerable: true, set });
+
+    const result = copyStrict(original);
+
+    expect(result).not.toBe(original);
+    expect(Object.getOwnPropertyDescriptor(result, 'writeOnly')).toEqual(
+      Object.getOwnPropertyDescriptor(original, 'writeOnly'),
+    );
+    expect(set).not.toHaveBeenCalled();
+  });
+
   it('will preserve accessors when `value` and `writable` are inherited from a polluted Object.prototype', () => {
     const get = () => 'from getter';
     const object = {};
