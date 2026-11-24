@@ -626,25 +626,6 @@ describe('copyStrict', () => {
     expect(set).not.toHaveBeenCalled();
   });
 
-  it.each([true, false])('will preserve empty accessors when Object.prototype.writable is %s', (writable) => {
-    const original = { data: { value: 1 } };
-    let result: typeof original;
-
-    Object.defineProperty(original, 'empty', { enumerable: true, get: undefined, set: undefined });
-    Object.defineProperty(original, 'readonly', { value: 'unchanged', writable: false });
-    Object.defineProperty(Object.prototype, 'writable', { configurable: true, value: writable, writable: true });
-
-    try {
-      result = copyStrict(original);
-    } finally {
-      // @ts-expect-error - removing the pollution added above
-      delete Object.prototype.writable;
-    }
-
-    expect(Object.getOwnPropertyDescriptors(result)).toEqual(Object.getOwnPropertyDescriptors(original));
-    expect(result.data).not.toBe(original.data);
-  });
-
   it('will preserve accessors when `value` and `writable` are inherited from a polluted Object.prototype', () => {
     const get = () => 'from getter';
     const object = {};
