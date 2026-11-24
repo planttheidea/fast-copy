@@ -99,7 +99,13 @@ function copyOwnDescriptor<Value extends object>(
   };
   let descriptor: PropertyDescriptor;
 
-  if (Object.prototype.hasOwnProperty.call(ownDescriptor, 'get')) {
+  // An inherited `writable` can hide an accessor whose getter and setter are both undefined.
+  if (
+    ownDescriptor.writable === undefined
+    || ownDescriptor.get
+    || ownDescriptor.set
+    || ('writable' in Object.prototype && Object.prototype.hasOwnProperty.call(ownDescriptor, 'get'))
+  ) {
     descriptor = ownDescriptor;
   } else {
     const { configurable, enumerable, writable } = ownDescriptor;

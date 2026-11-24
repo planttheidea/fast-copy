@@ -1,5 +1,13 @@
 # fast-copy CHANGELOG
 
+## 4.3.4
+
+### Bug fixes
+
+- [#171](https://github.com/planttheidea/fast-copy/pull/171) - Preserve accessor descriptors with neither a getter nor a
+  setter in strict copies; they were previously changed to non-writable data properties (thanks
+  [@fbirds5230](https://github.com/fbirds5230))
+
 ## 4.3.3
 
 ### Enhancements
@@ -12,8 +20,6 @@
 
 ### Bug fixes
 
-- Preserve accessor descriptors with neither a getter nor a setter in strict copies; they were previously changed to
-  non-writable data properties
 - [#169](https://github.com/planttheidea/fast-copy/pull/169) - Preserve accessor properties in `strict` mode when
   `value` or `writable` is defined on `Object.prototype`; these were previously copied as data properties with the
   getter's current value, since `Object.defineProperty` also reads inherited fields of the descriptor
